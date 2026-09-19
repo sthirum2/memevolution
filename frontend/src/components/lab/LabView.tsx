@@ -1,128 +1,635 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { Check, RotateCcw } from 'lucide-react'
+import { useEffect } from 'react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Instagram,
+  Music2,
+  RotateCcw,
+  Twitter,
+} from 'lucide-react'
 import { useStore } from '@/store/useStore'
-import type { LabStage } from '@/store/useStore'
-import { C } from '@/lib/fitness'
-import { cx } from '@/components/common/ui'
-import { StageAuthorize, StageGenerate, StageObserve, StageSeed, StageSelect } from './stages'
+import type { LabStep } from '@/store/useStore'
+import type { Platform } from '@/types'
+import { USE_MOCK } from '@/api/client'
+import { C, scoreColor } from '@/lib/fitness'
+import { PLATFORM_NAMES, plainTrait, score } from '@/lib/plain'
+import { useCountUp } from '@/lib/useCountUp'
+import { Badge, Bar, Button, Spinner, cx } from '@/components/ui'
+import MemePreview from '@/components/evolution/MemePreview'
+import PhonePreview from './PhonePreview'
 
-const STAGES: { key: LabStage; label: string; caption: string }[] = [
-  { key: 'seed', label: 'seed', caption: 'pick the environment' },
-  { key: 'generate', label: 'generate', caption: 'synthesise the population' },
-  { key: 'select', label: 'select', caption: 'score and choose' },
-  { key: 'authorize', label: 'authorize', caption: 'human in the loop' },
-  { key: 'observe', label: 'observe', caption: 'measure and evolve' },
+const STEPS: { key: LabStep; label: string }[] = [
+  { key: 'setup', label: 'Choose' },
+  { key: 'candidates', label: 'AI creates' },
+  { key: 'review', label: 'You approve' },
+  { key: 'results', label: 'Results' },
+]
+
+const PLATFORMS: { key: Platform; icon: typeof Music2; note: string }[] = [
+  { key: 'tiktok', icon: Music2, note: 'Short video. Sound matters most.' },
+  { key: 'instagram', icon: Instagram, note: 'Reels and carousels. Saves matter most.' },
+  { key: 'x', icon: Twitter, note: 'Mostly text. Reposts matter most.' },
+]
+
+const TOPICS = [
+  'bureaucracy',
+  'cs major',
+  'campus life',
+  'dining hall',
+  'group projects',
+  'the gym',
 ]
 
 export default function LabView() {
   const lab = useStore((s) => s.lab)
-  const setLab = useStore((s) => s.setLab)
   const resetLab = useStore((s) => s.resetLab)
-  const demo = useStore((s) => s.demo)
-
-  const currentIndex = STAGES.findIndex((s) => s.key === lab.stage)
+  const createMemes = useStore((s) => s.createMemes)
+  const currentStep = STEPS.findIndex((s) => s.key === lab.step)
 
   return (
-    <div className="flex h-full min-h-0">
-      {/* stage rail */}
-      <nav className="hidden w-[196px] shrink-0 flex-col border-r border-hairline bg-carbon md:flex">
-        <div className="flex items-baseline justify-between border-b border-hairline px-3 py-2">
-          <span className="lab-label">pipeline</span>
-          <button
-            type="button"
-            onClick={resetLab}
-            title="reset the lab"
-            className="text-smoke transition-colors hover:text-bone"
-          >
-            <RotateCcw size={11} />
-          </button>
-        </div>
-        <div className="flex flex-col p-2">
-          {STAGES.map((s, i) => {
-            const done = i < currentIndex
-            const active = i === currentIndex
-            const reachable = i <= currentIndex
-            return (
-              <button
-                key={s.key}
-                type="button"
-                disabled={!reachable}
-                onClick={() => setLab({ stage: s.key })}
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 py-6 sm:px-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="font-display text-2xl font-bold">Run a round yourself</h2>
+        <p className="max-w-2xl text-[15px] text-muted">
+          The AI writes five memes, scores each one against what it has learned, and picks the one
+          it thinks will spread. You decide whether it actually gets posted.
+        </p>
+      </div>
+
+      {/* progress */}
+      <ol className="flex items-center gap-2">
+        {STEPS.map((s, i) => {
+          const done = i < currentStep
+          const active = i === currentStep
+          return (
+            <li key={s.key} className="flex flex-1 items-center gap-2">
+              <span
                 className={cx(
-                  'group relative flex items-start gap-2.5 px-2 py-2.5 text-left transition-colors',
-                  reachable ? 'cursor-pointer' : 'cursor-not-allowed',
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                  done
+                    ? 'bg-win text-white'
+                    : active
+                      ? 'bg-ink text-white'
+                      : 'bg-card text-muted ring-1 ring-line',
                 )}
               >
-                {/* connector */}
-                {i < STAGES.length - 1 ? (
-                  <span
-                    className="absolute left-[15px] top-[26px] h-[22px] w-px transition-colors"
-                    style={{ background: done ? C.acid : 'rgba(237,232,224,0.1)' }}
-                  />
-                ) : null}
+                {done ? <Check size={14} strokeWidth={3} /> : i + 1}
+              </span>
+              <span
+                className={cx(
+                  'hidden text-sm font-semibold sm:block',
+                  active ? 'text-ink' : 'text-muted',
+                )}
+              >
+                {s.label}
+              </span>
+              {i < STEPS.length - 1 ? (
                 <span
                   className={cx(
-                    'mt-px flex h-4 w-4 shrink-0 items-center justify-center border text-2xs transition-all',
-                    active && 'animate-breathe',
+                    'h-0.5 flex-1 rounded transition-colors',
+                    done ? 'bg-win' : 'bg-line',
                   )}
-                  style={{
-                    borderColor: done || active ? C.acid : 'rgba(237,232,224,0.14)',
-                    background: done ? C.acid : 'transparent',
-                    color: done ? C.void : active ? C.acid : C.smoke,
-                  }}
-                >
-                  {done ? <Check size={9} strokeWidth={3} /> : i + 1}
-                </span>
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span
-                    className={cx(
-                      'text-2xs lowercase tracking-lab transition-colors',
-                      active ? 'text-acid' : done ? 'text-bone/70' : 'text-smoke',
-                    )}
-                  >
-                    {s.label}
-                  </span>
-                  <span className="text-2xs leading-tight text-smoke/70">{s.caption}</span>
-                </span>
+                />
+              ) : null}
+            </li>
+          )
+        })}
+      </ol>
+
+      {lab.step === 'setup' ? <StepSetup /> : null}
+      {lab.step === 'candidates' ? <StepCandidates /> : null}
+      {lab.step === 'review' ? <StepReview /> : null}
+      {lab.step === 'results' ? <StepResults /> : null}
+
+      {lab.step !== 'setup' ? (
+        <button
+          type="button"
+          onClick={resetLab}
+          className="flex items-center gap-2 self-start text-sm font-semibold text-muted transition-colors hover:text-ink"
+        >
+          <RotateCcw size={14} />
+          Start over
+        </button>
+      ) : null}
+
+      {/* keeps the primary action reachable even mid-flow */}
+      {lab.step === 'setup' ? (
+        <div className="flex flex-wrap items-center gap-4 border-t border-line pt-6">
+          <Button size="lg" onClick={createMemes} disabled={lab.busy}>
+            {lab.busy ? <Spinner /> : null}
+            Create 5 memes
+          </Button>
+          <span className="text-sm text-muted">
+            Takes about 5 seconds. Nothing is posted at this step.
+          </span>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+/* ── Step 1 ─────────────────────────────────────────────────────────────── */
+function StepSetup() {
+  const lab = useStore((s) => s.lab)
+  const setLab = useStore((s) => s.setLab)
+
+  return (
+    <div className="flex flex-col gap-7">
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display text-lg font-bold">Where should it post?</h3>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {PLATFORMS.map((p) => {
+            const active = lab.platform === p.key
+            const Icon = p.icon
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setLab({ platform: p.key })}
+                className={cx(
+                  'flex flex-col gap-2 rounded-2xl border-2 p-5 text-left transition-all duration-150',
+                  active
+                    ? 'border-agent bg-agent-soft'
+                    : 'border-line bg-card hover:border-ink/20 hover:shadow-card',
+                )}
+              >
+                <Icon size={22} className={active ? 'text-agent' : 'text-muted'} />
+                <span className="font-display text-lg font-bold">{PLATFORM_NAMES[p.key]}</span>
+                <span className="text-sm leading-snug text-muted">{p.note}</span>
               </button>
             )
           })}
         </div>
+      </div>
 
-        <div className="mt-auto border-t border-hairline p-3">
-          <p className="text-2xs leading-relaxed text-smoke">
-            one turn of the loop: learn → generate → select → deploy → observe → evolve.
-          </p>
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display text-lg font-bold">What should it be about?</h3>
+        <div className="flex flex-wrap gap-2">
+          {TOPICS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setLab({ topic: t })}
+              className={cx(
+                'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+                lab.topic === t
+                  ? 'border-agent bg-agent text-white'
+                  : 'border-line bg-card text-muted hover:border-ink/20 hover:text-ink',
+              )}
+            >
+              {t}
+            </button>
+          ))}
         </div>
-      </nav>
+      </div>
 
-      {/* stage body */}
-      <div className="relative min-w-0 flex-1 overflow-y-auto">
-        {demo ? (
-          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-probe/40 bg-probe/10 px-4 py-1.5 backdrop-blur-sm">
-            <span className="inline-block h-1.5 w-1.5 animate-blink rounded-full bg-probe" />
-            <span className="text-2xs lowercase tracking-lab text-probe">
-              demo playback — running the pipeline hands-free on mock data
-            </span>
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display text-lg font-bold">How adventurous should it be?</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              on: false,
+              title: 'Play it safe',
+              body: 'Stick close to what has already worked. Higher scores, less learned.',
+            },
+            {
+              on: true,
+              title: 'Take a risk',
+              body: 'Try something it is unsure about. Lower scores, but it learns more.',
+            },
+          ].map((o) => (
+            <button
+              key={o.title}
+              type="button"
+              onClick={() => setLab({ adventurous: o.on })}
+              className={cx(
+                'rounded-2xl border-2 p-4 text-left transition-all duration-150',
+                lab.adventurous === o.on
+                  ? 'border-agent bg-agent-soft'
+                  : 'border-line bg-card hover:border-ink/20',
+              )}
+            >
+              <span className="font-semibold">{o.title}</span>
+              <p className="mt-1 text-sm leading-snug text-muted">{o.body}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Step 2 ─────────────────────────────────────────────────────────────── */
+function StepCandidates() {
+  const lab = useStore((s) => s.lab)
+  const setLab = useStore((s) => s.setLab)
+
+  const ordered = [...lab.candidates].sort((a, b) => {
+    const sa = lab.scored.includes(a.id) ? a.prediction.fitness : -1
+    const sb = lab.scored.includes(b.id) ? b.prediction.fitness : -1
+    return sb - sa
+  })
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h3 className="font-display text-lg font-bold">
+          {lab.busy
+            ? `Writing memes… ${lab.candidates.length} of 5`
+            : 'The AI scored all five and made its pick'}
+        </h3>
+        <p className="text-sm text-muted">
+          Each one changes exactly one thing, so the AI can tell what caused what.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {ordered.map((c) => {
+          const isScored = lab.scored.includes(c.id)
+          const isPick = lab.selection?.selectedId === c.id
+          const beaten = Boolean(lab.selection) && !isPick
+          return (
+            <div
+              key={c.id}
+              className={cx(
+                'flex animate-pop-in items-center gap-4 rounded-2xl border-2 bg-card p-3 transition-all duration-300',
+                isPick ? 'border-win shadow-win' : 'border-line',
+                beaten && 'opacity-55',
+              )}
+            >
+              <MemePreview
+                content={c.content}
+                ratio="card"
+                size="sm"
+                faded={beaten}
+                showPunchline={false}
+                className="w-24 shrink-0 rounded-lg sm:w-28"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <p className="font-semibold leading-snug">{c.content.headline}</p>
+                  {isPick ? (
+                    <Badge tone="win">
+                      {lab.selection?.mode === 'explore' ? 'Chosen — the risky one' : 'Chosen'}
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="mb-1.5 text-sm text-muted">
+                  Changed:{' '}
+                  <span className="font-medium text-ink">
+                    {c.mutations
+                      .slice(0, 3)
+                      .map((m) => plainTrait(m.trait))
+                      .join(', ') || 'nothing'}
+                  </span>
+                </p>
+                <p className="text-sm text-muted">&ldquo;{c.content.caption}&rdquo;</p>
+              </div>
+              <ScoreChip fitness={c.prediction.fitness} revealed={isScored} />
+            </div>
+          )
+        })}
+        {lab.busy && lab.candidates.length < 5 ? (
+          <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-line p-6 text-muted">
+            <Spinner />
+            <span className="text-sm font-medium">Writing the next one…</span>
           </div>
         ) : null}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={lab.stage}
-            initial={{ opacity: 0, y: 8, filter: 'blur(5px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -6, filter: 'blur(5px)' }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto w-full max-w-5xl pb-32"
-          >
-            {lab.stage === 'seed' ? <StageSeed /> : null}
-            {lab.stage === 'generate' ? <StageGenerate /> : null}
-            {lab.stage === 'select' ? <StageSelect /> : null}
-            {lab.stage === 'authorize' ? <StageAuthorize /> : null}
-            {lab.stage === 'observe' ? <StageObserve /> : null}
-          </motion.div>
-        </AnimatePresence>
       </div>
+
+      {lab.selection ? (
+        <div className="flex flex-col gap-4 rounded-2xl bg-agent-soft p-5">
+          <div>
+            <p className="label mb-1 text-agent">Why it picked this one</p>
+            <p className="text-[15px] leading-relaxed">{plainReason(lab.selection.reasoning)}</p>
+          </div>
+          <Button size="lg" className="self-start" onClick={() => setLab({ step: 'review' })}>
+            Review it before posting
+            <ArrowRight size={16} />
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+/** The mock writes for a technical reader; soften it for a general one. */
+function plainReason(reason: string): string {
+  return reason
+    .replace(
+      /^Exploiting: the leader scores highest at \.?(\d+)/,
+      'This scored highest ($1 out of 100)',
+    )
+    .replace(
+      /^Exploring: this candidate scores \.?(\d+) lower than the leader/,
+      'This scored a bit lower than the top one',
+    )
+    .replace(/with \.?(\d+) confidence/, 'and the AI is fairly confident about it')
+    .replace(/\(\.?(\d+)\)/, '')
+    .replace(/forgone fitness/, 'the points it would give up')
+}
+
+function ScoreChip({ fitness, revealed }: { fitness: number; revealed: boolean }) {
+  const shown = useCountUp(fitness, 700, revealed)
+  return (
+    <div className="w-20 shrink-0 text-right">
+      <p className="text-[11px] font-medium text-muted">AI predicts</p>
+      <p
+        className="num font-display text-3xl font-bold leading-none"
+        style={{ color: revealed ? scoreColor(fitness) : '#C9C6BE' }}
+      >
+        {revealed ? Math.round(shown * 100) : '–'}
+      </p>
+    </div>
+  )
+}
+
+/* ── Step 3 ─────────────────────────────────────────────────────────────── */
+function StepReview() {
+  const lab = useStore((s) => s.lab)
+  const setLab = useStore((s) => s.setLab)
+  const postIt = useStore((s) => s.postIt)
+  const corpus = useStore((s) => s.corpus)
+
+  const chosen = lab.candidates.find((c) => c.id === lab.selection?.selectedId)
+  if (!chosen) return null
+
+  const f = chosen.prediction.fitness
+  const base = 2400 + f * f * 46000
+  const projected = {
+    views: Math.round(base),
+    likes: Math.round(base * (0.06 + f * 0.1)),
+    comments: Math.round(base * (0.004 + f * 0.01)),
+    shares: Math.round(base * (0.003 + f * f * 0.048)),
+    saves: Math.round(base * (0.006 + f * 0.02)),
+  }
+
+  // Chance of beating the top 10% of everything in the historical data.
+  const dist = corpus?.fitnessDistribution ?? []
+  const total = dist.reduce((a, b) => a + b.count, 0) || 1
+  let cum = 0
+  let bar = 0.56
+  for (const b of dist) {
+    const lo = Number(b.bucket.split('–')[0])
+    const hi = Number(b.bucket.split('–')[1])
+    if ((cum + b.count) / total >= 0.9) {
+      bar = lo + (hi - lo) * ((0.9 * total - cum) / b.count)
+      break
+    }
+    cum += b.count
+  }
+  const spread = 0.13 + (1 - chosen.prediction.confidence) * 0.3
+  const chance = Math.max(
+    2,
+    Math.min(93, Math.round((1 / (1 + Math.exp(-(f - bar) / spread))) * 100)),
+  )
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[290px_1fr]">
+      <PhonePreview platform={lab.platform} content={chosen.content} projected={projected} />
+
+      <div className="flex flex-col gap-6">
+        <div className="card p-5">
+          <div className="flex flex-wrap items-end gap-6">
+            <div>
+              <p className="label">Chance of spreading</p>
+              <p
+                className="num font-display text-6xl font-bold leading-none"
+                style={{ color: chance >= 55 ? C.win : chance >= 30 ? C.mid : C.dead }}
+              >
+                {chance}%
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 pb-1 text-sm">
+              <span className="text-muted">
+                Predicted score <strong className="num text-ink">{score(f)}</strong> out of 100
+              </span>
+              <span className="text-muted">
+                AI confidence{' '}
+                <strong className="num text-ink">
+                  {Math.round(chosen.prediction.confidence * 100)}%
+                </strong>
+              </span>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            This is the AI&rsquo;s own estimate of the odds it beats the top 10% of the real posts
+            it learned from. It is a guess, and the AI has been wrong before.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <h3 className="font-display text-lg font-bold">Why the AI likes it</h3>
+          <div className="rounded-xl border-l-4 border-agent bg-agent-soft/60 px-4 py-3">
+            <p className="text-sm leading-relaxed">{chosen.hypothesis}</p>
+          </div>
+          <div className="flex flex-col gap-2.5 pt-1">
+            {(['absurdity', 'relatability', 'trend_relevance'] as const).map((t) => (
+              <Bar key={t} label={plainTrait(t)} value={chosen.genome[t]} color={C.agent} />
+            ))}
+          </div>
+        </div>
+
+        {/* the gate */}
+        <div className="rounded-2xl border-2 border-dead/40 bg-dead-soft/50 p-5">
+          <div className="mb-3 flex items-start gap-3">
+            <AlertTriangle size={20} className="mt-0.5 shrink-0 text-dead" />
+            <div>
+              <h3 className="font-display text-lg font-bold text-dead">
+                This posts to a real account
+              </h3>
+              <p className="mt-1 text-sm leading-relaxed">
+                The AI chose it, but a person has to approve it. Real people will see this on{' '}
+                {PLATFORM_NAMES[lab.platform]}.
+              </p>
+              {USE_MOCK ? (
+                <p className="mt-2 text-sm font-medium text-guess">
+                  Right now this is a demo — nothing actually gets posted.
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-xl bg-white/70 p-3">
+            <input
+              type="checkbox"
+              checked={lab.approved}
+              onChange={(e) => setLab({ approved: e.target.checked })}
+              className="checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M3 8.5l3.5 3.5L13 5%22/></svg>')] mt-0.5 h-5 w-5 shrink-0 cursor-pointer appearance-none rounded border-2 border-ink/30 bg-white transition-colors checked:border-win checked:bg-win checked:bg-center checked:bg-no-repeat"
+            />
+            <span className="text-sm font-medium">
+              I&rsquo;ve read this meme and I approve posting it.
+            </span>
+          </label>
+
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={postIt}
+            disabled={!lab.approved || lab.busy}
+            className="w-full sm:w-auto"
+          >
+            {lab.busy ? <Spinner /> : null}
+            Post it to {PLATFORM_NAMES[lab.platform]}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Step 4 ─────────────────────────────────────────────────────────────── */
+const SAT = (h: number) => 1 - Math.exp(-3.1 * (h / 24))
+
+function StepResults() {
+  const lab = useStore((s) => s.lab)
+  const setHours = useStore((s) => s.setHours)
+  const finish = useStore((s) => s.finish)
+  const setView = useStore((s) => s.setView)
+  const posted = lab.posted
+
+  // Let the first few hours run on their own so the panel feels alive.
+  useEffect(() => {
+    if (!posted || lab.hours > 0) return
+    let h = 0
+    const id = window.setInterval(() => {
+      h += 1
+      setHours(h)
+      if (h >= 8) window.clearInterval(id)
+    }, 110)
+    return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posted?.id])
+
+  if (!posted) return null
+
+  const f = posted.observed.fitness ?? posted.prediction.fitness
+  const base = 2400 + f * f * 46000
+  const s = SAT(Math.max(0.01, lab.hours))
+  const live = {
+    views: Math.round(base * s),
+    likes: Math.round(base * s * (0.06 + f * 0.1)),
+    comments: Math.round(base * s * (0.004 + f * 0.01)),
+    shares: Math.round(base * s * (0.003 + f * f * 0.048)),
+    saves: Math.round(base * s * (0.006 + f * 0.02)),
+  }
+  const running = posted.observed.fitness ?? posted.prediction.fitness * (0.72 + 0.28 * s)
+  const diff = running - posted.prediction.fitness
+  const done = Boolean(lab.evolveResult)
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge tone="win" dot={!done}>
+          {done ? 'Finished' : 'Live now'}
+        </Badge>
+        <h3 className="font-display text-lg font-bold">&ldquo;{posted.content.headline}&rdquo;</h3>
+      </div>
+
+      <div className="card flex flex-wrap items-end gap-8 p-6">
+        <div>
+          <p className="label">Spread score</p>
+          <p
+            className="num font-display text-6xl font-bold leading-none"
+            style={{ color: scoreColor(running) }}
+          >
+            {Math.round(running * 100)}
+          </p>
+          <p className="mt-1.5 text-sm text-muted">
+            AI predicted {score(posted.prediction.fitness)} ·{' '}
+            <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
+              {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
+            </strong>
+          </p>
+        </div>
+        <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-5">
+          {(
+            [
+              ['Views', live.views, false],
+              ['Likes', live.likes, false],
+              ['Comments', live.comments, false],
+              ['Shares', live.shares, true],
+              ['Saves', live.saves, true],
+            ] as [string, number, boolean][]
+          ).map(([k, v, hot]) => (
+            <Ticker key={k} label={k} value={v} hot={hot} />
+          ))}
+        </div>
+      </div>
+
+      <div className="card flex flex-col gap-3 p-5">
+        <div className="flex items-center justify-between">
+          <p className="label">Fast-forward the results</p>
+          <span className="num text-sm font-semibold">{lab.hours} hours after posting</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={24}
+          step={1}
+          value={lab.hours}
+          onChange={(e) => setHours(Number(e.target.value))}
+          className="w-full accent-[#6D4AFF]"
+        />
+        <p className="text-xs text-muted">
+          A demo fast-forward through a projected 24 hours, not live data.
+        </p>
+      </div>
+
+      {!done ? (
+        <div className="card flex flex-col items-start gap-3 bg-agent-soft/50 p-6 sm:flex-row sm:items-center">
+          <div className="flex-1">
+            <h3 className="font-display text-lg font-bold">Teach the AI what happened</h3>
+            <p className="text-sm text-muted">
+              Feeding the real result back is what makes the next round different from this one.
+            </p>
+          </div>
+          <Button size="lg" onClick={finish} disabled={lab.busy}>
+            {lab.busy ? <Spinner /> : null}
+            Update the AI
+          </Button>
+        </div>
+      ) : (
+        <div className="card flex flex-col gap-4 border-win bg-win-soft/50 p-6">
+          <h3 className="font-display text-lg font-bold text-win-deep">The AI updated itself</h3>
+          <div className="flex flex-col gap-2.5">
+            {lab.evolveResult!.shifts.slice(0, 4).map((sh) => (
+              <div key={sh.trait} className="flex items-center gap-3 text-sm">
+                <span
+                  className="w-5 shrink-0 text-center font-bold"
+                  style={{ color: sh.delta > 0 ? C.win : C.dead }}
+                >
+                  {sh.delta > 0 ? '↑' : '↓'}
+                </span>
+                <span className="w-32 shrink-0 font-medium">{plainTrait(sh.trait)}</span>
+                <span className="num text-muted">
+                  {Math.round(sh.from * 100)} →{' '}
+                  <strong className="text-ink">{Math.round(sh.to * 100)}</strong>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Button onClick={() => setView('learned')}>See everything it has learned</Button>
+            <Button variant="secondary" onClick={() => setView('evolution')}>
+              See it in the family tree
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Ticker({ label, value, hot }: { label: string; value: number; hot?: boolean }) {
+  const shown = useCountUp(value, 400, true)
+  return (
+    <div>
+      <p className="text-xs text-muted">{label}</p>
+      <p className="num font-display text-xl font-bold" style={{ color: hot ? C.win : C.ink }}>
+        {Math.round(shown).toLocaleString()}
+      </p>
     </div>
   )
 }

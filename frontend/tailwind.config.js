@@ -1,81 +1,68 @@
 /** @type {import('tailwindcss').Config} */
 // ─────────────────────────────────────────────────────────────────────────────
-// MEMEVOLUTION design tokens. Re-theme the entire app from this file.
-// Rule of the system: 90% monochrome. Colour is reserved for fitness signal.
-//   acid  = life / survival / positive delta
-//   rust  = decay / extinction / negative delta
-//   probe = the model's prediction (never an observation)
+// MEMEVOLUTION theme. Everything visual comes from this file.
+// Light, friendly, high contrast. Colour carries one meaning only:
+//   win   = this meme spread and survived
+//   dead  = this meme flopped and was eliminated
+//   guess = the AI's prediction (not a real result)
 // ─────────────────────────────────────────────────────────────────────────────
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        void: '#08090A',
-        carbon: '#0B0D0E',
-        graphite: '#121517',
-        ash: '#1B1F22',
-        smoke: '#6B7076',
-        bone: '#EDE8E0',
-        acid: {
-          DEFAULT: '#C7F04A',
-          dim: '#8FAE33',
-          deep: '#4A5C1C',
+        paper: '#F7F6F3',
+        card: '#FFFFFF',
+        ink: '#17171A',
+        muted: '#71716B',
+        line: '#E6E4DE',
+        win: {
+          DEFAULT: '#15A34A',
+          soft: '#E7F6ED',
+          deep: '#0E7A37',
         },
-        rust: {
-          DEFAULT: '#C4502E',
-          dim: '#8A3A21',
-          deep: '#4A1F11',
+        dead: {
+          DEFAULT: '#DB5C4C',
+          soft: '#FCECEA',
         },
-        probe: {
-          DEFAULT: '#58B6C4',
-          dim: '#3C7B85',
-          deep: '#1C3B41',
+        guess: {
+          DEFAULT: '#3B7DF6',
+          soft: '#EAF1FE',
         },
-      },
-      borderColor: {
-        hairline: 'rgba(237, 232, 224, 0.08)',
-        'hairline-strong': 'rgba(237, 232, 224, 0.16)',
+        mid: {
+          DEFAULT: '#E0A020',
+          soft: '#FDF3E0',
+        },
+        agent: {
+          DEFAULT: '#6D4AFF',
+          soft: '#F0ECFF',
+        },
       },
       fontFamily: {
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
       },
-      fontSize: {
-        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
-        'lab': ['0.6875rem', { lineHeight: '1rem' }],
+      borderRadius: {
+        xl: '14px',
+        '2xl': '20px',
       },
-      letterSpacing: {
-        lab: '0.14em',
+      boxShadow: {
+        card: '0 1px 2px rgba(23,23,26,0.04), 0 4px 16px rgba(23,23,26,0.06)',
+        lift: '0 2px 4px rgba(23,23,26,0.05), 0 12px 32px rgba(23,23,26,0.10)',
+        win: '0 0 0 3px rgba(21,163,74,0.14)',
       },
       keyframes: {
-        'specimen-pulse': {
-          '0%, 100%': { opacity: '0.28', transform: 'scale(1)' },
-          '50%': { opacity: '0.85', transform: 'scale(1.06)' },
+        'pop-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
-        'breathe': {
-          '0%, 100%': { opacity: '0.35' },
-          '50%': { opacity: '0.9' },
-        },
-        'resolve-in': {
-          '0%': { opacity: '0', filter: 'blur(6px)', transform: 'translateY(4px)' },
-          '100%': { opacity: '1', filter: 'blur(0)', transform: 'translateY(0)' },
-        },
-        'scan': {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(400%)' },
-        },
-        'blink': {
-          '0%, 45%': { opacity: '1' },
-          '50%, 95%': { opacity: '0.15' },
+        pulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.45' },
         },
       },
       animation: {
-        'specimen-pulse': 'specimen-pulse 2s ease-in-out infinite',
-        breathe: 'breathe 1.8s ease-in-out infinite',
-        'resolve-in': 'resolve-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both',
-        scan: 'scan 3.2s linear infinite',
-        blink: 'blink 1.6s steps(1, end) infinite',
+        'pop-in': 'pop-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },

@@ -1,7 +1,8 @@
-@import '@fontsource/jetbrains-mono/400.css';
-@import '@fontsource/jetbrains-mono/500.css';
-@import '@fontsource/jetbrains-mono/700.css';
-@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/space-grotesk/600.css';
 @import '@fontsource/space-grotesk/700.css';
 
 @tailwind base;
@@ -9,10 +10,6 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    color-scheme: dark;
-  }
-
   html,
   body,
   #root {
@@ -20,88 +17,44 @@
   }
 
   body {
-    @apply bg-void font-mono text-bone antialiased;
-    font-feature-settings:
-      'tnum' 1,
-      'zero' 1;
-    overscroll-behavior: none;
+    @apply bg-paper font-sans text-[15px] text-ink antialiased;
   }
 
-  /* Every number in this app is tabular. Data should never reflow as it ticks. */
+  /* Numbers never reflow as they tick */
   .num {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
   }
 
   ::selection {
-    @apply bg-acid text-void;
+    @apply bg-agent/20;
   }
 
   ::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
+    width: 10px;
+    height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(237, 232, 224, 0.11);
+    @apply rounded-full bg-line;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(237, 232, 224, 0.2);
+    background: #d2cfc7;
   }
 
   :focus-visible {
-    outline: 1px solid #c7f04a;
+    outline: 2px solid #6d4aff;
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* lab-notebook section label: lowercase mono, wide tracking, low contrast */
-  .lab-label {
-    @apply font-mono text-2xs lowercase tracking-lab text-smoke;
+  .card {
+    @apply rounded-2xl border border-line bg-card shadow-card;
   }
-  .lab-rule {
-    @apply border-t border-hairline;
-  }
-  .hair-x {
-    @apply border-b border-hairline;
+  .label {
+    @apply text-xs font-semibold uppercase tracking-wide text-muted;
   }
 }
 
-/* ── React Flow overrides ──────────────────────────────────────────────── */
-.react-flow {
-  --xy-background-color: transparent;
-}
-.react-flow__attribution {
-  display: none;
-}
-.react-flow__node {
-  cursor: pointer;
-}
-.react-flow__handle {
-  opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
-  min-width: 1px;
-  min-height: 1px;
-  border: 0;
-  background: transparent;
-}
-.react-flow__edge-path {
-  transition:
-    stroke 240ms ease,
-    stroke-width 240ms ease,
-    opacity 240ms ease;
-}
-.react-flow__node-band {
-  cursor: default;
-  pointer-events: none;
-}
-
-/* ── Reduced motion: stop everything that moves ────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -109,8 +62,5 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
-  }
-  .motion-particle {
-    display: none;
   }
 }
