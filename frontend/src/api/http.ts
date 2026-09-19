@@ -199,18 +199,34 @@ export const evolve = async (): Promise<EvolveResult> => {
 }
 
 /**
- * Publish for real.
+ * Publish for real. The backend owns the platform call because it holds the
+ * access tokens, which must never reach the browser.
  *
- * The backend owns the platform call, because it holds the access token —
- * a long-lived Instagram token must never reach the browser. Backend does:
- *   POST https://graph.facebook.com/v21.0/{ig-user-id}/media
- *        ?image_url=...&caption=...        -> { id: creation_id }
- *   POST https://graph.facebook.com/v21.0/{ig-user-id}/media_publish
- *        ?creation_id=...                  -> { id: media_id }
- *   GET  https://graph.facebook.com/v21.0/{media_id}?fields=permalink
+ * INSTAGRAM — publishes outright, returns status 'live'.
+ *   POST graph.facebook.com/v21.0/{ig-user-id}/media
+ *        ?image_url=…&caption=…              -> { id: creation_id }
+ *   POST graph.facebook.com/v21.0/{ig-user-id}/media_publish
+ *        ?creation_id=…                      -> { id: media_id }
+ *   GET  graph.facebook.com/v21.0/{media_id}?fields=permalink
+ *   media_url must be publicly reachable: Meta fetches it server-side.
  *
- * media_url must be publicly reachable — Meta's servers fetch it themselves,
- * so a localhost url will fail.
+ * TIKTOK — uploads into the creator's drafts, returns status 'awaiting_user'.
+ *   POST open.tiktokapis.com/v2/post/publish/inbox/video/init/
+ *        { source_info: { source: 'FILE_UPLOAD', video_size, chunk_size,
+ *                         total_chunk_count } }
+ *                                            -> { publish_id, upload_url }
+ *   PUT  {upload_url}   (the video bytes, Content-Range per chunk)
+ *   POST open.tiktokapis.com/v2/post/publish/status/fetch/
+ *        { publish_id }                      -> poll until SEND_TO_USER_INBOX
+ *
+ *   Use the inbox route, NOT /v2/post/publish/video/init/ (Direct Post).
+ *   Direct Post forces SELF_ONLY visibility until the app passes TikTok's
+ *   audit, so the post is invisible and there is no spread to measure. The
+ *   inbox route has no visibility restriction precisely because the creator
+ *   publishes it themselves from the TikTok app. Scope: video.upload.
+ *
+ *   Prefer FILE_UPLOAD over PULL_FROM_URL — PULL_FROM_URL additionally
+ *   requires you to verify domain ownership with TikTok.
  */
 export const publishPost = (req: PublishRequest) =>
   req_<PublishResult>(`/experiments/${req.experiment_id}/publish`, {
@@ -224,9 +240,16 @@ export const publishPost = (req: PublishRequest) =>
   })
 
 /**
- * Real numbers back from the platform. Backend calls:
- *   GET /{media_id}/insights?metric=impressions,reach,saved,shares
- *   GET /{media_id}?fields=like_count,comments_count
- * and recomputes fitness from them.
+ * Real numbers back from the platform, recomputed into a fitness server-side.
+ *
+ * INSTAGRAM  GET /{media_id}?fields=like_count,comments_count
+ *            GET /{media_id}/insights?metric=reach,saved,shares
+ * TIKTOK     POST open.tiktokapis.com/v2/video/query/
+ *            ?fields=id,like_count,comment_count,share_count,view_count
+ *            { filters: { video_ids: [...] } }        scope: video.list
+ *
+ * For TikTok the id you query is the video id the creator ended up with, which
+ * you only learn after they publish from their drafts — resolve it by listing
+ * the account's recent videos and matching, or have the operator paste the URL.
  */
 export const fetchLiveMetrics = (id: string) => req_<LiveMetrics>(`/experiments/${id}/live-metrics`)

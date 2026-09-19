@@ -172,17 +172,32 @@ export interface PublishRequest {
   caption: string
   /** Must be a PUBLIC url — Instagram's servers fetch the media themselves. */
   media_url: string
-  media_type?: 'IMAGE' | 'REELS'
+  media_type?: 'IMAGE' | 'REELS' | 'VIDEO'
 }
+
+/**
+ * Platforms finish publishing in two different ways:
+ *
+ *  'live'          the post is already public. Instagram does this.
+ *  'awaiting_user' the media is sitting in the creator's drafts and a human has
+ *                  to tap Post in the platform's own app. TikTok's inbox upload
+ *                  works this way — and it is the ONLY TikTok route that yields
+ *                  a public post without passing their audit, because the
+ *                  human, not the app, is the one publishing.
+ */
+export type PublishStatus = 'live' | 'awaiting_user'
 
 export interface PublishResult {
   experiment_id: string
   platform: Platform
-  /** Platform's own id for the post. */
+  /** Platform's own id: media_id for Instagram, publish_id for TikTok. */
   post_id: string
   /** Public link to the live post, if the platform returns one. */
   permalink: string | null
   published_at: string
+  status: PublishStatus
+  /** What the human has to do next, when status is 'awaiting_user'. */
+  instructions: string | null
 }
 
 /** Real numbers pulled back from the platform, not typed in by hand. */

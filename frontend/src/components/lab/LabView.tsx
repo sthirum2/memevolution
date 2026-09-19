@@ -667,10 +667,10 @@ function PublishPanel() {
 
         {lab.platform === 'tiktok' ? (
           <div className="rounded-xl bg-mid-soft px-3 py-2.5 text-sm leading-relaxed">
-            <strong>TikTok posts will be private.</strong> Until your app passes TikTok&rsquo;s
-            audit the API forces <code className="text-xs">SELF_ONLY</code> visibility, so nobody
-            else sees it and there is no spread to measure. Use Instagram for a post that actually
-            travels.
+            <strong>TikTok takes one extra tap.</strong> The video is uploaded straight into your
+            TikTok drafts, and you publish it from the app. That is deliberate: it is the only route
+            that produces a genuinely <em>public</em> TikTok post without waiting on TikTok&rsquo;s
+            audit.
           </div>
         ) : null}
 
@@ -689,14 +689,27 @@ function PublishPanel() {
     )
   }
 
+  const waiting = lab.published.status === 'awaiting_user'
+
   return (
-    <div className="card flex flex-col gap-4 border-win bg-win-soft/40 p-5">
+    <div
+      className={cx(
+        'card flex flex-col gap-4 p-5',
+        waiting ? 'border-mid bg-mid-soft/50' : 'border-win bg-win-soft/40',
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-display text-lg font-bold text-win-deep">
-            Published to {PLATFORM_NAMES[lab.published.platform]}
+          <h3
+            className={cx('font-display text-lg font-bold', waiting ? 'text-ink' : 'text-win-deep')}
+          >
+            {waiting
+              ? `Waiting in your ${PLATFORM_NAMES[lab.published.platform]} drafts`
+              : `Published to ${PLATFORM_NAMES[lab.published.platform]}`}
           </h3>
-          <p className="num mt-1 text-sm text-muted">post {lab.published.post_id}</p>
+          <p className="num mt-1 text-sm text-muted">
+            {waiting ? 'upload' : 'post'} {lab.published.post_id}
+          </p>
         </div>
         {lab.published.permalink ? (
           <a
@@ -711,6 +724,18 @@ function PublishPanel() {
         ) : null}
       </div>
 
+      {waiting && lab.published.instructions ? (
+        <ol className="flex list-decimal flex-col gap-1.5 rounded-xl bg-white/70 py-3 pl-8 pr-3 text-sm leading-relaxed">
+          <li>Open TikTok on your phone.</li>
+          <li>
+            Go to your profile, then <strong>Drafts</strong> — the video is already there.
+          </li>
+          <li>
+            Tap <strong>Post</strong>. It goes out public, and the numbers below start moving.
+          </li>
+        </ol>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3 border-t border-line/60 pt-3">
         <Button variant="secondary" onClick={refreshLive} disabled={lab.fetching}>
           {lab.fetching ? <Spinner /> : <RefreshCw size={14} />}
@@ -724,7 +749,9 @@ function PublishPanel() {
           </span>
         ) : (
           <span className="text-sm text-muted">
-            Give it a few hours, then pull the counts the platform reports.
+            {waiting
+              ? 'Once you have tapped Post, give it a few hours and then pull the counts.'
+              : 'Give it a few hours, then pull the counts the platform reports.'}
           </span>
         )}
       </div>

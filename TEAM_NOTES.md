@@ -73,17 +73,21 @@ Exact request and response shapes for all of these:
 
 Verified, because this is easy to get wrong:
 
-- **Instagram works.** Publishing to *your own* account from a Meta app in **Development
-  mode** needs **no App Review** — add your own account as an Instagram Tester and it works.
-  Real public posts, real engagement.
-- **TikTok does not, usefully.** The Content Posting API works unaudited but forces
-  `SELF_ONLY` visibility, so nobody sees the post and there is no spread to measure. Audit
-  takes days. Treat TikTok as manual.
+- **Instagram works outright.** Publishing to *your own* account from a Meta app in
+  **Development mode** needs **no App Review** — add your own account as an Instagram Tester
+  and it works. Real public posts, real engagement, no human step.
+- **TikTok works with one tap.** Use the **inbox upload** route (`video.upload` scope): the
+  app drops the video into the creator's TikTok drafts and they tap Post in the app. Because
+  a human published it, there is **no visibility restriction and no audit**.
+- **Do not use TikTok's Direct Post** (`video.publish`). It looks like the obvious choice,
+  but an unaudited client has every post forced to `SELF_ONLY` no matter what privacy level
+  you send — invisible, so nothing to measure. Audit takes days.
 
-The frontend already has the publish flow: publish, show the live link, pull the platform's
-real numbers back, and train the agent on those instead of the projection. It needs two
-backend endpoints (`POST /experiments/{id}/publish`, `GET /experiments/{id}/live-metrics`)
-and the account setup — both written up in `frontend/README.md`.
+The frontend already handles both shapes. `PublishResult.status` is `live` for Instagram
+(shows the permalink) or `awaiting_user` for TikTok (shows the "open Drafts and tap Post"
+steps). It needs two backend endpoints — `POST /experiments/{id}/publish` and
+`GET /experiments/{id}/live-metrics` — plus the account setup. The exact API call sequences
+for both platforms, and the setup steps, are in `frontend/README.md`.
 
 **Gotchas that will cost you an hour each:**
 
@@ -92,6 +96,8 @@ and the account setup — both written up in `frontend/README.md`.
 - The Instagram token stays **server side only**. Anything named `VITE_*` is compiled into
   the browser bundle. Put it in `backend/.env`, never `frontend/.env`.
 - The account must be Instagram **Business or Creator**, linked to a Facebook Page.
+- For TikTok use `FILE_UPLOAD`, not `PULL_FROM_URL` — the pull route needs domain-ownership
+  verification, which is another approval you do not need.
 
 ## Small things worth knowing
 
