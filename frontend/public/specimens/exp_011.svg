@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(81 8% 12%)"/>
+      <stop offset="58%" stop-color="#0B0D0E"/>
+      <stop offset="100%" stop-color="hsl(81 8% 7%)"/>
+    </linearGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="143"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="540" cy="760" r="180" fill="none" stroke="hsl(81 8% 62%)" stroke-width="1" opacity="0.160"/><circle cx="540" cy="760" r="295" fill="none" stroke="hsl(81 8% 62%)" stroke-width="1" opacity="0.135"/><circle cx="540" cy="760" r="410" fill="none" stroke="hsl(81 8% 62%)" stroke-width="1" opacity="0.110"/><circle cx="540" cy="760" r="525" fill="none" stroke="hsl(81 8% 62%)" stroke-width="1" opacity="0.085"/><circle cx="540" cy="760" r="640" fill="none" stroke="hsl(81 8% 62%)" stroke-width="1" opacity="0.060"/>
+  <rect x="131" y="40" width="457" height="6" fill="hsl(81 8% 70%)" opacity="0.139"/><rect x="223" y="92" width="624" height="16" fill="hsl(81 8% 70%)" opacity="0.050"/><rect x="131" y="144" width="397" height="12" fill="hsl(81 8% 70%)" opacity="0.135"/><rect x="114" y="196" width="606" height="19" fill="hsl(81 8% 70%)" opacity="0.089"/><rect x="130" y="248" width="419" height="16" fill="hsl(81 8% 70%)" opacity="0.121"/><rect x="189" y="300" width="630" height="7" fill="hsl(81 8% 70%)" opacity="0.070"/><rect x="207" y="352" width="340" height="7" fill="hsl(81 8% 70%)" opacity="0.076"/><rect x="163" y="404" width="217" height="9" fill="hsl(81 8% 70%)" opacity="0.080"/><rect x="196" y="456" width="535" height="7" fill="hsl(81 8% 70%)" opacity="0.145"/><rect x="116" y="508" width="172" height="10" fill="hsl(81 8% 70%)" opacity="0.063"/><rect x="150" y="560" width="258" height="7" fill="hsl(81 8% 70%)" opacity="0.150"/><rect x="226" y="612" width="292" height="22" fill="hsl(81 8% 70%)" opacity="0.080"/><rect x="120" y="664" width="542" height="13" fill="hsl(81 8% 70%)" opacity="0.094"/><rect x="220" y="716" width="347" height="14" fill="hsl(81 8% 70%)" opacity="0.123"/><rect x="232" y="768" width="595" height="12" fill="hsl(81 8% 70%)" opacity="0.112"/><rect x="132" y="820" width="699" height="14" fill="hsl(81 8% 70%)" opacity="0.110"/><rect x="224" y="872" width="615" height="13" fill="hsl(81 8% 70%)" opacity="0.115"/><rect x="210" y="924" width="410" height="6" fill="hsl(81 8% 70%)" opacity="0.084"/><rect x="206" y="976" width="654" height="8" fill="hsl(81 8% 70%)" opacity="0.081"/><rect x="198" y="1028" width="167" height="11" fill="hsl(81 8% 70%)" opacity="0.090"/><rect x="95" y="1080" width="188" height="16" fill="hsl(81 8% 70%)" opacity="0.164"/><rect x="70" y="1132" width="418" height="20" fill="hsl(81 8% 70%)" opacity="0.077"/><rect x="199" y="1184" width="404" height="16" fill="hsl(81 8% 70%)" opacity="0.124"/><rect x="65" y="1236" width="429" height="16" fill="hsl(81 8% 70%)" opacity="0.042"/><rect x="198" y="1288" width="564" height="6" fill="hsl(81 8% 70%)" opacity="0.065"/><rect x="127" y="1340" width="568" height="20" fill="hsl(81 8% 70%)" opacity="0.093"/>
+  <g opacity="0.5">
+    <line x1="0" y1="640" x2="1080" y2="640" stroke="hsl(81 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="0" y1="1280" x2="1080" y2="1280" stroke="hsl(81 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="360" y1="0" x2="360" y2="1920" stroke="hsl(81 8% 60%)" stroke-width="1" opacity="0.12"/>
+    <line x1="720" y1="0" x2="720" y2="1920" stroke="hsl(81 8% 60%)" stroke-width="1" opacity="0.12"/>
+  </g>
+  <rect width="1080" height="1920" filter="url(#n)" opacity="0.055"/>
+  <text x="60" y="130" font-family="monospace" font-size="38" letter-spacing="10"
+        fill="#EDE8E0" opacity="0.5">EXP_011</text>
+  <text x="60" y="1860" font-family="monospace" font-size="30" letter-spacing="6"
+        fill="#EDE8E0" opacity="0.28">GEN 3 · POV</text>
+</svg>

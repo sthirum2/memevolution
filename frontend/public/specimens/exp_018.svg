@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(242 34% 12%)"/>
+      <stop offset="58%" stop-color="#0B0D0E"/>
+      <stop offset="100%" stop-color="hsl(242 34% 7%)"/>
+    </linearGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="234"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="540" cy="760" r="180" fill="none" stroke="hsl(242 34% 62%)" stroke-width="1" opacity="0.160"/><circle cx="540" cy="760" r="295" fill="none" stroke="hsl(242 34% 62%)" stroke-width="1" opacity="0.135"/><circle cx="540" cy="760" r="410" fill="none" stroke="hsl(242 34% 62%)" stroke-width="1" opacity="0.110"/><circle cx="540" cy="760" r="525" fill="none" stroke="hsl(242 34% 62%)" stroke-width="1" opacity="0.085"/><circle cx="540" cy="760" r="640" fill="none" stroke="hsl(242 34% 62%)" stroke-width="1" opacity="0.060"/>
+  <rect x="184" y="40" width="489" height="19" fill="hsl(242 34% 70%)" opacity="0.045"/><rect x="208" y="92" width="162" height="21" fill="hsl(242 34% 70%)" opacity="0.162"/><rect x="121" y="144" width="528" height="20" fill="hsl(242 34% 70%)" opacity="0.099"/><rect x="99" y="196" width="224" height="12" fill="hsl(242 34% 70%)" opacity="0.104"/><rect x="163" y="248" width="727" height="7" fill="hsl(242 34% 70%)" opacity="0.072"/><rect x="211" y="300" width="272" height="9" fill="hsl(242 34% 70%)" opacity="0.148"/><rect x="233" y="352" width="535" height="10" fill="hsl(242 34% 70%)" opacity="0.122"/><rect x="217" y="404" width="665" height="9" fill="hsl(242 34% 70%)" opacity="0.091"/><rect x="157" y="456" width="534" height="20" fill="hsl(242 34% 70%)" opacity="0.130"/><rect x="176" y="508" width="353" height="17" fill="hsl(242 34% 70%)" opacity="0.085"/><rect x="139" y="560" width="515" height="15" fill="hsl(242 34% 70%)" opacity="0.076"/><rect x="237" y="612" width="251" height="10" fill="hsl(242 34% 70%)" opacity="0.134"/><rect x="75" y="664" width="285" height="18" fill="hsl(242 34% 70%)" opacity="0.129"/><rect x="155" y="716" width="732" height="14" fill="hsl(242 34% 70%)" opacity="0.049"/><rect x="82" y="768" width="552" height="11" fill="hsl(242 34% 70%)" opacity="0.150"/><rect x="185" y="820" width="445" height="15" fill="hsl(242 34% 70%)" opacity="0.141"/><rect x="166" y="872" width="769" height="8" fill="hsl(242 34% 70%)" opacity="0.142"/><rect x="172" y="924" width="401" height="18" fill="hsl(242 34% 70%)" opacity="0.158"/><rect x="189" y="976" width="230" height="20" fill="hsl(242 34% 70%)" opacity="0.101"/><rect x="215" y="1028" width="626" height="13" fill="hsl(242 34% 70%)" opacity="0.077"/><rect x="125" y="1080" width="544" height="11" fill="hsl(242 34% 70%)" opacity="0.126"/><rect x="64" y="1132" width="252" height="13" fill="hsl(242 34% 70%)" opacity="0.089"/><rect x="85" y="1184" width="673" height="22" fill="hsl(242 34% 70%)" opacity="0.132"/><rect x="118" y="1236" width="308" height="20" fill="hsl(242 34% 70%)" opacity="0.125"/><rect x="234" y="1288" width="358" height="10" fill="hsl(242 34% 70%)" opacity="0.053"/><rect x="191" y="1340" width="385" height="8" fill="hsl(242 34% 70%)" opacity="0.058"/>
+  <g opacity="0.5">
+    <line x1="0" y1="640" x2="1080" y2="640" stroke="hsl(242 34% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="0" y1="1280" x2="1080" y2="1280" stroke="hsl(242 34% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="360" y1="0" x2="360" y2="1920" stroke="hsl(242 34% 60%)" stroke-width="1" opacity="0.12"/>
+    <line x1="720" y1="0" x2="720" y2="1920" stroke="hsl(242 34% 60%)" stroke-width="1" opacity="0.12"/>
+  </g>
+  <rect width="1080" height="1920" filter="url(#n)" opacity="0.055"/>
+  <text x="60" y="130" font-family="monospace" font-size="38" letter-spacing="10"
+        fill="#EDE8E0" opacity="0.5">EXP_018</text>
+  <text x="60" y="1860" font-family="monospace" font-size="30" letter-spacing="6"
+        fill="#EDE8E0" opacity="0.28">GEN 5 · SPEEDRUN</text>
+</svg>

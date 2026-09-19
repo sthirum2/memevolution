@@ -1,0 +1,2527 @@
+[
+  {
+    "id": "exp_000",
+    "generation": 0,
+    "parent_id": null,
+    "status": "survived",
+    "genome": {
+      "topic": "campus",
+      "humor": "observational",
+      "format": "talking_head",
+      "hook": "text_overlay",
+      "absurdity": 0.4,
+      "irony": 0.72,
+      "relatability": 0.7,
+      "trend_relevance": 0.5,
+      "text_density": 0.6,
+      "caption_length": 24,
+      "video_length": 18,
+      "audio_strategy": "original"
+    },
+    "mutations": [],
+    "hypothesis": "Seeded from the historical corpus. Before any experiment of its own the agent believes campus content propagates through relatability and a moderately ironic register.",
+    "prediction": {
+      "fitness": 0.5,
+      "confidence": 0.3,
+      "feature_attribution": [
+        {
+          "feature": "relatability",
+          "contribution": 0.18
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.09
+        },
+        {
+          "feature": "irony",
+          "contribution": 0.06
+        },
+        {
+          "feature": "text_density",
+          "contribution": -0.04
+        }
+      ]
+    },
+    "content": {
+      "headline": "HISTORICAL PRIOR",
+      "visual_description": "Not a generated post. The centroid genome of 41,206 sampled campus-niche videos that cleared the corpus engagement floor.",
+      "punchline": "—",
+      "caption": "the median thing that works, before anyone tried anything",
+      "audio": "corpus median · original audio",
+      "media_url": "/specimens/exp_000.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-18T15:00:00.000Z",
+      "post_id": "7218830000000000000"
+    },
+    "observed": {
+      "views": 16368,
+      "likes": 1864,
+      "comments": 146,
+      "shares": 278,
+      "saves": 254,
+      "fitness": 0.52,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 682,
+          "likes": 78,
+          "shares": 11
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 1995,
+          "likes": 227,
+          "shares": 32
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 3615,
+          "likes": 412,
+          "shares": 57
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 6560,
+          "likes": 747,
+          "shares": 104
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 10694,
+          "likes": 1218,
+          "shares": 169
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 14150,
+          "likes": 1611,
+          "shares": 224
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 15336,
+          "likes": 1747,
+          "shares": 242
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_001",
+    "generation": 1,
+    "parent_id": "exp_000",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "observational",
+      "format": "talking_head",
+      "hook": "text_overlay",
+      "absurdity": 0.38,
+      "irony": 0.7,
+      "relatability": 0.84,
+      "trend_relevance": 0.48,
+      "text_density": 0.66,
+      "caption_length": 31,
+      "video_length": 19,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "relatability",
+        "from": 0.7,
+        "to": 0.84
+      }
+    ],
+    "hypothesis": "Pushing relatability above the corpus median should widen the audience that recognises itself in the post.",
+    "prediction": {
+      "fitness": 0.48,
+      "confidence": 0.61,
+      "feature_attribution": [
+        {
+          "feature": "relatability",
+          "contribution": 0.21
+        },
+        {
+          "feature": "text_density",
+          "contribution": -0.07
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": -0.05
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.06
+        }
+      ]
+    },
+    "content": {
+      "headline": "when the syllabus says no extensions",
+      "visual_description": "Static talking-head to camera, dorm room, overhead light. Text banner pinned top-third for the full run.",
+      "punchline": "and the due date is during the career fair",
+      "caption": "genuinely who approved this academic calendar",
+      "audio": "original audio — room tone",
+      "media_url": "/specimens/exp_001.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-18T22:00:00.000Z",
+      "post_id": "7218830000000733717"
+    },
+    "observed": {
+      "views": 7328,
+      "likes": 698,
+      "comments": 60,
+      "shares": 55,
+      "saves": 93,
+      "fitness": 0.31,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 309,
+          "likes": 29,
+          "shares": 2
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 872,
+          "likes": 83,
+          "shares": 6
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 1666,
+          "likes": 159,
+          "shares": 12
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 3007,
+          "likes": 286,
+          "shares": 21
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 4768,
+          "likes": 454,
+          "shares": 33
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 6462,
+          "likes": 615,
+          "shares": 45
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 6801,
+          "likes": 648,
+          "shares": 47
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_002",
+    "generation": 1,
+    "parent_id": "exp_000",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "observational",
+      "format": "pov",
+      "hook": "unexpected_text",
+      "absurdity": 0.52,
+      "irony": 0.68,
+      "relatability": 0.74,
+      "trend_relevance": 0.55,
+      "text_density": 0.54,
+      "caption_length": 19,
+      "video_length": 14,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "format",
+        "from": "talking_head",
+        "to": "pov"
+      },
+      {
+        "trait": "hook",
+        "from": "text_overlay",
+        "to": "unexpected_text"
+      }
+    ],
+    "hypothesis": "A POV frame makes the viewer a participant rather than an audience, which should raise the share rate.",
+    "prediction": {
+      "fitness": 0.52,
+      "confidence": 0.58,
+      "feature_attribution": [
+        {
+          "feature": "format_pov",
+          "contribution": 0.14
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.11
+        },
+        {
+          "feature": "irony",
+          "contribution": 0.04
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.03
+        }
+      ]
+    },
+    "content": {
+      "headline": "POV: you're the only one who did the reading",
+      "visual_description": "Handheld POV walking into a seminar room. Slow pan across eleven closed laptops.",
+      "punchline": "the professor makes eye contact. you are the seminar now.",
+      "caption": "i will not be doing this again",
+      "audio": "original audio — hallway",
+      "media_url": "/specimens/exp_002.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-19T05:00:00.000Z",
+      "post_id": "7218830000001467434"
+    },
+    "observed": {
+      "views": 20279,
+      "likes": 2389,
+      "comments": 214,
+      "shares": 415,
+      "saves": 403,
+      "fitness": 0.59,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 830,
+          "likes": 98,
+          "shares": 16
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 2431,
+          "likes": 286,
+          "shares": 46
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 4660,
+          "likes": 549,
+          "shares": 89
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 8018,
+          "likes": 945,
+          "shares": 153
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 13152,
+          "likes": 1549,
+          "shares": 250
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 17912,
+          "likes": 2110,
+          "shares": 341
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 18807,
+          "likes": 2216,
+          "shares": 358
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_003",
+    "generation": 1,
+    "parent_id": "exp_000",
+    "status": "survived",
+    "genome": {
+      "topic": "campus",
+      "humor": "absurdist",
+      "format": "pov",
+      "hook": "unexpected_text",
+      "absurdity": 0.66,
+      "irony": 0.61,
+      "relatability": 0.72,
+      "trend_relevance": 0.58,
+      "text_density": 0.48,
+      "caption_length": 16,
+      "video_length": 12,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "humor",
+        "from": "observational",
+        "to": "absurdist"
+      },
+      {
+        "trait": "absurdity",
+        "from": 0.4,
+        "to": 0.66
+      },
+      {
+        "trait": "audio_strategy",
+        "from": "original",
+        "to": "trending"
+      }
+    ],
+    "hypothesis": "Absurdist framing of an ordinary campus grievance should travel further than a sincere account of the same grievance.",
+    "prediction": {
+      "fitness": 0.55,
+      "confidence": 0.52,
+      "feature_attribution": [
+        {
+          "feature": "absurdity",
+          "contribution": 0.19
+        },
+        {
+          "feature": "audio_trending",
+          "contribution": 0.12
+        },
+        {
+          "feature": "format_pov",
+          "contribution": 0.09
+        },
+        {
+          "feature": "caption_length",
+          "contribution": 0.03
+        }
+      ]
+    },
+    "content": {
+      "headline": "explaining my 4-hour gap between classes to my parents",
+      "visual_description": "POV across a kitchen table. Subject gestures at a hand-drawn schedule taped to the wall as if briefing a war room.",
+      "punchline": "\"so from 11 to 3 I simply cease to exist\"",
+      "caption": "the gap is load-bearing",
+      "audio": "trending — sped-up orchestral swell",
+      "media_url": "/specimens/exp_003.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-19T12:00:00.000Z",
+      "post_id": "7218830000002201151"
+    },
+    "observed": {
+      "views": 25146,
+      "likes": 3450,
+      "comments": 304,
+      "shares": 754,
+      "saves": 529,
+      "fitness": 0.73,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1069,
+          "likes": 147,
+          "shares": 30
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 3058,
+          "likes": 420,
+          "shares": 85
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 5617,
+          "likes": 771,
+          "shares": 157
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 10054,
+          "likes": 1379,
+          "shares": 280
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 15869,
+          "likes": 2177,
+          "shares": 443
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 21880,
+          "likes": 3002,
+          "shares": 610
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 24331,
+          "likes": 3338,
+          "shares": 679
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_004",
+    "generation": 1,
+    "parent_id": "exp_000",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "sincere",
+      "format": "vlog",
+      "hook": "slow_build",
+      "absurdity": 0.22,
+      "irony": 0.31,
+      "relatability": 0.79,
+      "trend_relevance": 0.41,
+      "text_density": 0.35,
+      "caption_length": 42,
+      "video_length": 34,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "humor",
+        "from": "observational",
+        "to": "sincere"
+      },
+      {
+        "trait": "format",
+        "from": "talking_head",
+        "to": "vlog"
+      },
+      {
+        "trait": "video_length",
+        "from": 18,
+        "to": 34
+      }
+    ],
+    "hypothesis": "A sincere day-in-the-life may build a stronger parasocial bond and convert to follows even if it shares less.",
+    "prediction": {
+      "fitness": 0.44,
+      "confidence": 0.66,
+      "feature_attribution": [
+        {
+          "feature": "relatability",
+          "contribution": 0.13
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.19
+        },
+        {
+          "feature": "absurdity",
+          "contribution": -0.11
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": -0.08
+        }
+      ]
+    },
+    "content": {
+      "headline": "day in my life as a pre-med",
+      "visual_description": "Morning-to-night vlog. Six a.m. alarm, library, cadaver lab exterior, 1am walk home.",
+      "punchline": "(there is no punchline. that is the point.)",
+      "caption": "romanticising it because the alternative is thinking about it",
+      "audio": "original audio — ambient + lo-fi bed",
+      "media_url": "/specimens/exp_004.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-19T19:00:00.000Z",
+      "post_id": "7218830000002934868"
+    },
+    "observed": {
+      "views": 5294,
+      "likes": 452,
+      "comments": 41,
+      "shares": 35,
+      "saves": 60,
+      "fitness": 0.27,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 219,
+          "likes": 19,
+          "shares": 1
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 654,
+          "likes": 56,
+          "shares": 4
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 1206,
+          "likes": 103,
+          "shares": 7
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 2178,
+          "likes": 186,
+          "shares": 13
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 3400,
+          "likes": 290,
+          "shares": 21
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 4511,
+          "likes": 385,
+          "shares": 28
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 5105,
+          "likes": 436,
+          "shares": 31
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_005",
+    "generation": 2,
+    "parent_id": "exp_003",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "absurdist",
+      "format": "mockumentary",
+      "hook": "unexpected_text",
+      "absurdity": 0.84,
+      "irony": 0.58,
+      "relatability": 0.55,
+      "trend_relevance": 0.54,
+      "text_density": 0.44,
+      "caption_length": 15,
+      "video_length": 21,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "absurdity",
+        "from": 0.66,
+        "to": 0.84
+      },
+      {
+        "trait": "format",
+        "from": "pov",
+        "to": "mockumentary"
+      },
+      {
+        "trait": "video_length",
+        "from": 12,
+        "to": 21
+      }
+    ],
+    "hypothesis": "If absurdity is the active ingredient, more of it inside a longer mockumentary frame should compound the effect.",
+    "prediction": {
+      "fitness": 0.58,
+      "confidence": 0.55,
+      "feature_attribution": [
+        {
+          "feature": "absurdity",
+          "contribution": 0.16
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.14
+        },
+        {
+          "feature": "relatability",
+          "contribution": -0.12
+        },
+        {
+          "feature": "audio_original",
+          "contribution": -0.07
+        }
+      ]
+    },
+    "content": {
+      "headline": "the 4-hour gap, but it is a nature documentary",
+      "visual_description": "Handheld long-lens shots of a student asleep across three library chairs. Whispered narration over the top.",
+      "punchline": "\"the specimen has selected its nesting site. it will not move until 3pm.\"",
+      "caption": "observed in its natural habitat",
+      "audio": "original audio — whispered VO",
+      "media_url": "/specimens/exp_005.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-20T02:00:00.000Z",
+      "post_id": "7218830000003668585"
+    },
+    "observed": {
+      "views": 11477,
+      "likes": 1184,
+      "comments": 99,
+      "shares": 151,
+      "saves": 171,
+      "fitness": 0.44,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 485,
+          "likes": 50,
+          "shares": 6
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 1401,
+          "likes": 144,
+          "shares": 17
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 2592,
+          "likes": 267,
+          "shares": 32
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 4601,
+          "likes": 475,
+          "shares": 56
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 7275,
+          "likes": 750,
+          "shares": 89
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 9922,
+          "likes": 1024,
+          "shares": 121
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 10788,
+          "likes": 1113,
+          "shares": 132
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_006",
+    "generation": 2,
+    "parent_id": "exp_003",
+    "status": "survived",
+    "genome": {
+      "topic": "cs_major",
+      "humor": "absurdist",
+      "format": "pov",
+      "hook": "unexpected_text",
+      "absurdity": 0.76,
+      "irony": 0.61,
+      "relatability": 0.72,
+      "trend_relevance": 0.67,
+      "text_density": 0.31,
+      "caption_length": 11,
+      "video_length": 7,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "absurdity",
+        "from": 0.66,
+        "to": 0.76
+      },
+      {
+        "trait": "video_length",
+        "from": 12,
+        "to": 7
+      },
+      {
+        "trait": "text_density",
+        "from": 0.48,
+        "to": 0.31
+      },
+      {
+        "trait": "topic",
+        "from": "campus",
+        "to": "cs_major"
+      }
+    ],
+    "hypothesis": "Increasing absurdity while cutting time-to-punchline to under eight seconds should raise the share rate, because a meme has to be re-tellable before it can be re-posted.",
+    "prediction": {
+      "fitness": 0.63,
+      "confidence": 0.64,
+      "feature_attribution": [
+        {
+          "feature": "video_length_short",
+          "contribution": 0.22
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.17
+        },
+        {
+          "feature": "audio_trending",
+          "contribution": 0.13
+        },
+        {
+          "feature": "text_density",
+          "contribution": 0.08
+        },
+        {
+          "feature": "topic_niche",
+          "contribution": -0.04
+        }
+      ]
+    },
+    "content": {
+      "headline": "when you said one quick LeetCode problem",
+      "visual_description": "Hard cut from a lit desk at 7pm to the same desk at 4am, same posture, forty-one browser tabs, sun coming up behind the blinds.",
+      "punchline": "the problem was rated EASY",
+      "caption": "see you tomorrow",
+      "audio": "trending — pitched-up sample, 7s loop",
+      "media_url": "/specimens/exp_006.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-20T09:00:00.000Z",
+      "post_id": "7218830000004402302"
+    },
+    "observed": {
+      "views": 30724,
+      "likes": 4697,
+      "comments": 400,
+      "shares": 1064,
+      "saves": 730,
+      "fitness": 0.81,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1303,
+          "likes": 199,
+          "shares": 42
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 3638,
+          "likes": 556,
+          "shares": 117
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 6950,
+          "likes": 1063,
+          "shares": 224
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 12110,
+          "likes": 1851,
+          "shares": 390
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 19786,
+          "likes": 3025,
+          "shares": 637
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 27105,
+          "likes": 4144,
+          "shares": 873
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 28871,
+          "likes": 4414,
+          "shares": 930
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_007",
+    "generation": 2,
+    "parent_id": "exp_003",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "absurdist",
+      "format": "group_chat",
+      "hook": "unexpected_text",
+      "absurdity": 0.71,
+      "irony": 0.64,
+      "relatability": 0.81,
+      "trend_relevance": 0.61,
+      "text_density": 0.78,
+      "caption_length": 14,
+      "video_length": 11,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "format",
+        "from": "pov",
+        "to": "group_chat"
+      },
+      {
+        "trait": "text_density",
+        "from": 0.48,
+        "to": 0.78
+      }
+    ],
+    "hypothesis": "Rendering the joke as a readable group chat should raise saves, because text is re-readable in a way that performance is not.",
+    "prediction": {
+      "fitness": 0.6,
+      "confidence": 0.59,
+      "feature_attribution": [
+        {
+          "feature": "relatability",
+          "contribution": 0.15
+        },
+        {
+          "feature": "text_density",
+          "contribution": -0.11
+        },
+        {
+          "feature": "audio_trending",
+          "contribution": 0.1
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.07
+        }
+      ]
+    },
+    "content": {
+      "headline": "the group chat at 3am before the deadline",
+      "visual_description": "Screen recording of a five-person thread. Typing indicators start and stop. Nobody sends anything for nine seconds.",
+      "punchline": "\"has anyone started\" (4 likes)",
+      "caption": "we are a team",
+      "audio": "trending — muffled bass, notification stabs",
+      "media_url": "/specimens/exp_007.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-20T16:00:00.000Z",
+      "post_id": "7218830000005136019"
+    },
+    "observed": {
+      "views": 17353,
+      "likes": 2279,
+      "comments": 205,
+      "shares": 366,
+      "saves": 353,
+      "fitness": 0.62,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 726,
+          "likes": 95,
+          "shares": 14
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 2072,
+          "likes": 272,
+          "shares": 41
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 3888,
+          "likes": 511,
+          "shares": 76
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 7115,
+          "likes": 934,
+          "shares": 140
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 11165,
+          "likes": 1466,
+          "shares": 219
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 14705,
+          "likes": 1931,
+          "shares": 288
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 16390,
+          "likes": 2153,
+          "shares": 321
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_008",
+    "generation": 2,
+    "parent_id": "exp_003",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "deadpan",
+      "format": "explainer",
+      "hook": "slow_build",
+      "absurdity": 0.58,
+      "irony": 0.74,
+      "relatability": 0.66,
+      "trend_relevance": 0.44,
+      "text_density": 0.69,
+      "caption_length": 27,
+      "video_length": 24,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "humor",
+        "from": "absurdist",
+        "to": "deadpan"
+      },
+      {
+        "trait": "format",
+        "from": "pov",
+        "to": "explainer"
+      },
+      {
+        "trait": "irony",
+        "from": 0.61,
+        "to": 0.74
+      }
+    ],
+    "hypothesis": "A deadpan explainer register lets the absurdity land without being announced, which should read as wittier and travel through quote-shares.",
+    "prediction": {
+      "fitness": 0.51,
+      "confidence": 0.57,
+      "feature_attribution": [
+        {
+          "feature": "irony",
+          "contribution": 0.09
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.15
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": -0.12
+        },
+        {
+          "feature": "text_density",
+          "contribution": -0.08
+        }
+      ]
+    },
+    "content": {
+      "headline": "library seat ownership law, explained",
+      "visual_description": "Whiteboard diagram with legal citations to statutes that do not exist. Laser pointer. Absolutely straight face.",
+      "punchline": "a water bottle establishes possession for ninety minutes. a laptop charger is adverse possession.",
+      "caption": "precedent is precedent",
+      "audio": "original audio — lecture hall",
+      "media_url": "/specimens/exp_008.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-20T23:00:00.000Z",
+      "post_id": "7218830000005869736"
+    },
+    "observed": {
+      "views": 8370,
+      "likes": 807,
+      "comments": 73,
+      "shares": 83,
+      "saves": 120,
+      "fitness": 0.38,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 357,
+          "likes": 34,
+          "shares": 3
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 1008,
+          "likes": 97,
+          "shares": 9
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 1853,
+          "likes": 179,
+          "shares": 17
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 3276,
+          "likes": 316,
+          "shares": 30
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 5435,
+          "likes": 524,
+          "shares": 50
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 7225,
+          "likes": 697,
+          "shares": 67
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 7791,
+          "likes": 751,
+          "shares": 72
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_009",
+    "generation": 3,
+    "parent_id": "exp_006",
+    "status": "extinct",
+    "genome": {
+      "topic": "gym",
+      "humor": "absurdist",
+      "format": "pov",
+      "hook": "unexpected_text",
+      "absurdity": 0.76,
+      "irony": 0.58,
+      "relatability": 0.69,
+      "trend_relevance": 0.66,
+      "text_density": 0.3,
+      "caption_length": 10,
+      "video_length": 7,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "topic",
+        "from": "cs_major",
+        "to": "gym"
+      }
+    ],
+    "hypothesis": "If the winning structure is the structure and not the subject, transplanting it onto an unrelated topic should hold most of its fitness.",
+    "prediction": {
+      "fitness": 0.7,
+      "confidence": 0.68,
+      "feature_attribution": [
+        {
+          "feature": "video_length_short",
+          "contribution": 0.21
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.16
+        },
+        {
+          "feature": "audio_trending",
+          "contribution": 0.12
+        },
+        {
+          "feature": "topic_transfer",
+          "contribution": -0.09
+        }
+      ]
+    },
+    "content": {
+      "headline": "when you said one quick gym session",
+      "visual_description": "Same hard-cut structure as exp_006. 6pm lit gym, 9pm empty gym, identical posture on the same bench.",
+      "punchline": "it was leg day. it is still leg day.",
+      "caption": "see you tomorrow",
+      "audio": "trending — pitched-up sample, 7s loop",
+      "media_url": "/specimens/exp_009.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-21T06:00:00.000Z",
+      "post_id": "7218830000006603453"
+    },
+    "observed": {
+      "views": 17495,
+      "likes": 2144,
+      "comments": 185,
+      "shares": 307,
+      "saves": 327,
+      "fitness": 0.55,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 733,
+          "likes": 90,
+          "shares": 12
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 2128,
+          "likes": 261,
+          "shares": 35
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 4041,
+          "likes": 495,
+          "shares": 66
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 7115,
+          "likes": 872,
+          "shares": 116
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 10996,
+          "likes": 1348,
+          "shares": 179
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 14973,
+          "likes": 1835,
+          "shares": 244
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 17021,
+          "likes": 2086,
+          "shares": 278
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_010",
+    "generation": 3,
+    "parent_id": "exp_006",
+    "status": "survived",
+    "genome": {
+      "topic": "cs_major",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "unexpected_text",
+      "absurdity": 0.81,
+      "irony": 0.55,
+      "relatability": 0.74,
+      "trend_relevance": 0.79,
+      "text_density": 0.28,
+      "caption_length": 9,
+      "video_length": 6,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "format",
+        "from": "pov",
+        "to": "speedrun"
+      },
+      {
+        "trait": "trend_relevance",
+        "from": 0.67,
+        "to": 0.79
+      },
+      {
+        "trait": "absurdity",
+        "from": 0.76,
+        "to": 0.81
+      }
+    ],
+    "hypothesis": "Borrowing the speedrun frame imports an entire existing grammar — timer, split, category name — so the viewer already knows how to read the joke and can re-tell it in four words.",
+    "prediction": {
+      "fitness": 0.74,
+      "confidence": 0.71,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.24
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.16
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.14
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.09
+        },
+        {
+          "feature": "text_density",
+          "contribution": 0.05
+        }
+      ]
+    },
+    "content": {
+      "headline": "the 11:59pm submission speedrun, any%",
+      "visual_description": "Split-screen with a live millisecond timer. Green split text pops on every completed step. Final upload confirmation at 23:59:47.",
+      "punchline": "NEW PERSONAL BEST — 13 seconds remaining",
+      "caption": "any% no-sleep category",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_010.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-21T13:00:00.000Z",
+      "post_id": "7218830000007337170"
+    },
+    "observed": {
+      "views": 33840,
+      "likes": 4976,
+      "comments": 478,
+      "shares": 1308,
+      "saves": 786,
+      "fitness": 0.86,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1420,
+          "likes": 209,
+          "shares": 51
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 4143,
+          "likes": 609,
+          "shares": 149
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 7737,
+          "likes": 1138,
+          "shares": 278
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 13386,
+          "likes": 1968,
+          "shares": 481
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 21887,
+          "likes": 3218,
+          "shares": 787
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 29605,
+          "likes": 4353,
+          "shares": 1064
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 32389,
+          "likes": 4763,
+          "shares": 1164
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_011",
+    "generation": 3,
+    "parent_id": "exp_006",
+    "status": "extinct",
+    "genome": {
+      "topic": "cs_major",
+      "humor": "absurdist",
+      "format": "pov",
+      "hook": "cold_open",
+      "absurdity": 0.78,
+      "irony": 0.6,
+      "relatability": 0.83,
+      "trend_relevance": 0.68,
+      "text_density": 0.33,
+      "caption_length": 12,
+      "video_length": 8,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "hook",
+        "from": "unexpected_text",
+        "to": "cold_open"
+      },
+      {
+        "trait": "relatability",
+        "from": 0.72,
+        "to": 0.83
+      }
+    ],
+    "hypothesis": "Opening mid-sentence with no setup should cut the scroll-past window to almost nothing.",
+    "prediction": {
+      "fitness": 0.69,
+      "confidence": 0.66,
+      "feature_attribution": [
+        {
+          "feature": "hook_cold_open",
+          "contribution": 0.17
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.14
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.13
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.08
+        }
+      ]
+    },
+    "content": {
+      "headline": "when the TA says 'this will be on the exam'",
+      "visual_description": "Opens already mid-panic. Forty students turning to the same page in unison, filmed from the back row.",
+      "punchline": "she said it about slide 4 of 212",
+      "caption": "the whole room heard it",
+      "audio": "trending — pitched-up sample, 7s loop",
+      "media_url": "/specimens/exp_011.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-21T20:00:00.000Z",
+      "post_id": "7218830000008070887"
+    },
+    "observed": {
+      "views": 32541,
+      "likes": 4836,
+      "comments": 431,
+      "shares": 1095,
+      "saves": 728,
+      "fitness": 0.79,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1385,
+          "likes": 206,
+          "shares": 43
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 3905,
+          "likes": 580,
+          "shares": 122
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 7421,
+          "likes": 1103,
+          "shares": 232
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 13006,
+          "likes": 1933,
+          "shares": 407
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 21272,
+          "likes": 3161,
+          "shares": 666
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 27846,
+          "likes": 4138,
+          "shares": 871
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 31014,
+          "likes": 4609,
+          "shares": 971
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_012",
+    "generation": 3,
+    "parent_id": "exp_006",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "ironic",
+      "format": "pov",
+      "hook": "unexpected_text",
+      "absurdity": 0.74,
+      "irony": 0.91,
+      "relatability": 0.48,
+      "trend_relevance": 0.62,
+      "text_density": 0.35,
+      "caption_length": 13,
+      "video_length": 9,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "irony",
+        "from": 0.61,
+        "to": 0.91
+      },
+      {
+        "trait": "humor",
+        "from": "absurdist",
+        "to": "ironic"
+      },
+      {
+        "trait": "relatability",
+        "from": 0.72,
+        "to": 0.48
+      }
+    ],
+    "hypothesis": "The historical corpus scores irony highly, so maximising it on top of the winning structure should be the single largest available gain.",
+    "prediction": {
+      "fitness": 0.74,
+      "confidence": 0.62,
+      "feature_attribution": [
+        {
+          "feature": "irony",
+          "contribution": 0.23
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.12
+        },
+        {
+          "feature": "absurdity",
+          "contribution": 0.08
+        },
+        {
+          "feature": "relatability",
+          "contribution": -0.14
+        }
+      ]
+    },
+    "content": {
+      "headline": "a deeply ironic meditation on the attendance policy",
+      "visual_description": "Slow push-in on an empty lecture hall. Layered irony: the video is about not attending, filmed by someone attending.",
+      "punchline": "the policy is the performance and we are all complicit, etc.",
+      "caption": "anyway",
+      "audio": "trending — melancholy piano edit",
+      "media_url": "/specimens/exp_012.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-22T03:00:00.000Z",
+      "post_id": "7218830000008804604"
+    },
+    "observed": {
+      "views": 10158,
+      "likes": 1053,
+      "comments": 77,
+      "shares": 115,
+      "saves": 151,
+      "fitness": 0.41,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 435,
+          "likes": 45,
+          "shares": 5
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 1234,
+          "likes": 128,
+          "shares": 13
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 2297,
+          "likes": 238,
+          "shares": 24
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 4039,
+          "likes": 419,
+          "shares": 43
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 6602,
+          "likes": 684,
+          "shares": 70
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 8709,
+          "likes": 903,
+          "shares": 92
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 9777,
+          "likes": 1014,
+          "shares": 103
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_013",
+    "generation": 4,
+    "parent_id": "exp_010",
+    "status": "extinct",
+    "genome": {
+      "topic": "campus",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "unexpected_text",
+      "absurdity": 0.8,
+      "irony": 0.5,
+      "relatability": 0.77,
+      "trend_relevance": 0.76,
+      "text_density": 0.27,
+      "caption_length": 9,
+      "video_length": 6,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "topic",
+        "from": "cs_major",
+        "to": "campus"
+      }
+    ],
+    "hypothesis": "Widening the topic from one major to the whole campus should grow the addressable audience without touching the structure that is working.",
+    "prediction": {
+      "fitness": 0.78,
+      "confidence": 0.74,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.22
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.14
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.13
+        },
+        {
+          "feature": "topic_broad",
+          "contribution": -0.06
+        }
+      ]
+    },
+    "content": {
+      "headline": "the 8am lecture speedrun, glitchless",
+      "visual_description": "Timer starts at the alarm. Splits for teeth, bus, coffee, door. Runner arrives as the slide deck opens.",
+      "punchline": "GLITCHLESS — showered, technically",
+      "caption": "glitchless category is harder",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_013.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-22T10:00:00.000Z",
+      "post_id": "7218830000009538321"
+    },
+    "observed": {
+      "views": 24642,
+      "likes": 3273,
+      "comments": 290,
+      "shares": 639,
+      "saves": 489,
+      "fitness": 0.68,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1021,
+          "likes": 136,
+          "shares": 25
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 3027,
+          "likes": 402,
+          "shares": 73
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 5570,
+          "likes": 740,
+          "shares": 134
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 9954,
+          "likes": 1322,
+          "shares": 240
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 15688,
+          "likes": 2084,
+          "shares": 378
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 21133,
+          "likes": 2807,
+          "shares": 510
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 22921,
+          "likes": 3044,
+          "shares": 553
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_014",
+    "generation": 4,
+    "parent_id": "exp_010",
+    "status": "survived",
+    "genome": {
+      "topic": "bureaucracy",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "cold_open",
+      "absurdity": 0.86,
+      "irony": 0.49,
+      "relatability": 0.88,
+      "trend_relevance": 0.81,
+      "text_density": 0.24,
+      "caption_length": 8,
+      "video_length": 6,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "topic",
+        "from": "cs_major",
+        "to": "bureaucracy"
+      },
+      {
+        "trait": "hook",
+        "from": "unexpected_text",
+        "to": "cold_open"
+      },
+      {
+        "trait": "relatability",
+        "from": 0.74,
+        "to": 0.88
+      },
+      {
+        "trait": "absurdity",
+        "from": 0.81,
+        "to": 0.86
+      }
+    ],
+    "hypothesis": "Pointing the speedrun frame at a shared institutional enemy rather than a personal habit should let the joke be re-told by people it did not happen to.",
+    "prediction": {
+      "fitness": 0.81,
+      "confidence": 0.78,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.23
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.19
+        },
+        {
+          "feature": "shared_antagonist",
+          "contribution": 0.15
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.11
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.09
+        }
+      ]
+    },
+    "content": {
+      "headline": "financial aid portal speedrun (world record attempt)",
+      "visual_description": "Cold open on a 2003-era portal already mid-session. Timer running. Two password resets, one PDF that opens in a new tab and immediately expires.",
+      "punchline": "RUN VOIDED — session timed out at 4:51",
+      "caption": "attempt 6",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_014.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-22T17:00:00.000Z",
+      "post_id": "7218830000010272038"
+    },
+    "observed": {
+      "views": 35370,
+      "likes": 5427,
+      "comments": 461,
+      "shares": 1552,
+      "saves": 891,
+      "fitness": 0.91,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 1469,
+          "likes": 225,
+          "shares": 60
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 4195,
+          "likes": 644,
+          "shares": 171
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 8099,
+          "likes": 1243,
+          "shares": 331
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 14150,
+          "likes": 2171,
+          "shares": 577
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 22524,
+          "likes": 3456,
+          "shares": 919
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 30460,
+          "likes": 4674,
+          "shares": 1243
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 33678,
+          "likes": 5167,
+          "shares": 1374
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_015",
+    "generation": 4,
+    "parent_id": "exp_010",
+    "status": "extinct",
+    "genome": {
+      "topic": "dining",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "unexpected_text",
+      "absurdity": 0.79,
+      "irony": 0.52,
+      "relatability": 0.81,
+      "trend_relevance": 0.74,
+      "text_density": 0.29,
+      "caption_length": 10,
+      "video_length": 7,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "topic",
+        "from": "cs_major",
+        "to": "dining"
+      }
+    ],
+    "hypothesis": "Dining hall content has the widest possible campus overlap, so the same structure should reach more people per share.",
+    "prediction": {
+      "fitness": 0.76,
+      "confidence": 0.72,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.21
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.16
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.1
+        },
+        {
+          "feature": "topic_saturation",
+          "contribution": -0.08
+        }
+      ]
+    },
+    "content": {
+      "headline": "the dining hall swipe speedrun",
+      "visual_description": "Timer from door to table. Split for the omelette line. Runner loses eleven seconds to a friend who wants to catch up.",
+      "punchline": "SOCIAL PENALTY — +11s",
+      "caption": "the line is RNG",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_015.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-23T00:00:00.000Z",
+      "post_id": "7218830000011005755"
+    },
+    "observed": {
+      "views": 22379,
+      "likes": 2979,
+      "comments": 256,
+      "shares": 652,
+      "saves": 480,
+      "fitness": 0.72,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 919,
+          "likes": 122,
+          "shares": 25
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 2678,
+          "likes": 357,
+          "shares": 73
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 4944,
+          "likes": 658,
+          "shares": 134
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 9073,
+          "likes": 1208,
+          "shares": 246
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 14315,
+          "likes": 1906,
+          "shares": 388
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 19553,
+          "likes": 2603,
+          "shares": 530
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 20834,
+          "likes": 2773,
+          "shares": 564
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_016",
+    "generation": 4,
+    "parent_id": "exp_010",
+    "status": "extinct",
+    "genome": {
+      "topic": "group_work",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "unexpected_text",
+      "absurdity": 0.83,
+      "irony": 0.53,
+      "relatability": 0.76,
+      "trend_relevance": 0.7,
+      "text_density": 0.41,
+      "caption_length": 14,
+      "video_length": 12,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "topic",
+        "from": "cs_major",
+        "to": "group_work"
+      },
+      {
+        "trait": "video_length",
+        "from": 6,
+        "to": 12
+      },
+      {
+        "trait": "text_density",
+        "from": 0.28,
+        "to": 0.41
+      }
+    ],
+    "hypothesis": "A four-player co-op framing needs more seconds to establish, and the payoff should justify the extra length.",
+    "prediction": {
+      "fitness": 0.72,
+      "confidence": 0.69,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.19
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.13
+        },
+        {
+          "feature": "video_length",
+          "contribution": -0.16
+        },
+        {
+          "feature": "text_density",
+          "contribution": -0.07
+        }
+      ]
+    },
+    "content": {
+      "headline": "group project speedrun, 4 players",
+      "visual_description": "Four-way split screen. Three panels idle for the entire run. One panel does everything.",
+      "punchline": "CO-OP RUN — 1 player active",
+      "caption": "i did not consent to this category",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_016.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-23T07:00:00.000Z",
+      "post_id": "7218830000011739472"
+    },
+    "observed": {
+      "views": 20577,
+      "likes": 2460,
+      "comments": 217,
+      "shares": 399,
+      "saves": 374,
+      "fitness": 0.59,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 857,
+          "likes": 102,
+          "shares": 15
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 2474,
+          "likes": 296,
+          "shares": 45
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 4766,
+          "likes": 570,
+          "shares": 86
+        },
+        {
+          "t": "2026-09-18T21:00:00.000Z",
+          "views": 8061,
+          "likes": 964,
+          "shares": 145
+        },
+        {
+          "t": "2026-09-19T09:00:00.000Z",
+          "views": 13171,
+          "likes": 1575,
+          "shares": 238
+        },
+        {
+          "t": "2026-09-20T09:00:00.000Z",
+          "views": 17539,
+          "likes": 2097,
+          "shares": 316
+        },
+        {
+          "t": "2026-09-21T09:00:00.000Z",
+          "views": 19818,
+          "likes": 2369,
+          "shares": 357
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_017",
+    "generation": 5,
+    "parent_id": "exp_014",
+    "status": "predicted",
+    "genome": {
+      "topic": "bureaucracy",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "cold_open",
+      "absurdity": 0.87,
+      "irony": 0.47,
+      "relatability": 0.85,
+      "trend_relevance": 0.78,
+      "text_density": 0.23,
+      "caption_length": 8,
+      "video_length": 6,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "absurdity",
+        "from": 0.86,
+        "to": 0.87
+      },
+      {
+        "trait": "trend_relevance",
+        "from": 0.81,
+        "to": 0.78
+      }
+    ],
+    "hypothesis": "Holding the winning genome nearly fixed gives a clean control against which the three mutated siblings can be read.",
+    "prediction": {
+      "fitness": 0.74,
+      "confidence": 0.76,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.22
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.17
+        },
+        {
+          "feature": "shared_antagonist",
+          "contribution": 0.13
+        },
+        {
+          "feature": "topic_repeat",
+          "contribution": -0.09
+        }
+      ]
+    },
+    "content": {
+      "headline": "the parking permit speedrun",
+      "visual_description": "Cold open on a permit queue at 6:40am. Timer. Runner reaches the window as the lot fills.",
+      "punchline": "RUN FAILED — lot full at 6:52",
+      "caption": "attempt 3",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_017.svg"
+    },
+    "deployment": {
+      "platform": null,
+      "timestamp": null,
+      "post_id": null
+    },
+    "observed": {
+      "views": null,
+      "likes": null,
+      "comments": null,
+      "shares": null,
+      "saves": null,
+      "fitness": null,
+      "timeseries": []
+    }
+  },
+  {
+    "id": "exp_018",
+    "generation": 5,
+    "parent_id": "exp_014",
+    "status": "deployed",
+    "genome": {
+      "topic": "bureaucracy",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "cold_open",
+      "absurdity": 0.89,
+      "irony": 0.46,
+      "relatability": 0.91,
+      "trend_relevance": 0.86,
+      "text_density": 0.22,
+      "caption_length": 7,
+      "video_length": 5,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "relatability",
+        "from": 0.88,
+        "to": 0.91
+      },
+      {
+        "trait": "trend_relevance",
+        "from": 0.81,
+        "to": 0.86
+      },
+      {
+        "trait": "video_length",
+        "from": 6,
+        "to": 5
+      },
+      {
+        "trait": "absurdity",
+        "from": 0.86,
+        "to": 0.89
+      }
+    ],
+    "hypothesis": "The housing lottery is the single most widely shared institutional grievance on campus, and framing it as RNG manipulation gives strangers a reason to send it to each other rather than merely recognise it.",
+    "prediction": {
+      "fitness": 0.88,
+      "confidence": 0.81,
+      "feature_attribution": [
+        {
+          "feature": "relatability",
+          "contribution": 0.21
+        },
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.2
+        },
+        {
+          "feature": "shared_antagonist",
+          "contribution": 0.18
+        },
+        {
+          "feature": "trend_relevance",
+          "contribution": 0.14
+        },
+        {
+          "feature": "video_length_short",
+          "contribution": 0.08
+        }
+      ]
+    },
+    "content": {
+      "headline": "housing lottery speedrun (RNG manipulation)",
+      "visual_description": "Cold open on a countdown already at 00:04. Lottery number reveal. Runner attempts four documented RNG-manipulation strategies, all superstition.",
+      "punchline": "SEED WAS SET AT BIRTH",
+      "caption": "rng is rigged",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_018.svg"
+    },
+    "deployment": {
+      "platform": "tiktok",
+      "timestamp": "2026-09-22T09:00:00.000Z",
+      "post_id": "7218830000013206906"
+    },
+    "observed": {
+      "views": 17468,
+      "likes": 2574,
+      "comments": 240,
+      "shares": 668,
+      "saves": 390,
+      "fitness": 0.79,
+      "timeseries": [
+        {
+          "t": "2026-09-18T09:00:00.000Z",
+          "views": 0,
+          "likes": 0,
+          "shares": 0
+        },
+        {
+          "t": "2026-09-18T10:00:00.000Z",
+          "views": 6857,
+          "likes": 1010,
+          "shares": 244
+        },
+        {
+          "t": "2026-09-18T11:00:00.000Z",
+          "views": 10941,
+          "likes": 1612,
+          "shares": 389
+        },
+        {
+          "t": "2026-09-18T12:00:00.000Z",
+          "views": 13367,
+          "likes": 1970,
+          "shares": 475
+        },
+        {
+          "t": "2026-09-18T13:00:00.000Z",
+          "views": 15483,
+          "likes": 2281,
+          "shares": 551
+        },
+        {
+          "t": "2026-09-18T15:00:00.000Z",
+          "views": 16633,
+          "likes": 2451,
+          "shares": 592
+        }
+      ]
+    }
+  },
+  {
+    "id": "exp_019",
+    "generation": 5,
+    "parent_id": "exp_014",
+    "status": "predicted",
+    "genome": {
+      "topic": "bureaucracy",
+      "humor": "deadpan",
+      "format": "speedrun",
+      "hook": "cold_open",
+      "absurdity": 0.72,
+      "irony": 0.61,
+      "relatability": 0.83,
+      "trend_relevance": 0.75,
+      "text_density": 0.26,
+      "caption_length": 11,
+      "video_length": 8,
+      "audio_strategy": "original"
+    },
+    "mutations": [
+      {
+        "trait": "humor",
+        "from": "absurdist",
+        "to": "deadpan"
+      },
+      {
+        "trait": "audio_strategy",
+        "from": "trending",
+        "to": "original"
+      },
+      {
+        "trait": "irony",
+        "from": 0.49,
+        "to": 0.61
+      }
+    ],
+    "hypothesis": "An exploration probe. Both the deadpan register and original audio were pruned in earlier generations, but never together and never on top of the speedrun frame — the agent has low confidence here and wants the measurement.",
+    "prediction": {
+      "fitness": 0.69,
+      "confidence": 0.44,
+      "feature_attribution": [
+        {
+          "feature": "format_speedrun",
+          "contribution": 0.2
+        },
+        {
+          "feature": "relatability",
+          "contribution": 0.15
+        },
+        {
+          "feature": "audio_original",
+          "contribution": -0.11
+        },
+        {
+          "feature": "irony",
+          "contribution": -0.06
+        }
+      ]
+    },
+    "content": {
+      "headline": "course registration speedrun, co-op run",
+      "visual_description": "Two roommates, two laptops, one shared schedule. Deadpan narration of a plan that survives four seconds of contact with the registrar.",
+      "punchline": "DESYNC — both runners in the same section",
+      "caption": "we practised this for a week",
+      "audio": "original audio — keyboard, two people not talking",
+      "media_url": "/specimens/exp_019.svg"
+    },
+    "deployment": {
+      "platform": null,
+      "timestamp": null,
+      "post_id": null
+    },
+    "observed": {
+      "views": null,
+      "likes": null,
+      "comments": null,
+      "shares": null,
+      "saves": null,
+      "fitness": null,
+      "timeseries": []
+    }
+  },
+  {
+    "id": "exp_020",
+    "generation": 5,
+    "parent_id": "exp_014",
+    "status": "pending",
+    "genome": {
+      "topic": "bureaucracy",
+      "humor": "absurdist",
+      "format": "speedrun",
+      "hook": "cold_open",
+      "absurdity": 0.84,
+      "irony": 0.48,
+      "relatability": 0.86,
+      "trend_relevance": 0.8,
+      "text_density": 0.25,
+      "caption_length": 9,
+      "video_length": 7,
+      "audio_strategy": "trending"
+    },
+    "mutations": [
+      {
+        "trait": "hook",
+        "from": "cold_open",
+        "to": "cold_open"
+      },
+      {
+        "trait": "caption_length",
+        "from": 8,
+        "to": 9
+      }
+    ],
+    "hypothesis": "Awaiting a fitness estimate from the historical model.",
+    "prediction": {
+      "fitness": 0,
+      "confidence": 0,
+      "feature_attribution": []
+    },
+    "content": {
+      "headline": "office hours speedrun",
+      "visual_description": "Cold open on a corridor queue. Timer. Eleven minutes of waiting compressed to three seconds.",
+      "punchline": "BOSS NOT SPAWNED — door locked, sign says back in 5",
+      "caption": "attempt 2",
+      "audio": "trending — speedrun timer sting",
+      "media_url": "/specimens/exp_020.svg"
+    },
+    "deployment": {
+      "platform": null,
+      "timestamp": null,
+      "post_id": null
+    },
+    "observed": {
+      "views": null,
+      "likes": null,
+      "comments": null,
+      "shares": null,
+      "saves": null,
+      "fitness": null,
+      "timeseries": []
+    }
+  }
+]

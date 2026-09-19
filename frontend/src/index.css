@@ -1,0 +1,116 @@
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-void font-mono text-bone antialiased;
+    font-feature-settings:
+      'tnum' 1,
+      'zero' 1;
+    overscroll-behavior: none;
+  }
+
+  /* Every number in this app is tabular. Data should never reflow as it ticks. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    @apply bg-acid text-void;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(237, 232, 224, 0.11);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(237, 232, 224, 0.2);
+  }
+
+  :focus-visible {
+    outline: 1px solid #c7f04a;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* lab-notebook section label: lowercase mono, wide tracking, low contrast */
+  .lab-label {
+    @apply font-mono text-2xs lowercase tracking-lab text-smoke;
+  }
+  .lab-rule {
+    @apply border-t border-hairline;
+  }
+  .hair-x {
+    @apply border-b border-hairline;
+  }
+}
+
+/* ── React Flow overrides ──────────────────────────────────────────────── */
+.react-flow {
+  --xy-background-color: transparent;
+}
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__node {
+  cursor: pointer;
+}
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  min-width: 1px;
+  min-height: 1px;
+  border: 0;
+  background: transparent;
+}
+.react-flow__edge-path {
+  transition:
+    stroke 240ms ease,
+    stroke-width 240ms ease,
+    opacity 240ms ease;
+}
+.react-flow__node-band {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Reduced motion: stop everything that moves ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .motion-particle {
+    display: none;
+  }
+}

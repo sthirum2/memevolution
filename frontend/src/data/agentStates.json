@@ -1,0 +1,146 @@
+[
+  {
+    "generation": 0,
+    "beliefs": {
+      "absurdity": 0.4,
+      "irony": 0.72,
+      "relatability": 0.7,
+      "trend_relevance": 0.5,
+      "text_density": 0.6,
+      "short_video": 0.45,
+      "trending_audio": 0.5,
+      "short_caption": 0.42
+    },
+    "confidence": {
+      "absurdity": 0.3,
+      "irony": 0.34,
+      "relatability": 0.44,
+      "trend_relevance": 0.28,
+      "text_density": 0.31,
+      "short_video": 0.26,
+      "trending_audio": 0.29,
+      "short_caption": 0.24
+    },
+    "note": "Priors read straight off the historical corpus. Nothing here has been tested by this agent — the corpus rewards relatability and a moderately ironic register, and the agent has no reason yet to doubt either."
+  },
+  {
+    "generation": 1,
+    "beliefs": {
+      "absurdity": 0.51,
+      "irony": 0.64,
+      "relatability": 0.68,
+      "trend_relevance": 0.58,
+      "text_density": 0.52,
+      "short_video": 0.54,
+      "trending_audio": 0.62,
+      "short_caption": 0.51
+    },
+    "confidence": {
+      "absurdity": 0.44,
+      "irony": 0.38,
+      "relatability": 0.52,
+      "trend_relevance": 0.41,
+      "text_density": 0.36,
+      "short_video": 0.4,
+      "trending_audio": 0.45,
+      "short_caption": 0.33
+    },
+    "note": "exp_003 beat its prediction by +.18 while the sincere vlog (exp_004) came in .17 under. Absurdity is doing work the corpus did not price in. First real downgrade of the inherited belief that sincerity converts."
+  },
+  {
+    "generation": 2,
+    "beliefs": {
+      "absurdity": 0.63,
+      "irony": 0.55,
+      "relatability": 0.71,
+      "trend_relevance": 0.61,
+      "text_density": 0.45,
+      "short_video": 0.69,
+      "trending_audio": 0.7,
+      "short_caption": 0.58
+    },
+    "confidence": {
+      "absurdity": 0.58,
+      "irony": 0.42,
+      "relatability": 0.56,
+      "trend_relevance": 0.49,
+      "text_density": 0.47,
+      "short_video": 0.61,
+      "trending_audio": 0.57,
+      "short_caption": 0.44
+    },
+    "note": "exp_006 overperformed by +.18 at seven seconds; exp_005 underperformed by -.14 at twenty-one. Duration separates them more cleanly than absurdity does. Short video is now the strongest single belief the agent holds."
+  },
+  {
+    "generation": 3,
+    "beliefs": {
+      "absurdity": 0.74,
+      "irony": 0.71,
+      "relatability": 0.76,
+      "trend_relevance": 0.67,
+      "text_density": 0.38,
+      "short_video": 0.78,
+      "trending_audio": 0.74,
+      "short_caption": 0.66
+    },
+    "confidence": {
+      "absurdity": 0.69,
+      "irony": 0.29,
+      "relatability": 0.63,
+      "trend_relevance": 0.58,
+      "text_density": 0.55,
+      "short_video": 0.72,
+      "trending_audio": 0.64,
+      "short_caption": 0.52
+    },
+    "note": "OVER-CORRECTION. The corpus scores irony highly and the agent raised it to .71 before exp_012 reported back. exp_012 was overpredicted by -.33 — the largest miss of the run. Irony confidence collapses to .29 pending the next generation."
+  },
+  {
+    "generation": 4,
+    "beliefs": {
+      "absurdity": 0.79,
+      "irony": 0.52,
+      "relatability": 0.8,
+      "trend_relevance": 0.72,
+      "text_density": 0.31,
+      "short_video": 0.84,
+      "trending_audio": 0.79,
+      "short_caption": 0.74
+    },
+    "confidence": {
+      "absurdity": 0.76,
+      "irony": 0.61,
+      "relatability": 0.74,
+      "trend_relevance": 0.69,
+      "text_density": 0.66,
+      "short_video": 0.81,
+      "trending_audio": 0.73,
+      "short_caption": 0.63
+    },
+    "note": "Irony backs off hard, from .71 to .52, and confidence recovers now that the miss is explained: what the corpus read as irony was borrowed structure. exp_010 and exp_014 both beat prediction using an imported frame the viewer already knows how to read."
+  },
+  {
+    "generation": 5,
+    "beliefs": {
+      "absurdity": 0.81,
+      "irony": 0.49,
+      "relatability": 0.86,
+      "trend_relevance": 0.74,
+      "text_density": 0.28,
+      "short_video": 0.86,
+      "trending_audio": 0.81,
+      "short_caption": 0.79
+    },
+    "confidence": {
+      "absurdity": 0.82,
+      "irony": 0.68,
+      "relatability": 0.84,
+      "trend_relevance": 0.75,
+      "text_density": 0.71,
+      "short_video": 0.86,
+      "trending_audio": 0.78,
+      "short_caption": 0.72
+    },
+    "note": "Absurdity has plateaued around .80 — pushing it further stopped paying at exp_005. The live belief is that propagation comes from a shared antagonist plus a borrowed frame, held under six seconds. exp_018 is deployed and testing exactly that."
+  }
+]
