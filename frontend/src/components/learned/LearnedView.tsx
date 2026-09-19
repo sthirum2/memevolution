@@ -71,7 +71,29 @@ export default function LearnedView() {
     [pairs],
   )
 
-  if (!first || !last) return null
+  // The backend has no /agent-states endpoint yet, so in live mode this screen
+  // would otherwise render as a blank white page. Say why instead.
+  if (!first || !last || agentStates.length < 2) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+        <div className="card p-8 text-center">
+          <h2 className="font-display text-xl font-bold">Nothing to show yet</h2>
+          <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-muted">
+            This screen compares what the AI believes now against what it believed at the
+            start. It needs at least two rounds of recorded beliefs, and the server has
+            returned {agentStates.length === 0 ? 'none' : 'only one'}.
+          </p>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
+            If you are running against the live backend, it does not serve{' '}
+            <code className="rounded bg-paper px-1.5 py-0.5 text-xs">GET /agent-states</code> yet.
+            Set <code className="rounded bg-paper px-1.5 py-0.5 text-xs">VITE_USE_MOCK=true</code>{' '}
+            in <code className="rounded bg-paper px-1.5 py-0.5 text-xs">frontend/.env</code> to see
+            this screen with demo data.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Biggest movers, which is what the takeaway cards talk about.
   const moves = BELIEF_TRAITS.map((t) => ({

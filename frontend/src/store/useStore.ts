@@ -14,6 +14,7 @@ export type View = 'evolution' | 'lab' | 'learned'
 export type LabStep = 'setup' | 'candidates' | 'review' | 'results'
 
 interface LabState {
+  error: string | null
   step: LabStep
   platform: Platform
   topic: string
@@ -29,6 +30,7 @@ interface LabState {
 }
 
 const freshLab = (): LabState => ({
+  error: null,
   step: 'setup',
   platform: 'tiktok',
   topic: 'bureaucracy',
@@ -138,6 +140,7 @@ export const useStore = create<Store>((set, get) => ({
     if (lab.busy) return
     get().setLab({
       busy: true,
+      error: null,
       step: 'candidates',
       candidates: [],
       scored: [],
@@ -169,8 +172,9 @@ export const useStore = create<Store>((set, get) => ({
       get().setLab({ busy: false, selection })
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      set({ error: message })
-      get().setLab({ busy: false })
+      // Local to the Lab — a failure here must not replace the whole app
+      // with an error screen while the other two tabs still work.
+      get().setLab({ busy: false, error: message })
     }
   },
 
@@ -200,8 +204,9 @@ export const useStore = create<Store>((set, get) => ({
       }))
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      set({ error: message })
-      get().setLab({ busy: false })
+      // Local to the Lab — a failure here must not replace the whole app
+      // with an error screen while the other two tabs still work.
+      get().setLab({ busy: false, error: message })
     }
   },
 
@@ -240,8 +245,9 @@ export const useStore = create<Store>((set, get) => ({
       }))
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      set({ error: message })
-      get().setLab({ busy: false })
+      // Local to the Lab — a failure here must not replace the whole app
+      // with an error screen while the other two tabs still work.
+      get().setLab({ busy: false, error: message })
     }
   },
 }))

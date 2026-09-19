@@ -97,6 +97,19 @@ export default function LabView() {
         })}
       </ol>
 
+      {lab.error ? (
+        <div className="rounded-2xl border-2 border-dead/40 bg-dead-soft/50 p-5">
+          <h3 className="font-display font-bold text-dead">That step could not run</h3>
+          <p className="mt-1.5 text-sm leading-relaxed">{lab.error}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Writing and scoring new memes is the agent service&rsquo;s job, and it is not wired up
+            yet. Set <code className="rounded bg-white px-1.5 py-0.5 text-xs">VITE_USE_MOCK=true</code>{' '}
+            in <code className="rounded bg-white px-1.5 py-0.5 text-xs">frontend/.env</code> to run
+            this flow on demo data.
+          </p>
+        </div>
+      ) : null}
+
       {lab.step === 'setup' ? <StepSetup /> : null}
       {lab.step === 'candidates' ? <StepCandidates /> : null}
       {lab.step === 'review' ? <StepReview /> : null}
