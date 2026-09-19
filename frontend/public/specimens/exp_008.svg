@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(12 8% 12%)"/>
+      <stop offset="58%" stop-color="#0B0D0E"/>
+      <stop offset="100%" stop-color="hsl(12 8% 7%)"/>
+    </linearGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="104"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="540" cy="760" r="180" fill="none" stroke="hsl(12 8% 62%)" stroke-width="1" opacity="0.160"/><circle cx="540" cy="760" r="295" fill="none" stroke="hsl(12 8% 62%)" stroke-width="1" opacity="0.135"/><circle cx="540" cy="760" r="410" fill="none" stroke="hsl(12 8% 62%)" stroke-width="1" opacity="0.110"/><circle cx="540" cy="760" r="525" fill="none" stroke="hsl(12 8% 62%)" stroke-width="1" opacity="0.085"/><circle cx="540" cy="760" r="640" fill="none" stroke="hsl(12 8% 62%)" stroke-width="1" opacity="0.060"/>
+  <rect x="202" y="40" width="289" height="20" fill="hsl(12 8% 70%)" opacity="0.106"/><rect x="85" y="92" width="387" height="21" fill="hsl(12 8% 70%)" opacity="0.116"/><rect x="67" y="144" width="725" height="14" fill="hsl(12 8% 70%)" opacity="0.163"/><rect x="128" y="196" width="713" height="9" fill="hsl(12 8% 70%)" opacity="0.068"/><rect x="80" y="248" width="399" height="15" fill="hsl(12 8% 70%)" opacity="0.140"/><rect x="178" y="300" width="602" height="19" fill="hsl(12 8% 70%)" opacity="0.049"/><rect x="73" y="352" width="599" height="11" fill="hsl(12 8% 70%)" opacity="0.131"/><rect x="122" y="404" width="507" height="11" fill="hsl(12 8% 70%)" opacity="0.129"/><rect x="171" y="456" width="678" height="8" fill="hsl(12 8% 70%)" opacity="0.099"/><rect x="220" y="508" width="559" height="18" fill="hsl(12 8% 70%)" opacity="0.125"/><rect x="204" y="560" width="422" height="19" fill="hsl(12 8% 70%)" opacity="0.168"/><rect x="136" y="612" width="516" height="15" fill="hsl(12 8% 70%)" opacity="0.147"/><rect x="234" y="664" width="235" height="18" fill="hsl(12 8% 70%)" opacity="0.136"/><rect x="149" y="716" width="519" height="9" fill="hsl(12 8% 70%)" opacity="0.082"/><rect x="230" y="768" width="494" height="13" fill="hsl(12 8% 70%)" opacity="0.135"/><rect x="115" y="820" width="634" height="17" fill="hsl(12 8% 70%)" opacity="0.141"/><rect x="172" y="872" width="139" height="21" fill="hsl(12 8% 70%)" opacity="0.066"/><rect x="199" y="924" width="168" height="16" fill="hsl(12 8% 70%)" opacity="0.139"/><rect x="82" y="976" width="769" height="10" fill="hsl(12 8% 70%)" opacity="0.125"/><rect x="222" y="1028" width="721" height="8" fill="hsl(12 8% 70%)" opacity="0.092"/><rect x="145" y="1080" width="664" height="20" fill="hsl(12 8% 70%)" opacity="0.128"/><rect x="121" y="1132" width="229" height="15" fill="hsl(12 8% 70%)" opacity="0.101"/><rect x="167" y="1184" width="453" height="20" fill="hsl(12 8% 70%)" opacity="0.136"/><rect x="71" y="1236" width="273" height="21" fill="hsl(12 8% 70%)" opacity="0.157"/><rect x="239" y="1288" width="476" height="15" fill="hsl(12 8% 70%)" opacity="0.166"/><rect x="86" y="1340" width="233" height="9" fill="hsl(12 8% 70%)" opacity="0.137"/>
+  <g opacity="0.5">
+    <line x1="0" y1="640" x2="1080" y2="640" stroke="hsl(12 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="0" y1="1280" x2="1080" y2="1280" stroke="hsl(12 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="360" y1="0" x2="360" y2="1920" stroke="hsl(12 8% 60%)" stroke-width="1" opacity="0.12"/>
+    <line x1="720" y1="0" x2="720" y2="1920" stroke="hsl(12 8% 60%)" stroke-width="1" opacity="0.12"/>
+  </g>
+  <rect width="1080" height="1920" filter="url(#n)" opacity="0.055"/>
+  <text x="60" y="130" font-family="monospace" font-size="38" letter-spacing="10"
+        fill="#EDE8E0" opacity="0.5">EXP_008</text>
+  <text x="60" y="1860" font-family="monospace" font-size="30" letter-spacing="6"
+        fill="#EDE8E0" opacity="0.28">GEN 2 · EXPLAINER</text>
+</svg>

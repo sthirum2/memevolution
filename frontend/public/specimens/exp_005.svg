@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(303 8% 12%)"/>
+      <stop offset="58%" stop-color="#0B0D0E"/>
+      <stop offset="100%" stop-color="hsl(303 8% 7%)"/>
+    </linearGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="65"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="540" cy="760" r="180" fill="none" stroke="hsl(303 8% 62%)" stroke-width="1" opacity="0.160"/><circle cx="540" cy="760" r="295" fill="none" stroke="hsl(303 8% 62%)" stroke-width="1" opacity="0.135"/><circle cx="540" cy="760" r="410" fill="none" stroke="hsl(303 8% 62%)" stroke-width="1" opacity="0.110"/><circle cx="540" cy="760" r="525" fill="none" stroke="hsl(303 8% 62%)" stroke-width="1" opacity="0.085"/><circle cx="540" cy="760" r="640" fill="none" stroke="hsl(303 8% 62%)" stroke-width="1" opacity="0.060"/>
+  <rect x="199" y="40" width="284" height="12" fill="hsl(303 8% 70%)" opacity="0.137"/><rect x="194" y="92" width="208" height="18" fill="hsl(303 8% 70%)" opacity="0.066"/><rect x="236" y="144" width="375" height="15" fill="hsl(303 8% 70%)" opacity="0.050"/><rect x="105" y="196" width="477" height="21" fill="hsl(303 8% 70%)" opacity="0.125"/><rect x="169" y="248" width="150" height="10" fill="hsl(303 8% 70%)" opacity="0.077"/><rect x="156" y="300" width="265" height="10" fill="hsl(303 8% 70%)" opacity="0.043"/><rect x="104" y="352" width="174" height="18" fill="hsl(303 8% 70%)" opacity="0.115"/><rect x="71" y="404" width="437" height="8" fill="hsl(303 8% 70%)" opacity="0.169"/><rect x="115" y="456" width="741" height="10" fill="hsl(303 8% 70%)" opacity="0.125"/><rect x="210" y="508" width="335" height="16" fill="hsl(303 8% 70%)" opacity="0.052"/><rect x="151" y="560" width="796" height="8" fill="hsl(303 8% 70%)" opacity="0.110"/><rect x="161" y="612" width="271" height="16" fill="hsl(303 8% 70%)" opacity="0.089"/><rect x="233" y="664" width="576" height="7" fill="hsl(303 8% 70%)" opacity="0.079"/><rect x="71" y="716" width="332" height="20" fill="hsl(303 8% 70%)" opacity="0.129"/><rect x="121" y="768" width="566" height="14" fill="hsl(303 8% 70%)" opacity="0.132"/><rect x="220" y="820" width="167" height="17" fill="hsl(303 8% 70%)" opacity="0.095"/><rect x="224" y="872" width="538" height="16" fill="hsl(303 8% 70%)" opacity="0.094"/><rect x="92" y="924" width="496" height="19" fill="hsl(303 8% 70%)" opacity="0.092"/><rect x="98" y="976" width="369" height="9" fill="hsl(303 8% 70%)" opacity="0.153"/><rect x="73" y="1028" width="817" height="10" fill="hsl(303 8% 70%)" opacity="0.049"/><rect x="126" y="1080" width="297" height="20" fill="hsl(303 8% 70%)" opacity="0.090"/><rect x="159" y="1132" width="443" height="15" fill="hsl(303 8% 70%)" opacity="0.090"/><rect x="220" y="1184" width="401" height="7" fill="hsl(303 8% 70%)" opacity="0.071"/><rect x="236" y="1236" width="668" height="19" fill="hsl(303 8% 70%)" opacity="0.067"/><rect x="97" y="1288" width="679" height="13" fill="hsl(303 8% 70%)" opacity="0.126"/><rect x="156" y="1340" width="135" height="13" fill="hsl(303 8% 70%)" opacity="0.160"/>
+  <g opacity="0.5">
+    <line x1="0" y1="640" x2="1080" y2="640" stroke="hsl(303 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="0" y1="1280" x2="1080" y2="1280" stroke="hsl(303 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="360" y1="0" x2="360" y2="1920" stroke="hsl(303 8% 60%)" stroke-width="1" opacity="0.12"/>
+    <line x1="720" y1="0" x2="720" y2="1920" stroke="hsl(303 8% 60%)" stroke-width="1" opacity="0.12"/>
+  </g>
+  <rect width="1080" height="1920" filter="url(#n)" opacity="0.055"/>
+  <text x="60" y="130" font-family="monospace" font-size="38" letter-spacing="10"
+        fill="#EDE8E0" opacity="0.5">EXP_005</text>
+  <text x="60" y="1860" font-family="monospace" font-size="30" letter-spacing="6"
+        fill="#EDE8E0" opacity="0.28">GEN 2 · MOCKUMENTARY</text>
+</svg>

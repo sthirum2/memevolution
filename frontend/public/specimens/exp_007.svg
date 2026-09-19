@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="hsl(349 8% 12%)"/>
+      <stop offset="58%" stop-color="#0B0D0E"/>
+      <stop offset="100%" stop-color="hsl(349 8% 7%)"/>
+    </linearGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="91"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="540" cy="760" r="180" fill="none" stroke="hsl(349 8% 62%)" stroke-width="1" opacity="0.160"/><circle cx="540" cy="760" r="295" fill="none" stroke="hsl(349 8% 62%)" stroke-width="1" opacity="0.135"/><circle cx="540" cy="760" r="410" fill="none" stroke="hsl(349 8% 62%)" stroke-width="1" opacity="0.110"/><circle cx="540" cy="760" r="525" fill="none" stroke="hsl(349 8% 62%)" stroke-width="1" opacity="0.085"/><circle cx="540" cy="760" r="640" fill="none" stroke="hsl(349 8% 62%)" stroke-width="1" opacity="0.060"/>
+  <rect x="199" y="40" width="604" height="14" fill="hsl(349 8% 70%)" opacity="0.134"/><rect x="100" y="92" width="263" height="17" fill="hsl(349 8% 70%)" opacity="0.166"/><rect x="240" y="144" width="399" height="17" fill="hsl(349 8% 70%)" opacity="0.071"/><rect x="84" y="196" width="197" height="11" fill="hsl(349 8% 70%)" opacity="0.060"/><rect x="130" y="248" width="558" height="19" fill="hsl(349 8% 70%)" opacity="0.044"/><rect x="116" y="300" width="231" height="20" fill="hsl(349 8% 70%)" opacity="0.045"/><rect x="197" y="352" width="357" height="16" fill="hsl(349 8% 70%)" opacity="0.062"/><rect x="92" y="404" width="155" height="11" fill="hsl(349 8% 70%)" opacity="0.054"/><rect x="229" y="456" width="435" height="8" fill="hsl(349 8% 70%)" opacity="0.109"/><rect x="115" y="508" width="739" height="20" fill="hsl(349 8% 70%)" opacity="0.050"/><rect x="167" y="560" width="406" height="10" fill="hsl(349 8% 70%)" opacity="0.116"/><rect x="215" y="612" width="223" height="12" fill="hsl(349 8% 70%)" opacity="0.044"/><rect x="164" y="664" width="226" height="13" fill="hsl(349 8% 70%)" opacity="0.128"/><rect x="146" y="716" width="132" height="15" fill="hsl(349 8% 70%)" opacity="0.122"/><rect x="92" y="768" width="761" height="6" fill="hsl(349 8% 70%)" opacity="0.168"/><rect x="82" y="820" width="518" height="8" fill="hsl(349 8% 70%)" opacity="0.054"/><rect x="67" y="872" width="347" height="14" fill="hsl(349 8% 70%)" opacity="0.062"/><rect x="105" y="924" width="699" height="20" fill="hsl(349 8% 70%)" opacity="0.120"/><rect x="172" y="976" width="731" height="15" fill="hsl(349 8% 70%)" opacity="0.092"/><rect x="61" y="1028" width="208" height="9" fill="hsl(349 8% 70%)" opacity="0.170"/><rect x="97" y="1080" width="795" height="7" fill="hsl(349 8% 70%)" opacity="0.067"/><rect x="226" y="1132" width="598" height="13" fill="hsl(349 8% 70%)" opacity="0.087"/><rect x="93" y="1184" width="644" height="20" fill="hsl(349 8% 70%)" opacity="0.052"/><rect x="83" y="1236" width="339" height="18" fill="hsl(349 8% 70%)" opacity="0.046"/><rect x="90" y="1288" width="669" height="11" fill="hsl(349 8% 70%)" opacity="0.076"/><rect x="126" y="1340" width="758" height="13" fill="hsl(349 8% 70%)" opacity="0.160"/>
+  <g opacity="0.5">
+    <line x1="0" y1="640" x2="1080" y2="640" stroke="hsl(349 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="0" y1="1280" x2="1080" y2="1280" stroke="hsl(349 8% 60%)" stroke-width="1" opacity="0.18"/>
+    <line x1="360" y1="0" x2="360" y2="1920" stroke="hsl(349 8% 60%)" stroke-width="1" opacity="0.12"/>
+    <line x1="720" y1="0" x2="720" y2="1920" stroke="hsl(349 8% 60%)" stroke-width="1" opacity="0.12"/>
+  </g>
+  <rect width="1080" height="1920" filter="url(#n)" opacity="0.055"/>
+  <text x="60" y="130" font-family="monospace" font-size="38" letter-spacing="10"
+        fill="#EDE8E0" opacity="0.5">EXP_007</text>
+  <text x="60" y="1860" font-family="monospace" font-size="30" letter-spacing="6"
+        fill="#EDE8E0" opacity="0.28">GEN 2 · GROUP_CHAT</text>
+</svg>

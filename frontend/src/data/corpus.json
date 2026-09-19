@@ -1,0 +1,138 @@
+{
+  "datasets": [
+    {
+      "name": "TikTok videos",
+      "scale": "4.5B videos",
+      "source": "kuben-developer/tiktok-videos-4b",
+      "description": "One row per video: caption, sound id as a join key, play/like/comment/share/save counts, duration, country, language, post time.",
+      "rowsSampled": 41206
+    },
+    {
+      "name": "Twitter firehose",
+      "scale": "395M tweets",
+      "source": "calcifer-hot/twitter-firehose-last-month",
+      "description": "Trailing month across X, all languages, with repeat snapshots per tweet so engagement is a time series rather than a single count.",
+      "rowsSampled": 18400
+    },
+    {
+      "name": "Parkour Instagram niche",
+      "scale": "451k posts · 10.8M observations",
+      "source": "calcifer-hot/parkour-instagram-niche",
+      "description": "A single dense niche with a 595,730-edge account graph — used to calibrate what follower-normalised propagation looks like inside a closed community.",
+      "rowsSampled": 12950
+    }
+  ],
+  "fitnessDistribution": [
+    {
+      "bucket": "0.0–0.1",
+      "count": 7412
+    },
+    {
+      "bucket": "0.1–0.2",
+      "count": 9831
+    },
+    {
+      "bucket": "0.2–0.3",
+      "count": 8204
+    },
+    {
+      "bucket": "0.3–0.4",
+      "count": 5967
+    },
+    {
+      "bucket": "0.4–0.5",
+      "count": 4118
+    },
+    {
+      "bucket": "0.5–0.6",
+      "count": 2644
+    },
+    {
+      "bucket": "0.6–0.7",
+      "count": 1489
+    },
+    {
+      "bucket": "0.7–0.8",
+      "count": 834
+    },
+    {
+      "bucket": "0.8–0.9",
+      "count": 512
+    },
+    {
+      "bucket": "0.9–1.0",
+      "count": 195
+    }
+  ],
+  "traitCorrelation": [
+    {
+      "trait": "short_video",
+      "correlation": 0.41
+    },
+    {
+      "trait": "trending_audio",
+      "correlation": 0.34
+    },
+    {
+      "trait": "absurdity",
+      "correlation": 0.29
+    },
+    {
+      "trait": "relatability",
+      "correlation": 0.22
+    },
+    {
+      "trait": "borrowed_frame",
+      "correlation": 0.19
+    },
+    {
+      "trait": "irony",
+      "correlation": 0.07
+    },
+    {
+      "trait": "caption_length",
+      "correlation": -0.14
+    },
+    {
+      "trait": "text_density",
+      "correlation": -0.26
+    }
+  ],
+  "propagationByFormat": [
+    {
+      "format": "speedrun",
+      "medianShareRate": 0.041,
+      "n": 1206
+    },
+    {
+      "format": "pov",
+      "medianShareRate": 0.028,
+      "n": 8944
+    },
+    {
+      "format": "group_chat",
+      "medianShareRate": 0.024,
+      "n": 3117
+    },
+    {
+      "format": "mockumentary",
+      "medianShareRate": 0.019,
+      "n": 902
+    },
+    {
+      "format": "talking_head",
+      "medianShareRate": 0.013,
+      "n": 11408
+    },
+    {
+      "format": "explainer",
+      "medianShareRate": 0.011,
+      "n": 4288
+    },
+    {
+      "format": "vlog",
+      "medianShareRate": 0.007,
+      "n": 6741
+    }
+  ]
+}
