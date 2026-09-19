@@ -18,8 +18,11 @@ import type {
   Experiment,
   GenerateParams,
   GenerationSummary,
+  LiveMetrics,
   MetricsInput,
   Platform,
+  PublishRequest,
+  PublishResult,
   SelectionResult,
 } from '@/types'
 
@@ -37,6 +40,10 @@ export interface MemevolutionApi {
   commitCandidate(candidate: Experiment): Promise<Experiment>
   deployExperiment(id: string, platform: Platform): Promise<Experiment>
   recordMetrics(id: string, metrics: MetricsInput): Promise<Experiment>
+  /** Actually publish to a real account. See PublishRequest. */
+  publishPost(req: PublishRequest): Promise<PublishResult>
+  /** Pull real numbers back from the platform for a published post. */
+  fetchLiveMetrics(id: string): Promise<LiveMetrics>
   evolve(): Promise<EvolveResult>
 }
 
@@ -59,6 +66,8 @@ export const commitCandidate = (c: Experiment) => impl.commitCandidate(c)
 export const deployExperiment = (id: string, platform: Platform) =>
   impl.deployExperiment(id, platform)
 export const recordMetrics = (id: string, m: MetricsInput) => impl.recordMetrics(id, m)
+export const publishPost = (req: PublishRequest) => impl.publishPost(req)
+export const fetchLiveMetrics = (id: string) => impl.fetchLiveMetrics(id)
 export const evolve = () => impl.evolve()
 
 /** Shown in the top bar so it is never ambiguous which backend is answering. */

@@ -156,4 +156,44 @@ export interface EvolveResult {
 
 export type ViewKey = 'organism' | 'specimen' | 'mind' | 'lab' | 'corpus'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Publishing to a real account.
+//
+// Instagram is the one platform where this genuinely works for a project at
+// this stage: publishing to your OWN account from a development-mode Meta app
+// needs no App Review. TikTok's Content Posting API also works unaudited, but
+// it forces SELF_ONLY visibility, so nobody sees the post and there is no
+// spread to measure.
+// ─────────────────────────────────────────────────────────────────────────────
 
+export interface PublishRequest {
+  experiment_id: string
+  platform: Platform
+  caption: string
+  /** Must be a PUBLIC url — Instagram's servers fetch the media themselves. */
+  media_url: string
+  media_type?: 'IMAGE' | 'REELS'
+}
+
+export interface PublishResult {
+  experiment_id: string
+  platform: Platform
+  /** Platform's own id for the post. */
+  post_id: string
+  /** Public link to the live post, if the platform returns one. */
+  permalink: string | null
+  published_at: string
+}
+
+/** Real numbers pulled back from the platform, not typed in by hand. */
+export interface LiveMetrics {
+  experiment_id: string
+  fetched_at: string
+  views: number | null
+  likes: number | null
+  comments: number | null
+  shares: number | null
+  saves: number | null
+  /** Recomputed server-side from the metrics above. */
+  fitness: number | null
+}

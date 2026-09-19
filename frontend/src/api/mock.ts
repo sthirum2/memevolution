@@ -20,8 +20,11 @@ import type {
   Experiment,
   GenerateParams,
   GenerationSummary,
+  LiveMetrics,
   MetricsInput,
   Platform,
+  PublishRequest,
+  PublishResult,
   SelectionResult,
 } from '@/types'
 import { clamp, delta, fit } from '@/lib/format'
@@ -652,5 +655,58 @@ export async function evolve(): Promise<EvolveResult> {
     next: clone(next),
     shifts,
     driverId: driver?.id ?? null,
+  }
+}
+
+/**
+ * Stands in for a real publish. Against the live backend this is an Instagram
+ * Graph API call; here it just stamps a post id so the UI can be built and
+ * demoed without touching anyone's account.
+ */
+export async function publishPost(req: PublishRequest): Promise<PublishResult> {
+  await sleep(LATENCY.think)
+  const target = experiments.find((e) => e.id === req.experiment_id)
+  if (!target) throw new Error(`publishPost: unknown experiment ${req.experiment_id}`)
+
+  const postId = `demo_${Date.now().toString(36)}`
+  target.status = 'deployed'
+  target.deployment = {
+    platform: req.platform,
+    timestamp: new Date().toISOString(),
+    post_id: postId,
+  }
+  return {
+    experiment_id: target.id,
+    platform: req.platform,
+    post_id: postId,
+    permalink: null, // no real post exists, so no real link
+    published_at: target.deployment.timestamp as string,
+  }
+}
+
+/** Simulates the platform's numbers climbing after a post goes out. */
+export async function fetchLiveMetrics(id: string): Promise<LiveMetrics> {
+  await sleep(LATENCY.normal)
+  const target = experiments.find((e) => e.id === id)
+  if (!target) throw new Error(`fetchLiveMetrics: unknown experiment ${id}`)
+
+  const since = target.deployment.timestamp
+    ? (Date.now() - new Date(target.deployment.timestamp).getTime()) / 3_600_000
+    : 0
+  const p = target.prediction.fitness || 0.5
+  const ramp = 1 - Math.exp(-3.1 * (Math.max(0.15, since) / 24))
+  const views = Math.round((2400 + p * p * 46000) * ramp)
+  const m = {
+    views,
+    likes: Math.round(views * (0.06 + p * 0.1)),
+    comments: Math.round(views * (0.004 + p * 0.01)),
+    shares: Math.round(views * (0.003 + p * p * 0.048)),
+    saves: Math.round(views * (0.006 + p * 0.02)),
+  }
+  return {
+    experiment_id: id,
+    fetched_at: new Date().toISOString(),
+    ...m,
+    fitness: Math.round(spreadScore(m) * 100) / 100,
   }
 }

@@ -5,7 +5,9 @@ import type {
   EvolveResult,
   Experiment,
   GenerationSummary,
+  LiveMetrics,
   Platform,
+  PublishResult,
   SelectionResult,
 } from '@/types'
 import * as client from '@/api/client'
@@ -14,6 +16,7 @@ export type View = 'evolution' | 'lab' | 'learned'
 export type LabStep = 'setup' | 'candidates' | 'review' | 'results'
 
 interface LabState {
+  /** Local to the Lab, so a failure here never replaces the whole app. */
   error: string | null
   step: LabStep
   platform: Platform
@@ -27,6 +30,10 @@ interface LabState {
   posted: Experiment | null
   hours: number
   evolveResult: EvolveResult | null
+  /** Set once the post is actually live on a real account. */
+  published: PublishResult | null
+  live: LiveMetrics | null
+  fetching: boolean
 }
 
 const freshLab = (): LabState => ({
@@ -43,6 +50,9 @@ const freshLab = (): LabState => ({
   posted: null,
   hours: 0,
   evolveResult: null,
+  published: null,
+  live: null,
+  fetching: false,
 })
 
 interface Store {
@@ -69,6 +79,8 @@ interface Store {
   createMemes(): Promise<void>
   postIt(): Promise<void>
   setHours(h: number): void
+  publishForReal(): Promise<void>
+  refreshLive(): Promise<void>
   finish(): Promise<void>
 }
 
@@ -172,8 +184,6 @@ export const useStore = create<Store>((set, get) => ({
       get().setLab({ busy: false, selection })
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      // Local to the Lab — a failure here must not replace the whole app
-      // with an error screen while the other two tabs still work.
       get().setLab({ busy: false, error: message })
     }
   },
@@ -204,8 +214,6 @@ export const useStore = create<Store>((set, get) => ({
       }))
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      // Local to the Lab — a failure here must not replace the whole app
-      // with an error screen while the other two tabs still work.
       get().setLab({ busy: false, error: message })
     }
   },
@@ -214,21 +222,82 @@ export const useStore = create<Store>((set, get) => ({
     get().setLab({ hours })
   },
 
+  /** Push the approved meme to a real account. */
+  async publishForReal() {
+    const { lab } = get()
+    const target = lab.posted
+    if (!target || lab.busy) return
+    get().setLab({ busy: true, error: null })
+    try {
+      const published = await client.publishPost({
+        experiment_id: target.id,
+        platform: lab.platform,
+        caption: target.content.caption,
+        media_url: new URL(target.content.media_url, window.location.origin).href,
+        media_type: 'IMAGE',
+      })
+      set((s) => ({
+        lab: {
+          ...s.lab,
+          busy: false,
+          published,
+          posted: {
+            ...target,
+            deployment: {
+              platform: published.platform,
+              timestamp: published.published_at,
+              post_id: published.post_id,
+            },
+          },
+        },
+      }))
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      get().setLab({ busy: false, error: message })
+    }
+  },
+
+  /** Pull the platform's real numbers for the live post. */
+  async refreshLive() {
+    const { lab } = get()
+    if (!lab.posted || lab.fetching) return
+    get().setLab({ fetching: true, error: null })
+    try {
+      const live = await client.fetchLiveMetrics(lab.posted.id)
+      get().setLab({ fetching: false, live })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      get().setLab({ fetching: false, error: message })
+    }
+  },
+
   /** Record the result and let the agent update its strategy. */
   async finish() {
     const { lab } = get()
     if (!lab.posted || lab.busy) return
     get().setLab({ busy: true })
     try {
+      // Prefer the platform's real numbers when the post is actually live.
+      const real = lab.live
       const p = lab.posted.prediction.fitness
-      const views = Math.round(1800 + p * p * 52000 * (0.6 + lab.hours / 24))
-      const updated = await client.recordMetrics(lab.posted.id, {
-        views,
-        likes: Math.round(views * (0.06 + p * 0.1)),
-        comments: Math.round(views * (0.004 + p * 0.01)),
-        shares: Math.round(views * (0.003 + p * p * 0.048)),
-        saves: Math.round(views * (0.006 + p * 0.02)),
-      })
+      const fallbackViews = Math.round(1800 + p * p * 52000 * (0.6 + lab.hours / 24))
+      const metrics =
+        real && real.views !== null
+          ? {
+              views: real.views,
+              likes: real.likes ?? 0,
+              comments: real.comments ?? 0,
+              shares: real.shares ?? 0,
+              saves: real.saves ?? 0,
+            }
+          : {
+              views: fallbackViews,
+              likes: Math.round(fallbackViews * (0.06 + p * 0.1)),
+              comments: Math.round(fallbackViews * (0.004 + p * 0.01)),
+              shares: Math.round(fallbackViews * (0.003 + p * p * 0.048)),
+              saves: Math.round(fallbackViews * (0.006 + p * 0.02)),
+            }
+      const updated = await client.recordMetrics(lab.posted.id, metrics)
       const evolveResult = await client.evolve()
       const [experiments, agentStates, generations] = await Promise.all([
         client.getExperiments(),
@@ -245,8 +314,6 @@ export const useStore = create<Store>((set, get) => ({
       }))
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      // Local to the Lab — a failure here must not replace the whole app
-      // with an error screen while the other two tabs still work.
       get().setLab({ busy: false, error: message })
     }
   },
