@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from .config import get_settings
+from .fitness import spread_score
 from .database import get_db, initialize_database
 from .models import EngagementSnapshot, Experiment, Genome, Prediction
 from .schemas import (
@@ -212,7 +213,15 @@ def record_metrics(
             comments=payload.comments,
             shares=payload.shares,
             saves=payload.saves,
-            fitness=payload.fitness,
+            # Compute it when the caller does not supply one. Nothing else in
+            # the system does: the agent expects Observation.fitness to be
+            # handed to it, so real engagement arriving without a score leaves
+            # prediction error undefined and the agent cannot learn from it.
+            fitness=payload.fitness
+            if payload.fitness is not None
+            else spread_score(
+                payload.views, payload.likes, payload.comments, payload.shares, payload.saves
+            ),
         )
     )
     experiment.status = "observed"

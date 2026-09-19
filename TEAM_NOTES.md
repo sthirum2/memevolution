@@ -99,6 +99,33 @@ for both platforms, and the setup steps, are in `frontend/README.md`.
 - For TikTok use `FILE_UPLOAD`, not `PULL_FROM_URL` — the pull route needs domain-ownership
   verification, which is another approval you do not need.
 
+## Getting a real result back into the agent
+
+`scripts/observe.py` is the bridge. Real numbers in, agent updated:
+
+```bash
+# numbers you read off the post
+python3 scripts/observe.py exp_014 --views 4210 --likes 388 \
+    --comments 24 --shares 96 --saves 61
+
+# or pull them from Instagram
+python3 scripts/observe.py exp_014 --from-instagram <media_id>
+
+# --dry-run to see the score without recording anything
+```
+
+It computes the spread score, POSTs to `/experiments/{id}/metrics`, and calls the agent's
+`apply_observation` so beliefs actually move. If the agent package is not installed in the
+same environment it prints the exact command to run on that side instead.
+
+**This existed because nothing computed fitness.** The agent expects
+`Observation.fitness` to be handed to it and the API stored whatever it was given, so real
+engagement arriving produced `fitness=None`, prediction error stayed undefined, and the
+agent could not learn from a real post. `backend/app/fitness.py` is now the Python
+definition, the API computes it when the caller does not supply one, and
+`backend/tests/test_fitness_parity.py` reads the constants out of `score.ts` and fails if
+the two implementations drift.
+
 ## Small things worth knowing
 
 - **The spread score is defined in one place**, `frontend/src/lib/score.ts`. The mock backend
