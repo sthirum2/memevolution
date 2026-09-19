@@ -309,5 +309,7 @@ React 18 · TypeScript · Vite 5 · Tailwind 3 · Recharts · zustand · lucide-
 In dev, `__mv` is on `window`, so `__mv.getState()` and `__mv.getState().setView('learned')`
 work from the console. Stripped from production builds.
 
-An earlier, much denser dark-terminal version of this frontend is preserved on the
-`frontend-terminal-v1` branch.
+An earlier, much denser dark-terminal version of this UI is in this branch's own history at
+commit `9c9b442` — `git show 9c9b442` to look, `git checkout 9c9b442 -- frontend/src` to pull pieces
+back. It was replaced because it was hard to read at a glance; see the commit message on
+"Rebuild the UI" for the reasoning.
