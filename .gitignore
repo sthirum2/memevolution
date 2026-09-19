@@ -28,3 +28,5 @@ data/*.json
 
 # macOS
 .DS_Store
+
+data/agent_state.json
