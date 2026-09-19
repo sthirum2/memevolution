@@ -2,7 +2,8 @@ pydantic>=2.6
 
 # Optional: only needed for real Gemini calls (GEMINI_API_KEY set).
 # Without it (or without the key), MockConceptGenerator is used automatically.
-google-generativeai>=0.5
+# NOTE: google-generativeai is fully deprecated -- use the unified google-genai SDK.
+google-genai>=1.0
 
 # Dev/test only
 pytest>=8.0

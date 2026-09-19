@@ -200,6 +200,113 @@ Notes:
 - Timestamps are ISO 8601. `observed.timeseries` may be empty.
 - Enable CORS for `http://localhost:5173`.
 
+### 1b. Publishing to a real account
+
+The **Try it** flow can put a meme on a real account and pull the platform's own numbers
+back. Two endpoints, both owned by the backend because **the access token must never reach
+the browser**.
+
+| Client function | Method & path | Request | Response |
+| --- | --- | --- | --- |
+| `publishPost(req)` | `POST /experiments/{id}/publish` | `{ platform, caption, media_url, media_type }` | `PublishResult` |
+| `fetchLiveMetrics(id)` | `GET /experiments/{id}/live-metrics` | — | `LiveMetrics` |
+
+```ts
+PublishResult { experiment_id, platform, post_id, permalink: string|null, published_at }
+LiveMetrics   { experiment_id, fetched_at, views, likes, comments, shares, saves, fitness }
+```
+
+Both Instagram and TikTok work, but they finish differently, which is why `PublishResult`
+carries a `status`:
+
+| | route | `status` | public? | audit needed? |
+| --- | --- | --- | --- | --- |
+| **Instagram** | Graph API publish | `live` | yes, immediately | no — dev mode, own account |
+| **TikTok** | inbox upload | `awaiting_user` | yes, after one tap | no |
+| ~~TikTok~~ | ~~Direct Post~~ | — | **no — `SELF_ONLY`** | yes, days |
+
+**Do not use TikTok's Direct Post.** `POST /v2/post/publish/video/init/` with the
+`video.publish` scope looks like the obvious choice, but an unaudited client has every post
+forced to `SELF_ONLY` regardless of what privacy level you send. Nobody sees it, so there is
+no spread to measure and the whole experiment is pointless.
+
+**Use the inbox upload instead.** `POST /v2/post/publish/inbox/video/init/` with the
+`video.upload` scope drops the video into the creator's TikTok drafts. They tap Post in the
+app, and because *they* published it there is no visibility restriction and no audit. One
+human tap buys you a genuinely public post today instead of in a week.
+
+What the backend does for `/publish` — **Instagram** (Graph API):
+
+```
+POST https://graph.facebook.com/v21.0/{ig-user-id}/media
+     ?image_url={media_url}&caption={caption}&access_token=...   -> { id: creation_id }
+POST https://graph.facebook.com/v21.0/{ig-user-id}/media_publish
+     ?creation_id={creation_id}&access_token=...                 -> { id: media_id }
+GET  https://graph.facebook.com/v21.0/{media_id}?fields=permalink&access_token=...
+```
+
+and for `/live-metrics`:
+
+```
+GET /{media_id}?fields=like_count,comments_count
+GET /{media_id}/insights?metric=reach,saved,shares
+```
+
+— and **TikTok** (inbox upload):
+
+```
+POST https://open.tiktokapis.com/v2/post/publish/inbox/video/init/
+     { "source_info": { "source": "FILE_UPLOAD", "video_size": N,
+                        "chunk_size": N, "total_chunk_count": 1 } }
+                                              -> { publish_id, upload_url }
+PUT  {upload_url}          the video bytes, with a Content-Range header
+POST https://open.tiktokapis.com/v2/post/publish/status/fetch/
+     { "publish_id": "..." }                  -> poll until SEND_TO_USER_INBOX
+```
+
+Return `status: "awaiting_user"` and an `instructions` string; the UI then shows the
+"go tap Post in TikTok" steps instead of a permalink.
+
+Prefer `FILE_UPLOAD` over `PULL_FROM_URL` — the pull route additionally requires you to
+verify domain ownership with TikTok, which is another approval step you do not need.
+
+Then recompute `fitness` server-side with the same weights as `src/lib/score.ts`.
+
+**The one constraint that catches people out:** `media_url` must be a **publicly reachable
+URL**. Meta's servers fetch the image themselves, so `localhost` and `127.0.0.1` fail. Host
+the rendered meme somewhere public — S3, Cloudinary, even a GitHub raw URL — before calling
+publish.
+
+Other limits worth knowing: 50 published posts per 24 hours, JPEG only for images, and the
+account must be Instagram **Business or Creator** (not personal) and linked to a Facebook Page.
+
+#### TikTok account setup (~15 minutes)
+
+1. [developers.tiktok.com](https://developers.tiktok.com) → register, then **Create an app**.
+2. Add the **Content Posting API** product. Request the `video.upload` scope (for posting)
+   and `video.list` (for reading back the counts). Do **not** bother with `video.publish`.
+3. Create a **sandbox** and add the TikTok account you will post from as a target user. An
+   unaudited app gets up to 5 sandboxes, each shareable with 10 accounts.
+4. Run the OAuth flow once for that account and store the refresh token in `backend/.env` as
+   `TIKTOK_REFRESH_TOKEN`. Access tokens expire in 24h, so refresh on demand.
+5. Test with a real upload. It should land in that account's drafts within seconds.
+
+Rate limit: 6 requests per minute per access token.
+
+#### Instagram account setup (~20 minutes, and only you can do it)
+
+1. Instagram app → Settings → **switch to a Professional account** (Business). Free, instant.
+2. Link it to a Facebook Page (create an empty one if needed).
+3. [developers.facebook.com](https://developers.facebook.com) → **Create App** → type *Business*.
+4. Add the **Instagram** product; leave the app in **Development** mode.
+5. App roles → add your own Instagram account as an **Instagram Tester**, then accept the
+   invite from Instagram → Settings → Website Permissions.
+6. Graph API Explorer → generate a token with `instagram_basic`,
+   `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`.
+7. Exchange it for a long-lived token (60 days) and put it in `backend/.env` as
+   `IG_ACCESS_TOKEN`, with `IG_USER_ID` alongside it. **Never** put either in
+   `frontend/.env` — anything with a `VITE_` prefix is shipped to the browser.
+
 ### 2. Flip the flag
 
 ```bash
@@ -246,5 +353,7 @@ React 18 · TypeScript · Vite 5 · Tailwind 3 · Recharts · zustand · lucide-
 In dev, `__mv` is on `window`, so `__mv.getState()` and `__mv.getState().setView('learned')`
 work from the console. Stripped from production builds.
 
-An earlier, much denser dark-terminal version of this frontend is preserved on the
-`frontend-terminal-v1` branch.
+An earlier, much denser dark-terminal version of this UI is in this branch's own history at
+commit `9c9b442` — `git show 9c9b442` to look, `git checkout 9c9b442 -- frontend/src` to pull pieces
+back. It was replaced because it was hard to read at a glance; see the commit message on
+"Rebuild the UI" for the reasoning.

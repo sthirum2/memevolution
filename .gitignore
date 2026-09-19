@@ -1,7 +1,32 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-.pytest_cache/
-data/*.json
+# ── Never commit these ───────────────────────────────────────────────────
+# Real secrets live in .env files. Only the .example versions belong in git.
 .env
+.env.*
+!.env.example
+**/.env
+!**/.env.example
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.py[cod]
+*.db
+.pytest_cache/
+*.egg-info/
+
+# Node
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Generated at run time, not source
+backend/media/
+data/*.json
+!data/.gitkeep
+
+# macOS
+.DS_Store
+
+data/agent_state.json

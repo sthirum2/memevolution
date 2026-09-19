@@ -14,6 +14,11 @@ def test_preprocess_features_fills_all_defaults_when_empty():
     assert df.loc[0, "is_video"] == 1
     assert df.loc[0, "upload_hour"] == 12
     assert df.loc[0, "upload_day_of_week"] == 3
+    # memetic traits are 0.0-1.0 normalized -- default is neutral (0.5), not 5.0
+    assert df.loc[0, "absurdity"] == 0.5
+    assert df.loc[0, "irony"] == 0.5
+    assert df.loc[0, "relatability"] == 0.5
+    assert df.loc[0, "trend_relevance"] == 0.5
 
 
 def test_preprocess_features_overrides_are_respected():
@@ -55,6 +60,10 @@ def test_predict_fitness_uses_defaults_when_no_features_given():
             "is_original_sound": 0,
             "upload_hour": 12,
             "upload_day_of_week": 3,
+            "absurdity": 0.5,
+            "irony": 0.5,
+            "relatability": 0.5,
+            "trend_relevance": 0.5,
         }
     )
     assert default_call == explicit_defaults
@@ -65,6 +74,12 @@ def test_predict_fitness_responds_to_feature_changes():
     high = predictor.predict_fitness(
         {"duration": 30, "caption_length": 150, "has_hashtags": 1, "hashtags_count": 5}
     )
+    assert low != high
+
+
+def test_predict_fitness_responds_to_memetic_traits():
+    low = predictor.predict_fitness({"relatability": 0.0})
+    high = predictor.predict_fitness({"relatability": 1.0})
     assert low != high
 
 

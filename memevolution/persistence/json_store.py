@@ -12,7 +12,7 @@ from pathlib import Path
 from memevolution.models.agent import AgentState
 from memevolution.models.experiment import Experiment
 
-DATA_DIR = Path("data")
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 STATE_PATH = DATA_DIR / "agent_state.json"
 EXPERIMENTS_PATH = DATA_DIR / "experiments.json"
 

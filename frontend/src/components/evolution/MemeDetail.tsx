@@ -87,7 +87,9 @@ export default function MemeDetail({
               sub={
                 exp.status === 'pending'
                   ? 'Not scored yet'
-                  : `${Math.round(exp.prediction.confidence * 100)}% confident`
+                  : Number.isFinite(exp.prediction.confidence)
+                    ? `${Math.round(exp.prediction.confidence * 100)}% confident`
+                    : 'Confidence not available'
               }
             />
           </div>

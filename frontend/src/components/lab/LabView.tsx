@@ -3,8 +3,10 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  ExternalLink,
   Instagram,
   Music2,
+  RefreshCw,
   RotateCcw,
   Twitter,
 } from 'lucide-react'
@@ -96,6 +98,20 @@ export default function LabView() {
           )
         })}
       </ol>
+
+      {lab.error ? (
+        <div className="rounded-2xl border-2 border-dead/40 bg-dead-soft/50 p-5">
+          <h3 className="font-display font-bold text-dead">That step could not run</h3>
+          <p className="mt-1.5 break-words text-sm leading-relaxed">{lab.error}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            If you are on the live backend, the agent service or the publish endpoint may not be
+            wired up yet. Set{' '}
+            <code className="rounded bg-white px-1.5 py-0.5 text-xs">VITE_USE_MOCK=true</code> in{' '}
+            <code className="rounded bg-white px-1.5 py-0.5 text-xs">frontend/.env</code> to run on
+            demo data.
+          </p>
+        </div>
+      ) : null}
 
       {lab.step === 'setup' ? <StepSetup /> : null}
       {lab.step === 'candidates' ? <StepCandidates /> : null}
@@ -504,7 +520,12 @@ function StepResults() {
 
   if (!posted) return null
 
-  const f = posted.observed.fitness ?? posted.prediction.fitness
+  // A record coming back from the live API can be missing either of these -
+  // an experiment stored before a prediction was attached, or one never
+  // observed. Reading straight through them white-screens the whole tab.
+  const predicted = posted.prediction?.fitness ?? 0
+  const observedFitness = posted.observed?.fitness ?? null
+  const f = observedFitness ?? predicted
   const base = 2400 + f * f * 46000
   const s = SAT(Math.max(0.01, lab.hours))
   const live = {
@@ -514,8 +535,8 @@ function StepResults() {
     shares: Math.round(base * s * (0.003 + f * f * 0.048)),
     saves: Math.round(base * s * (0.006 + f * 0.02)),
   }
-  const running = posted.observed.fitness ?? posted.prediction.fitness * (0.72 + 0.28 * s)
-  const diff = running - posted.prediction.fitness
+  const running = observedFitness ?? predicted * (0.72 + 0.28 * s)
+  const diff = running - predicted
   const done = Boolean(lab.evolveResult)
 
   return (
@@ -527,6 +548,8 @@ function StepResults() {
         <h3 className="font-display text-lg font-bold">&ldquo;{posted.content.headline}&rdquo;</h3>
       </div>
 
+      <PublishPanel />
+
       <div className="card flex flex-wrap items-end gap-8 p-6">
         <div>
           <p className="label">Spread score</p>
@@ -537,7 +560,7 @@ function StepResults() {
             {Math.round(running * 100)}
           </p>
           <p className="mt-1.5 text-sm text-muted">
-            AI predicted {score(posted.prediction.fitness)} ·{' '}
+            AI predicted {predicted ? score(predicted) : '–'} ·{' '}
             <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
               {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
             </strong>
@@ -618,6 +641,132 @@ function StepResults() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Actually put the meme on a real account, then pull the platform's own numbers
+ * back. Instagram is the only platform where this works end to end right now:
+ * publishing to your own account from a development-mode Meta app needs no App
+ * Review. TikTok's API forces SELF_ONLY visibility until the app is audited, so
+ * a post there is invisible and produces no spread to measure.
+ */
+function PublishPanel() {
+  const lab = useStore((s) => s.lab)
+  const publishForReal = useStore((s) => s.publishForReal)
+  const refreshLive = useStore((s) => s.refreshLive)
+  const live = lab.live
+
+  if (!lab.published) {
+    return (
+      <div className="card flex flex-col gap-3 border-agent/40 bg-agent-soft/40 p-5">
+        <div>
+          <h3 className="font-display text-lg font-bold">Put it on a real account</h3>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
+            Nothing has been published yet — the numbers below are a projection. Publishing sends
+            this meme to the connected {PLATFORM_NAMES[lab.platform]} account, where real people can
+            see and share it.
+          </p>
+        </div>
+
+        {lab.platform === 'tiktok' ? (
+          <div className="rounded-xl bg-mid-soft px-3 py-2.5 text-sm leading-relaxed">
+            <strong>TikTok takes one extra tap.</strong> The video is uploaded straight into your
+            TikTok drafts, and you publish it from the app. That is deliberate: it is the only route
+            that produces a genuinely <em>public</em> TikTok post without waiting on TikTok&rsquo;s
+            audit.
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="danger" onClick={publishForReal} disabled={lab.busy}>
+            {lab.busy ? <Spinner /> : null}
+            Publish to {PLATFORM_NAMES[lab.platform]}
+          </Button>
+          {USE_MOCK ? (
+            <span className="text-sm text-muted">
+              Demo mode — this simulates a publish, nothing is posted anywhere.
+            </span>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
+  const waiting = lab.published.status === 'awaiting_user'
+
+  return (
+    <div
+      className={cx(
+        'card flex flex-col gap-4 p-5',
+        waiting ? 'border-mid bg-mid-soft/50' : 'border-win bg-win-soft/40',
+      )}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3
+            className={cx('font-display text-lg font-bold', waiting ? 'text-ink' : 'text-win-deep')}
+          >
+            {waiting
+              ? `Waiting in your ${PLATFORM_NAMES[lab.published.platform]} drafts`
+              : `Published to ${PLATFORM_NAMES[lab.published.platform]}`}
+          </h3>
+          <p className="num mt-1 text-sm text-muted">
+            {waiting ? 'upload' : 'post'} {lab.published.post_id}
+          </p>
+        </div>
+        {lab.published.permalink ? (
+          <a
+            href={lab.published.permalink}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold transition-colors hover:bg-paper"
+          >
+            View the live post
+            <ExternalLink size={14} />
+          </a>
+        ) : null}
+      </div>
+
+      {waiting && lab.published.instructions ? (
+        <ol className="flex list-decimal flex-col gap-1.5 rounded-xl bg-white/70 py-3 pl-8 pr-3 text-sm leading-relaxed">
+          <li>Open TikTok on your phone.</li>
+          <li>
+            Go to your profile, then <strong>Drafts</strong> — the video is already there.
+          </li>
+          <li>
+            Tap <strong>Post</strong>. It goes out public, and the numbers below start moving.
+          </li>
+        </ol>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-line/60 pt-3">
+        <Button variant="secondary" onClick={refreshLive} disabled={lab.fetching}>
+          {lab.fetching ? <Spinner /> : <RefreshCw size={14} />}
+          Pull the real numbers
+        </Button>
+        {live ? (
+          <span className="text-sm text-muted">
+            Checked {new Date(live.fetched_at).toLocaleTimeString()} ·{' '}
+            <strong className="text-ink">{(live.views ?? 0).toLocaleString()}</strong> views,{' '}
+            <strong className="text-ink">{(live.shares ?? 0).toLocaleString()}</strong> shares
+          </span>
+        ) : (
+          <span className="text-sm text-muted">
+            {waiting
+              ? 'Once you have tapped Post, give it a few hours and then pull the counts.'
+              : 'Give it a few hours, then pull the counts the platform reports.'}
+          </span>
+        )}
+      </div>
+
+      {live ? (
+        <p className="text-sm leading-relaxed text-muted">
+          These are the platform&rsquo;s own numbers. <strong>Update the AI</strong> below will now
+          teach it from these instead of the projection.
+        </p>
+      ) : null}
     </div>
   )
 }

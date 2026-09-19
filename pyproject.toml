@@ -8,8 +8,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gemini = ["google-generativeai>=0.5"]
+gemini = ["google-genai>=1.0"]
 dev = ["pytest>=8.0"]
+
+# This repo holds several top-level folders (backend, frontend, memevolution,
+# model_deployment_package). Setuptools refuses to guess which one is the
+# package, so say so explicitly - otherwise `pip install -e .` fails with
+# "Multiple top-level packages discovered in a flat-layout".
+[tool.setuptools.packages.find]
+include = ["memevolution*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
