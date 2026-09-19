@@ -5,7 +5,7 @@ description = "Role 2 — AI Agent / Evolution for Memevolution"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.6",
-    "xgboost==3.2.0",
+    "xgboost==3.4.1",
     "pandas",
     "joblib",
     "scikit-learn",
