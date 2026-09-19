@@ -30,7 +30,8 @@ class Experiment(Base):
         back_populates="experiment", cascade="all, delete-orphan", uselist=False
     )
     snapshots: Mapped[list["EngagementSnapshot"]] = relationship(
-        back_populates="experiment", cascade="all, delete-orphan", order_by="EngagementSnapshot.timestamp"
+        back_populates="experiment", cascade="all, delete-orphan",
+        order_by="(EngagementSnapshot.timestamp, EngagementSnapshot.id)"
     )
 
 
@@ -64,6 +65,8 @@ class Prediction(Base):
 class EngagementSnapshot(Base):
     __tablename__ = "engagement_snapshots"
 
+    # SQLite keeps its INTEGER primary key. timescale.sql expands the database
+    # key to (id, timestamp) on PostgreSQL; sequence-generated IDs identify ORM rows.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     experiment_id: Mapped[str] = mapped_column(ForeignKey("experiments.id", ondelete="CASCADE"), index=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

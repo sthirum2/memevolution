@@ -1,4 +1,5 @@
--- Canonical Supabase/PostgreSQL schema. The app also creates these tables on startup.
+-- PostgreSQL/Tiger schema. Run timescale.sql afterward in the same transaction.
+-- Application startup handles both automatically; SQLite uses SQLAlchemy only.
 create table if not exists experiments (
   id text primary key,
   generation integer not null,
@@ -27,11 +28,12 @@ create table if not exists predictions (
 );
 
 create table if not exists engagement_snapshots (
-  id bigserial primary key,
+  id bigserial,
   experiment_id text not null references experiments(id) on delete cascade,
   timestamp timestamptz not null default now(),
   views integer, likes integer, comments integer,
-  shares integer, saves integer, fitness double precision
+  shares integer, saves integer, fitness double precision,
+  primary key (id, timestamp)
 );
 
 create index if not exists experiments_generation_idx on experiments(generation);

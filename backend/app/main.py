@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from .config import get_settings
-from .database import Base, engine, get_db
+from .database import get_db, initialize_database
 from .models import EngagementSnapshot, Experiment, Genome, Prediction
 from .schemas import (
     DeploymentResponse,
@@ -20,6 +20,8 @@ from .schemas import (
     ObservedResponse,
     PredictionCreate,
     PredictionResponse,
+    SnapshotResponse,
+    PropagationPoint,
 )
 from .tiktok import ManualTikTokService
 
@@ -37,7 +39,7 @@ tiktok_service = ManualTikTokService()
 
 @app.on_event("startup")
 def create_tables() -> None:
-    Base.metadata.create_all(bind=engine)
+    initialize_database()
 
 
 @app.get("/health")
@@ -122,6 +124,35 @@ def get_experiment(experiment_id: str, db: Session = Depends(get_db)) -> Experim
     return to_response(get_experiment_or_404(db, experiment_id))
 
 
+@app.get("/experiments/{experiment_id}/snapshots", response_model=list[SnapshotResponse])
+def snapshot_history(experiment_id: str, db: Session = Depends(get_db)) -> list[SnapshotResponse]:
+    experiment = get_experiment_or_404(db, experiment_id)
+    return [SnapshotResponse.model_validate(snapshot) for snapshot in experiment.snapshots]
+
+
+@app.get("/experiments/{experiment_id}/propagation", response_model=list[PropagationPoint])
+def propagation(experiment_id: str, db: Session = Depends(get_db)) -> list[PropagationPoint]:
+    snapshots = snapshot_history(experiment_id, db)
+    points = []
+    for index, snapshot in enumerate(snapshots):
+        previous = snapshots[index - 1] if index else None
+        interval = (snapshot.timestamp - previous.timestamp).total_seconds() if previous else None
+        view_growth = (snapshot.views - previous.views
+                       if previous and snapshot.views is not None and previous.views is not None else None)
+        share_growth = (snapshot.shares - previous.shares
+                        if previous and snapshot.shares is not None and previous.shares is not None else None)
+        points.append(PropagationPoint(
+            **snapshot.model_dump(),
+            elapsed_seconds=(snapshot.timestamp - snapshots[0].timestamp).total_seconds(),
+            interval_seconds=interval,
+            view_growth=view_growth,
+            share_growth=share_growth,
+            views_per_hour=view_growth * 3600 / interval if interval and view_growth is not None else None,
+            shares_per_hour=share_growth * 3600 / interval if interval and share_growth is not None else None,
+        ))
+    return points
+
+
 @app.get("/generations", response_model=list[GenerationResponse])
 def list_generations(db: Session = Depends(get_db)) -> list[GenerationResponse]:
     experiments = list_experiments(db=db)
@@ -172,7 +203,10 @@ def record_metrics(
     db.add(
         EngagementSnapshot(
             experiment_id=experiment_id,
-            timestamp=payload.timestamp or datetime.now(timezone.utc),
+            # SQLite drops offsets, so normalize observations to UTC before storage.
+            timestamp=(payload.timestamp.replace(tzinfo=timezone.utc) if payload.timestamp.tzinfo is None
+                       else payload.timestamp.astimezone(timezone.utc))
+                      if payload.timestamp else datetime.now(timezone.utc),
             views=payload.views,
             likes=payload.likes,
             comments=payload.comments,
@@ -183,4 +217,5 @@ def record_metrics(
     )
     experiment.status = "observed"
     db.commit()
+    db.expire(experiment, ["snapshots"])
     return to_response(get_experiment_or_404(db, experiment_id))

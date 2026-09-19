@@ -82,6 +82,23 @@ class ObservedResponse(BaseModel):
     fitness: float | None = None
 
 
+class SnapshotResponse(ObservedResponse):
+    id: int
+    experiment_id: str
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PropagationPoint(SnapshotResponse):
+    elapsed_seconds: float
+    interval_seconds: float | None
+    view_growth: int | None
+    share_growth: int | None
+    views_per_hour: float | None
+    shares_per_hour: float | None
+
+
 class ExperimentResponse(BaseModel):
     id: str
     generation: int
