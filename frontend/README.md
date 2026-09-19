@@ -200,6 +200,69 @@ Notes:
 - Timestamps are ISO 8601. `observed.timeseries` may be empty.
 - Enable CORS for `http://localhost:5173`.
 
+### 1b. Publishing to a real account
+
+The **Try it** flow can put a meme on a real account and pull the platform's own numbers
+back. Two endpoints, both owned by the backend because **the access token must never reach
+the browser**.
+
+| Client function | Method & path | Request | Response |
+| --- | --- | --- | --- |
+| `publishPost(req)` | `POST /experiments/{id}/publish` | `{ platform, caption, media_url, media_type }` | `PublishResult` |
+| `fetchLiveMetrics(id)` | `GET /experiments/{id}/live-metrics` | — | `LiveMetrics` |
+
+```ts
+PublishResult { experiment_id, platform, post_id, permalink: string|null, published_at }
+LiveMetrics   { experiment_id, fetched_at, views, likes, comments, shares, saves, fitness }
+```
+
+**Instagram is the platform to build for.** Publishing to *your own* account from a
+development-mode Meta app needs **no App Review** — you add your own account as a tester and
+it works. TikTok's Content Posting API also works unaudited, but it forces `SELF_ONLY`
+visibility until the app passes audit, so nobody sees the post and there is no spread to
+measure. Build Instagram; treat TikTok as manual.
+
+What the backend does for `/publish` (Instagram Graph API):
+
+```
+POST https://graph.facebook.com/v21.0/{ig-user-id}/media
+     ?image_url={media_url}&caption={caption}&access_token=...   -> { id: creation_id }
+POST https://graph.facebook.com/v21.0/{ig-user-id}/media_publish
+     ?creation_id={creation_id}&access_token=...                 -> { id: media_id }
+GET  https://graph.facebook.com/v21.0/{media_id}?fields=permalink&access_token=...
+```
+
+and for `/live-metrics`:
+
+```
+GET /{media_id}?fields=like_count,comments_count
+GET /{media_id}/insights?metric=reach,saved,shares
+```
+
+Then recompute `fitness` server-side with the same weights as `src/lib/score.ts`.
+
+**The one constraint that catches people out:** `media_url` must be a **publicly reachable
+URL**. Meta's servers fetch the image themselves, so `localhost` and `127.0.0.1` fail. Host
+the rendered meme somewhere public — S3, Cloudinary, even a GitHub raw URL — before calling
+publish.
+
+Other limits worth knowing: 50 published posts per 24 hours, JPEG only for images, and the
+account must be Instagram **Business or Creator** (not personal) and linked to a Facebook Page.
+
+#### Account setup (~20 minutes, and only you can do it)
+
+1. Instagram app → Settings → **switch to a Professional account** (Business). Free, instant.
+2. Link it to a Facebook Page (create an empty one if needed).
+3. [developers.facebook.com](https://developers.facebook.com) → **Create App** → type *Business*.
+4. Add the **Instagram** product; leave the app in **Development** mode.
+5. App roles → add your own Instagram account as an **Instagram Tester**, then accept the
+   invite from Instagram → Settings → Website Permissions.
+6. Graph API Explorer → generate a token with `instagram_basic`,
+   `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`.
+7. Exchange it for a long-lived token (60 days) and put it in `backend/.env` as
+   `IG_ACCESS_TOKEN`, with `IG_USER_ID` alongside it. **Never** put either in
+   `frontend/.env` — anything with a `VITE_` prefix is shipped to the browser.
+
 ### 2. Flip the flag
 
 ```bash
