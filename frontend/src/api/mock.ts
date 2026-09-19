@@ -675,12 +675,23 @@ export async function publishPost(req: PublishRequest): Promise<PublishResult> {
     timestamp: new Date().toISOString(),
     post_id: postId,
   }
+
+  // TikTok's inbox upload lands in the creator's drafts and they publish it
+  // themselves — that is what keeps the post public without an audit. Instagram
+  // publishes outright. The mock mirrors both so the UI is built against the
+  // real shape of each.
+  const awaitingUser = req.platform === 'tiktok'
+
   return {
     experiment_id: target.id,
     platform: req.platform,
     post_id: postId,
-    permalink: null, // no real post exists, so no real link
+    permalink: null, // no real post exists in demo mode, so no real link
     published_at: target.deployment.timestamp as string,
+    status: awaitingUser ? 'awaiting_user' : 'live',
+    instructions: awaitingUser
+      ? 'Open TikTok, go to your profile, and look under Drafts. The video is waiting there — add it, then tap Post. It goes out public.'
+      : null,
   }
 }
 

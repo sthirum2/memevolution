@@ -216,13 +216,26 @@ PublishResult { experiment_id, platform, post_id, permalink: string|null, publis
 LiveMetrics   { experiment_id, fetched_at, views, likes, comments, shares, saves, fitness }
 ```
 
-**Instagram is the platform to build for.** Publishing to *your own* account from a
-development-mode Meta app needs **no App Review** — you add your own account as a tester and
-it works. TikTok's Content Posting API also works unaudited, but it forces `SELF_ONLY`
-visibility until the app passes audit, so nobody sees the post and there is no spread to
-measure. Build Instagram; treat TikTok as manual.
+Both Instagram and TikTok work, but they finish differently, which is why `PublishResult`
+carries a `status`:
 
-What the backend does for `/publish` (Instagram Graph API):
+| | route | `status` | public? | audit needed? |
+| --- | --- | --- | --- | --- |
+| **Instagram** | Graph API publish | `live` | yes, immediately | no — dev mode, own account |
+| **TikTok** | inbox upload | `awaiting_user` | yes, after one tap | no |
+| ~~TikTok~~ | ~~Direct Post~~ | — | **no — `SELF_ONLY`** | yes, days |
+
+**Do not use TikTok's Direct Post.** `POST /v2/post/publish/video/init/` with the
+`video.publish` scope looks like the obvious choice, but an unaudited client has every post
+forced to `SELF_ONLY` regardless of what privacy level you send. Nobody sees it, so there is
+no spread to measure and the whole experiment is pointless.
+
+**Use the inbox upload instead.** `POST /v2/post/publish/inbox/video/init/` with the
+`video.upload` scope drops the video into the creator's TikTok drafts. They tap Post in the
+app, and because *they* published it there is no visibility restriction and no audit. One
+human tap buys you a genuinely public post today instead of in a week.
+
+What the backend does for `/publish` — **Instagram** (Graph API):
 
 ```
 POST https://graph.facebook.com/v21.0/{ig-user-id}/media
@@ -239,6 +252,24 @@ GET /{media_id}?fields=like_count,comments_count
 GET /{media_id}/insights?metric=reach,saved,shares
 ```
 
+— and **TikTok** (inbox upload):
+
+```
+POST https://open.tiktokapis.com/v2/post/publish/inbox/video/init/
+     { "source_info": { "source": "FILE_UPLOAD", "video_size": N,
+                        "chunk_size": N, "total_chunk_count": 1 } }
+                                              -> { publish_id, upload_url }
+PUT  {upload_url}          the video bytes, with a Content-Range header
+POST https://open.tiktokapis.com/v2/post/publish/status/fetch/
+     { "publish_id": "..." }                  -> poll until SEND_TO_USER_INBOX
+```
+
+Return `status: "awaiting_user"` and an `instructions` string; the UI then shows the
+"go tap Post in TikTok" steps instead of a permalink.
+
+Prefer `FILE_UPLOAD` over `PULL_FROM_URL` — the pull route additionally requires you to
+verify domain ownership with TikTok, which is another approval step you do not need.
+
 Then recompute `fitness` server-side with the same weights as `src/lib/score.ts`.
 
 **The one constraint that catches people out:** `media_url` must be a **publicly reachable
@@ -249,7 +280,20 @@ publish.
 Other limits worth knowing: 50 published posts per 24 hours, JPEG only for images, and the
 account must be Instagram **Business or Creator** (not personal) and linked to a Facebook Page.
 
-#### Account setup (~20 minutes, and only you can do it)
+#### TikTok account setup (~15 minutes)
+
+1. [developers.tiktok.com](https://developers.tiktok.com) → register, then **Create an app**.
+2. Add the **Content Posting API** product. Request the `video.upload` scope (for posting)
+   and `video.list` (for reading back the counts). Do **not** bother with `video.publish`.
+3. Create a **sandbox** and add the TikTok account you will post from as a target user. An
+   unaudited app gets up to 5 sandboxes, each shareable with 10 accounts.
+4. Run the OAuth flow once for that account and store the refresh token in `backend/.env` as
+   `TIKTOK_REFRESH_TOKEN`. Access tokens expire in 24h, so refresh on demand.
+5. Test with a real upload. It should land in that account's drafts within seconds.
+
+Rate limit: 6 requests per minute per access token.
+
+#### Instagram account setup (~20 minutes, and only you can do it)
 
 1. Instagram app → Settings → **switch to a Professional account** (Business). Free, instant.
 2. Link it to a Facebook Page (create an empty one if needed).
