@@ -5,3 +5,5 @@ pydantic-settings>=2.0,<3
 psycopg[binary]>=3.2,<4
 # rendering memes to a real JPEG for publishing
 Pillow>=10,<13
+# AI image generation (same key as the agent's concept generation)
+google-genai>=1.0

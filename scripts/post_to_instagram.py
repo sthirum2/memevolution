@@ -98,10 +98,17 @@ def main():
         print(f"No experiment {args.experiment}")
         return 1
 
-    from app.render import render_meme
+    from app.generate_image import make_meme_image
 
-    path = render_meme(exp["id"], exp["content"]["headline"], exp["content"]["punchline"])
-    print(f"rendered     {path.name}  ({path.stat().st_size // 1024} KB, 1080x1080 JPEG)")
+    path, source = make_meme_image(
+        exp["id"],
+        exp["content"]["headline"],
+        exp["content"]["punchline"],
+        exp["content"]["visual_description"],
+        exp["genome"].get("topic", ""),
+    )
+    label = "gemini-generated" if source == "gemini" else "fallback backdrop (no GEMINI_API_KEY)"
+    print(f"rendered     {path.name}  ({path.stat().st_size // 1024} KB, 1080x1080)  [{label}]")
 
     caption = args.caption or exp["content"]["caption"]
     print(f"caption      {caption!r}")

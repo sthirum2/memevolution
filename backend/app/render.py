@@ -75,17 +75,13 @@ def _wrap(draw, text: str, font, max_width: int) -> list[str]:
     return lines
 
 
-def render_meme(
-    experiment_id: str,
-    headline: str,
-    punchline: str | None = None,
-    out_dir: Path | None = None,
-) -> Path:
-    """Write <out_dir>/<experiment_id>.jpg and return the path."""
-    out_dir = out_dir or OUT_DIR
-    out_dir.mkdir(parents=True, exist_ok=True)
+def draw_caption(img: Image.Image, headline: str, punchline: str | None = None) -> Image.Image:
+    """Burn the meme's text onto an image, whoever produced the image.
 
-    img = _backdrop(experiment_id + headline)
+    Shared by the abstract backdrop below and by AI-generated visuals, so the
+    wording is always exactly what the agent chose rather than a model's
+    approximation of it.
+    """
     d = ImageDraw.Draw(img)
     usable = CANVAS - MARGIN * 2
 
@@ -119,6 +115,42 @@ def render_meme(
             d.text((x, py), line, font=pf, fill=(199, 240, 74))  # the acid accent
             py += 52
 
+    return img
+
+
+def overlay_text(
+    src: Path, dst: Path, headline: str, punchline: str | None = None
+) -> Path:
+    """Composite the caption onto an existing image file (e.g. one Gemini made)."""
+    img = Image.open(src).convert("RGB")
+    if img.size != (CANVAS, CANVAS):
+        # Square-crop from the centre, then scale — feeds are square or taller.
+        short = min(img.size)
+        left = (img.width - short) // 2
+        top = (img.height - short) // 2
+        img = img.crop((left, top, left + short, top + short)).resize(
+            (CANVAS, CANVAS), Image.LANCZOS
+        )
+    # Darken slightly so white text stays readable over a busy photo.
+    scrim = Image.new("RGB", img.size, (0, 0, 0))
+    img = Image.blend(img, scrim, 0.28)
+
+    img = draw_caption(img, headline, punchline)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    img.save(dst, "JPEG", quality=90, optimize=True)
+    return dst
+
+
+def render_meme(
+    experiment_id: str,
+    headline: str,
+    punchline: str | None = None,
+    out_dir: Path | None = None,
+) -> Path:
+    """Abstract fallback: generated backdrop plus the caption. No API needed."""
+    out_dir = out_dir or OUT_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    img = draw_caption(_backdrop(experiment_id + headline), headline, punchline)
     path = out_dir / f"{experiment_id}.jpg"
     img.convert("RGB").save(path, "JPEG", quality=90, optimize=True)
     return path

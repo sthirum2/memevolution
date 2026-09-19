@@ -170,6 +170,50 @@ is slightly too narrow at both ends. A clipped prediction carries no gradient, s
 learns nothing from those. Needs the target's true definition and range from Role 1 to fix
 properly.
 
+## AI-generated content for the memes
+
+The agent writes a concept; Gemini draws it. Same SDK and the **same
+`GEMINI_API_KEY`** Role 2 already needs for concept generation — no second
+account, no second bill, no new dependency.
+
+```bash
+export GEMINI_API_KEY=...            # https://aistudio.google.com/apikey
+python3 scripts/make_image.py exp_006          # one
+python3 scripts/make_image.py --all            # every experiment
+open backend/media
+```
+
+Then `scripts/post_to_instagram.py` picks up the generated image automatically.
+
+The full chain:
+
+```
+genome -> Gemini writes the concept (Role 2, llm/gemini.py)
+       -> Gemini draws the visual   (backend/app/generate_image.py)
+       -> Pillow burns the exact caption on
+       -> you approve it in the UI
+       -> published, and the real numbers come back
+```
+
+**Why the text is composited rather than prompted.** Image models handle text
+reasonably now, but a meme's words have to be *exactly* the ones the agent chose, not a
+model's approximation. So Gemini draws the picture and Pillow writes the words.
+
+**Two things that break older tutorials:**
+
+- **Imagen is shut down.** `client.models.generate_images(...)` still exists in the SDK
+  (checked on google-genai 2.24.0) but the models behind it are retired, so calling it
+  fails. Image generation now goes through `generate_content`, and the image comes back as
+  inline data on a content part, not in a dedicated response object.
+- Model ids are `gemini-3.1-flash-image` (generalist, the default here) and
+  `gemini-3.1-flash-lite-image` (faster, cheaper).
+
+For video, Veo 3.1 is on the same API. Not wired up — a still image is enough to post, and
+video generation is slow and expensive enough to be a bad demo dependency.
+
+Everything degrades safely: no key means the abstract backdrop, and a failed generation is
+caught and falls back rather than breaking the loop.
+
 ## Small things worth knowing
 
 - **The spread score is defined in one place**, `frontend/src/lib/score.ts`. The mock backend
