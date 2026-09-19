@@ -137,7 +137,10 @@ export function Bar({
       <span className="relative h-2 flex-1 overflow-hidden rounded-full bg-paper">
         <span
           className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700"
-          style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%`, background: color }}
+          style={{
+            width: `${Number.isFinite(value) ? Math.max(0, Math.min(1, value)) * 100 : 0}%`,
+            background: color,
+          }}
         />
         {ghost !== undefined ? (
           <span
@@ -147,7 +150,7 @@ export function Bar({
         ) : null}
       </span>
       <span className="num w-10 shrink-0 text-right text-sm font-semibold">
-        {right ?? Math.round(value * 100)}
+        {right ?? (Number.isFinite(value) ? Math.round(value * 100) : '—')}
       </span>
     </div>
   )

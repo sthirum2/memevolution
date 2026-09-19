@@ -724,3 +724,17 @@ export async function fetchLiveMetrics(id: string): Promise<LiveMetrics> {
     fitness: Math.round(spreadScore(m) * 100) / 100,
   }
 }
+
+/** Demo history only; never mixed with HTTP snapshots. */
+export async function getSnapshots(id: string) {
+  const target = experiments.find((e) => e.id === id)
+  return (target?.observed.timeseries ?? []).map((point) => ({
+    timestamp: point.t,
+    views: point.views,
+    likes: point.likes,
+    shares: point.shares,
+    comments: null,
+    saves: null,
+    fitness: null,
+  }))
+}

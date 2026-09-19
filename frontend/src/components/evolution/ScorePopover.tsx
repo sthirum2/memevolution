@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { Experiment } from '@/types'
 import { breakdown } from '@/lib/score'
 import { cx } from '@/components/ui'
+import { USE_MOCK } from '@/api/client'
 
 /**
  * Hover (or tap, or focus) the big score to see what it's made of.
@@ -44,6 +45,7 @@ export default function ScorePopover({
 
   const m = exp.observed
   if (
+    !USE_MOCK ||
     m.views === null ||
     m.shares === null ||
     m.saves === null ||

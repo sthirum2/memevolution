@@ -3,6 +3,7 @@ import { useStore } from '@/store/useStore'
 import Header from '@/components/Header'
 import EvolutionView from '@/components/evolution/EvolutionView'
 import LabView from '@/components/lab/LabView'
+import ExperimentOverview from '@/components/lab/ExperimentOverview'
 import { Button, Spinner } from '@/components/ui'
 
 // The charting library is only needed on this screen, so it is not part of the
@@ -31,6 +32,7 @@ export default function App() {
     <div className="min-h-full">
       <Header />
       <main>
+        <ExperimentOverview />
         {view === 'evolution' ? <EvolutionView /> : null}
         {view === 'lab' ? <LabView /> : null}
         {view === 'learned' ? (

@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type {
   AgentState,
+  EngagementSnapshot,
   CorpusStats,
   EvolveResult,
   Experiment,
@@ -46,7 +47,12 @@ type BackendExperiment = {
   mutations: Experiment['mutations']
   hypothesis: string
   content?: Partial<Experiment['content']>
-  prediction: { fitness: number; model_version: string } | null
+  prediction: {
+    fitness: number
+    model_version?: string
+    confidence?: number | null
+    feature_attribution?: Experiment['prediction']['feature_attribution']
+  } | null
   deployment: Experiment['deployment']
   observed: Experiment['observed']
 }
@@ -69,15 +75,20 @@ async function req_<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
-function normalizeExperiment(raw: BackendExperiment): Experiment {
+export function mediaUrl(url: string): string {
+  // /specimens is the backend's placeholder, not generated media.
+  if (!url || url.startsWith('/specimens/')) return ''
+  const resolved = new URL(url, `${BASE}/`)
+  return ['http:', 'https:'].includes(resolved.protocol) ? resolved.href : ''
+}
+
+export function normalizeExperiment(raw: BackendExperiment): Experiment {
   const status =
-    raw.observed.fitness !== null
-      ? 'survived'
-      : raw.deployment.post_id
-        ? 'deployed'
-        : raw.prediction
-          ? 'predicted'
-          : 'pending'
+    raw.deployment.post_id && !raw.deployment.post_id.startsWith('pending_')
+      ? 'deployed'
+      : raw.prediction
+        ? 'predicted'
+        : 'pending'
 
   return {
     id: raw.id,
@@ -86,25 +97,29 @@ function normalizeExperiment(raw: BackendExperiment): Experiment {
     status,
     genome: {
       ...raw.genome,
-      text_density: 0,
-      caption_length: 0,
+      text_density: Number.NaN,
+      caption_length: Number.NaN,
       audio_strategy: 'not provided',
     },
     mutations: raw.mutations,
     hypothesis: raw.hypothesis,
     prediction: raw.prediction
-      ? { fitness: raw.prediction.fitness, confidence: Number.NaN, feature_attribution: [] }
-      : { fitness: 0, confidence: 0, feature_attribution: [] },
+      ? {
+          fitness: raw.prediction.fitness,
+          confidence: raw.prediction.confidence ?? Number.NaN,
+          feature_attribution: raw.prediction.feature_attribution ?? [],
+          model_version: raw.prediction.model_version,
+        }
+      : { fitness: Number.NaN, confidence: Number.NaN, feature_attribution: [] },
     // The API stores the real meme text now. Fall back to describing the
     // genome only when a record predates that column.
     content: {
       headline: raw.content?.headline || `${raw.genome.topic} · ${raw.genome.format}`,
-      visual_description:
-        raw.content?.visual_description || 'No concept was written for this one.',
+      visual_description: raw.content?.visual_description || 'No concept was written for this one.',
       punchline: raw.content?.punchline || '—',
       caption: raw.content?.caption || '—',
       audio: raw.content?.audio || 'not specified',
-      media_url: raw.content?.media_url || '/specimens/exp_000.svg',
+      media_url: mediaUrl(raw.content?.media_url ?? ''),
     },
     deployment: raw.deployment,
     observed: { ...raw.observed, timeseries: [] },
@@ -162,7 +177,7 @@ export async function generateCandidates(
 ): Promise<Experiment[]> {
   // The backend runs the real evolutionary step in-process: the XGBoost
   // predictor scores the candidates and Gemini writes the selected concept.
-  const list = await req_<Experiment[]>('/generation', {
+  const batch = await req_<Experiment[]>('/generation', {
     method: 'POST',
     body: JSON.stringify({
       count: params.count ?? 5,
@@ -171,6 +186,16 @@ export async function generateCandidates(
       riskAppetite: params.riskAppetite,
     }),
   })
+  const list = batch.map((row) => ({
+    ...normalizeExperiment(row),
+    genome: row.genome,
+    prediction: {
+      fitness: row.prediction?.fitness ?? Number.NaN,
+      confidence: row.prediction?.confidence ?? Number.NaN,
+      feature_attribution: row.prediction?.feature_attribution ?? [],
+      model_version: row.prediction?.model_version,
+    },
+  }))
   // Reveal them one at a time so the UI reads the same as it does on mock data.
   for (let i = 0; i < list.length; i++) {
     onCandidate?.(list[i], i)
@@ -193,13 +218,11 @@ export async function selectCandidate(
   })
 }
 
-export const deployExperiment = (id: string, platform: Platform) =>
-  req_<BackendExperiment>(`/experiments/${id}/deploy`, {
-    method: 'POST',
-    // A real post id arrives via publishPost; this marks intent to deploy so
-    // the record exists before the platform call returns.
-    body: JSON.stringify({ platform, post_id: `pending_${id}` }),
-  }).then(normalizeExperiment)
+// Preparing a record is not evidence of publication. Only /publish returns a real ID.
+export const deployExperiment = (id: string, _platform: Platform) => getExperiment(id)
+
+export const getSnapshots = (id: string) =>
+  req_<EngagementSnapshot[]>(`/experiments/${encodeURIComponent(id)}/snapshots`)
 
 /** Persists a generated candidate so it has a server-side id before deploy. */
 export async function commitCandidate(candidate: Experiment): Promise<Experiment> {
@@ -210,13 +233,13 @@ export async function commitCandidate(candidate: Experiment): Promise<Experiment
   // The create endpoint takes no prediction, so attach it separately. Without
   // this the stored experiment has none, and predicted-vs-actual - the whole
   // point of the comparison - shows 0.
-  if (candidate.prediction?.fitness) {
+  if (Number.isFinite(candidate.prediction?.fitness)) {
     try {
       await req_<unknown>(`/experiments/${saved.id}/prediction`, {
         method: 'POST',
         body: JSON.stringify({
           fitness: candidate.prediction.fitness,
-          model_version: 'role1-xgboost',
+          model_version: candidate.prediction.model_version ?? 'unreported',
         }),
       })
     } catch (e) {

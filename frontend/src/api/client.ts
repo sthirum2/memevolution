@@ -13,6 +13,7 @@ import * as mock from './mock'
 import * as http from './http'
 import type {
   AgentState,
+  EngagementSnapshot,
   CorpusStats,
   EvolveResult,
   Experiment,
@@ -27,6 +28,7 @@ import type {
 } from '@/types'
 
 export interface MemevolutionApi {
+  getSnapshots(id: string): Promise<EngagementSnapshot[]>
   getExperiments(): Promise<Experiment[]>
   getExperiment(id: string): Promise<Experiment | null>
   getAgentStates(): Promise<AgentState[]>
@@ -73,3 +75,5 @@ export const evolve = (id?: string, m?: Record<string, number>) => impl.evolve(i
 
 /** Shown in the top bar so it is never ambiguous which backend is answering. */
 export const backendLabel = USE_MOCK ? 'MOCK' : 'LIVE'
+
+export const getSnapshots = (id: string) => impl.getSnapshots(id)

@@ -1,5 +1,7 @@
 import type { Content } from '@/types'
 import { cx } from '@/components/ui'
+import { useState } from 'react'
+import { isVideo } from '@/lib/evidence'
 
 /**
  * The meme as it actually reads: the video still with its caption burned on.
@@ -21,6 +23,33 @@ export default function MemePreview({
   /** Off for thumbnails too small to hold both lines of text. */
   showPunchline?: boolean
 }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const unavailable = !content.media_url || failedUrl === content.media_url
+  if (unavailable)
+    return (
+      <div
+        className={cx(
+          'flex min-h-32 flex-col items-center justify-center gap-2 rounded-xl bg-paper p-4 text-center text-sm text-muted',
+          className,
+        )}
+      >
+        <span className="font-semibold text-ink">Media not available</span>
+        <span>Awaiting generated media</span>
+      </div>
+    )
+  if (isVideo(content.media_url))
+    return (
+      <video
+        key={content.media_url}
+        controls={size !== 'sm'}
+        playsInline
+        preload="metadata"
+        aria-label={content.headline || 'Generated video'}
+        src={content.media_url}
+        onError={() => setFailedUrl(content.media_url)}
+        className={cx('max-h-[520px] w-full rounded-xl bg-ink object-contain', className)}
+      />
+    )
   const aspect =
     ratio === 'tall'
       ? 'aspect-[9/16]'
@@ -40,6 +69,7 @@ export default function MemePreview({
         alt=""
         aria-hidden
         loading="lazy"
+        onError={() => setFailedUrl(content.media_url)}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ opacity: faded ? 0.35 : 0.7, filter: faded ? 'grayscale(0.8)' : 'none' }}
       />

@@ -6,6 +6,7 @@ node_modules
 # build output
 dist
 dist-ssr
+.demo-check/
 *.local
 
 # env — .env.example is committed, real values are not

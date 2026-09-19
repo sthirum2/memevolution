@@ -66,7 +66,7 @@ export function titleCase(s: string): string {
 
 /** Fitness is 0–1 in the data. Nobody reads ".73" quickly — show 73. */
 export function score(f: number | null | undefined): number | null {
-  if (f === null || f === undefined) return null
+  if (f === null || f === undefined || !Number.isFinite(f)) return null
   return Math.round(f * 100)
 }
 

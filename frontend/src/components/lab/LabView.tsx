@@ -15,11 +15,13 @@ import type { LabStep } from '@/store/useStore'
 import type { Platform } from '@/types'
 import { USE_MOCK } from '@/api/client'
 import { C, scoreColor } from '@/lib/fitness'
-import { PLATFORM_NAMES, plainTrait, score } from '@/lib/plain'
+import { PLATFORM_NAMES, plainTrait } from '@/lib/plain'
 import { useCountUp } from '@/lib/useCountUp'
 import { Badge, Bar, Button, Spinner, cx } from '@/components/ui'
 import MemePreview from '@/components/evolution/MemePreview'
 import PhonePreview from './PhonePreview'
+import EngagementHistory from './EngagementHistory'
+import { countText, fitnessText, measuredMetrics } from '@/lib/evidence'
 
 const STEPS: { key: LabStep; label: string }[] = [
   { key: 'setup', label: 'Choose' },
@@ -52,10 +54,10 @@ export default function LabView() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 py-6 sm:px-6">
       <div className="flex flex-col gap-2">
-        <h2 className="font-display text-2xl font-bold">Run a round yourself</h2>
+        <h2 className="font-display text-2xl font-bold">Run the next generation</h2>
         <p className="max-w-2xl text-[15px] text-muted">
-          The AI writes five memes, scores each one against what it has learned, and picks the one
-          it thinks will spread. You decide whether it actually gets posted.
+          The agent mutates five candidate genomes, scores them, and selects one for a concept.
+          Follow its prediction into a real-world experiment.
         </p>
       </div>
 
@@ -104,11 +106,7 @@ export default function LabView() {
           <h3 className="font-display font-bold text-dead">That step could not run</h3>
           <p className="mt-1.5 break-words text-sm leading-relaxed">{lab.error}</p>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            If you are on the live backend, the agent service or the publish endpoint may not be
-            wired up yet. Set{' '}
-            <code className="rounded bg-white px-1.5 py-0.5 text-xs">VITE_USE_MOCK=true</code> in{' '}
-            <code className="rounded bg-white px-1.5 py-0.5 text-xs">frontend/.env</code> to run on
-            demo data.
+            No result was substituted. Retry when the service is available.
           </p>
         </div>
       ) : null}
@@ -137,7 +135,7 @@ export default function LabView() {
             Create 5 memes
           </Button>
           <span className="text-sm text-muted">
-            Takes about 5 seconds. Nothing is posted at this step.
+            Generation may take a moment. Nothing is posted at this step.
           </span>
         </div>
       ) : null}
@@ -149,6 +147,26 @@ export default function LabView() {
 function StepSetup() {
   const lab = useStore((s) => s.lab)
   const setLab = useStore((s) => s.setLab)
+
+  if (!USE_MOCK)
+    return (
+      <div className="card grid gap-5 p-5 sm:grid-cols-2">
+        <div>
+          <h3 className="font-display text-lg font-bold">Five candidate genomes</h3>
+          <p className="mt-1 text-sm text-muted">
+            The agent controls topic and exploration from its current strategy. Inspect its
+            mutations and predictions before approving a concept.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-display text-lg font-bold">TikTok experiment</h3>
+          <p className="mt-1 text-sm text-muted">
+            The backend prepares and uploads the selected media. Publication and engagement remain
+            pending until confirmed.
+          </p>
+        </div>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-7">
@@ -252,8 +270,10 @@ function StepCandidates() {
       <div className="flex flex-col gap-1">
         <h3 className="font-display text-lg font-bold">
           {lab.busy
-            ? `Writing memes… ${lab.candidates.length} of 5`
-            : 'The AI scored all five and made its pick'}
+            ? `Generating candidates… ${lab.candidates.length} received`
+            : lab.selection
+              ? 'The agent scored the candidates and selected a winner'
+              : 'Awaiting agent selection'}
         </h3>
         <p className="text-sm text-muted">
           Each one changes exactly one thing, so the AI can tell what caused what.
@@ -271,7 +291,7 @@ function StepCandidates() {
               className={cx(
                 'flex animate-pop-in items-center gap-4 rounded-2xl border-2 bg-card p-3 transition-all duration-300',
                 isPick ? 'border-win shadow-win' : 'border-line',
-                beaten && 'opacity-55',
+                beaten && 'border-line',
               )}
             >
               <MemePreview
@@ -300,7 +320,24 @@ function StepCandidates() {
                       .join(', ') || 'nothing'}
                   </span>
                 </p>
-                <p className="text-sm text-muted">&ldquo;{c.content.caption}&rdquo;</p>
+                <p className="text-sm text-muted">
+                  {isPick
+                    ? c.content.caption
+                    : 'Candidate genome · concept generated for the selected candidate only'}
+                </p>
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer font-semibold">View genome</summary>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                    {Object.entries(c.genome).map(([key, value]) => (
+                      <div key={key}>
+                        <dt className="text-muted">{plainTrait(key)}</dt>
+                        <dd className="break-words font-medium">
+                          {typeof value === 'number' ? fitnessText(value) : String(value)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
               </div>
               <ScoreChip fitness={c.prediction.fitness} revealed={isScored} />
             </div>
@@ -318,7 +355,9 @@ function StepCandidates() {
         <div className="flex flex-col gap-4 rounded-2xl bg-agent-soft p-5">
           <div>
             <p className="label mb-1 text-agent">Why it picked this one</p>
-            <p className="text-[15px] leading-relaxed">{plainReason(lab.selection.reasoning)}</p>
+            <p className="text-[15px] leading-relaxed">
+              {USE_MOCK ? plainReason(lab.selection.reasoning) : lab.selection.reasoning}
+            </p>
           </div>
           <Button size="lg" className="self-start" onClick={() => setLab({ step: 'review' })}>
             Review it before posting
@@ -347,15 +386,19 @@ function plainReason(reason: string): string {
 }
 
 function ScoreChip({ fitness, revealed }: { fitness: number; revealed: boolean }) {
-  const shown = useCountUp(fitness, 700, revealed)
+  const shown = useCountUp(Number.isFinite(fitness) ? fitness : 0, 700, revealed)
   return (
-    <div className="w-20 shrink-0 text-right">
-      <p className="text-[11px] font-medium text-muted">AI predicts</p>
+    <div className="w-28 shrink-0 text-right">
+      <p className="text-[11px] font-medium text-muted">Predicted fitness</p>
       <p
         className="num font-display text-3xl font-bold leading-none"
         style={{ color: revealed ? scoreColor(fitness) : '#C9C6BE' }}
       >
-        {revealed ? Math.round(shown * 100) : '–'}
+        {revealed
+          ? Number.isFinite(fitness)
+            ? (USE_MOCK ? shown : fitness).toFixed(4)
+            : 'Pending'
+          : '–'}
       </p>
     </div>
   )
@@ -366,72 +409,37 @@ function StepReview() {
   const lab = useStore((s) => s.lab)
   const setLab = useStore((s) => s.setLab)
   const postIt = useStore((s) => s.postIt)
-  const corpus = useStore((s) => s.corpus)
 
   const chosen = lab.candidates.find((c) => c.id === lab.selection?.selectedId)
   if (!chosen) return null
 
   const f = chosen.prediction.fitness
-  const base = 2400 + f * f * 46000
-  const projected = {
-    views: Math.round(base),
-    likes: Math.round(base * (0.06 + f * 0.1)),
-    comments: Math.round(base * (0.004 + f * 0.01)),
-    shares: Math.round(base * (0.003 + f * f * 0.048)),
-    saves: Math.round(base * (0.006 + f * 0.02)),
-  }
-
-  // Chance of beating the top 10% of everything in the historical data.
-  const dist = corpus?.fitnessDistribution ?? []
-  const total = dist.reduce((a, b) => a + b.count, 0) || 1
-  let cum = 0
-  let bar = 0.56
-  for (const b of dist) {
-    const lo = Number(b.bucket.split('–')[0])
-    const hi = Number(b.bucket.split('–')[1])
-    if ((cum + b.count) / total >= 0.9) {
-      bar = lo + (hi - lo) * ((0.9 * total - cum) / b.count)
-      break
-    }
-    cum += b.count
-  }
-  const spread = 0.13 + (1 - chosen.prediction.confidence) * 0.3
-  const chance = Math.max(
-    2,
-    Math.min(93, Math.round((1 / (1 + Math.exp(-(f - bar) / spread))) * 100)),
-  )
-
   return (
     <div className="grid gap-8 lg:grid-cols-[290px_1fr]">
-      <PhonePreview platform={lab.platform} content={chosen.content} projected={projected} />
+      <PhonePreview platform={lab.platform} content={chosen.content} />
 
       <div className="flex flex-col gap-6">
         <div className="card p-5">
-          <div className="flex flex-wrap items-end gap-6">
-            <div>
-              <p className="label">Chance of spreading</p>
-              <p
-                className="num font-display text-6xl font-bold leading-none"
-                style={{ color: chance >= 55 ? C.win : chance >= 30 ? C.mid : C.dead }}
-              >
-                {chance}%
-              </p>
-            </div>
-            <div className="flex flex-col gap-1 pb-1 text-sm">
-              <span className="text-muted">
-                Predicted score <strong className="num text-ink">{score(f)}</strong> out of 100
-              </span>
-              <span className="text-muted">
-                AI confidence{' '}
-                <strong className="num text-ink">
-                  {Math.round(chosen.prediction.confidence * 100)}%
-                </strong>
-              </span>
-            </div>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            This is the AI&rsquo;s own estimate of the odds it beats the top 10% of the real posts
-            it learned from. It is a guess, and the AI has been wrong before.
+          <Badge tone="win">Selected candidate · {chosen.id}</Badge>
+          <p className="label mt-4">Predicted fitness</p>
+          <p className="num mt-1 font-display text-4xl font-bold text-guess">{fitnessText(f)}</p>
+          <p className="mt-2 text-sm text-muted">
+            {USE_MOCK
+              ? 'Demo scorer'
+              : `Model: ${chosen.prediction.model_version ?? 'not reported by backend'}`}{' '}
+            · Confidence {fitnessText(chosen.prediction.confidence)}
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Model estimate, not a probability or observed engagement.
+          </p>
+        </div>
+        <div className="card p-5">
+          <h3 className="font-display text-lg font-bold">Selected concept</h3>
+          <p className="mt-2 font-semibold">{chosen.content.headline}</p>
+          <p className="mt-2 text-sm">{chosen.content.visual_description}</p>
+          <p className="mt-2 text-sm text-muted">Caption: {chosen.content.caption}</p>
+          <p className="mt-2 text-sm text-muted">
+            {USE_MOCK ? 'Demo concept' : 'Generator provenance not reported by backend'}
           </p>
         </div>
 
@@ -453,11 +461,11 @@ function StepReview() {
             <AlertTriangle size={20} className="mt-0.5 shrink-0 text-dead" />
             <div>
               <h3 className="font-display text-lg font-bold text-dead">
-                This posts to a real account
+                Approve the selected concept
               </h3>
               <p className="mt-1 text-sm leading-relaxed">
-                The AI chose it, but a person has to approve it. Real people will see this on{' '}
-                {PLATFORM_NAMES[lab.platform]}.
+                Save the candidates and prepare the selected concept for{' '}
+                {PLATFORM_NAMES[lab.platform]}. Publishing is a separate step.
               </p>
               {USE_MOCK ? (
                 <p className="mt-2 text-sm font-medium text-guess">
@@ -487,7 +495,7 @@ function StepReview() {
             className="w-full sm:w-auto"
           >
             {lab.busy ? <Spinner /> : null}
-            Post it to {PLATFORM_NAMES[lab.platform]}
+            Save and review deployment
           </Button>
         </div>
       </div>
@@ -507,7 +515,7 @@ function StepResults() {
 
   // Let the first few hours run on their own so the panel feels alive.
   useEffect(() => {
-    if (!posted || lab.hours > 0) return
+    if (!USE_MOCK || !posted || lab.hours > 0) return
     let h = 0
     const id = window.setInterval(() => {
       h += 1
@@ -523,27 +531,39 @@ function StepResults() {
   // A record coming back from the live API can be missing either of these -
   // an experiment stored before a prediction was attached, or one never
   // observed. Reading straight through them white-screens the whole tab.
-  const predicted = posted.prediction?.fitness ?? 0
+  const predicted = posted.prediction?.fitness ?? Number.NaN
   const observedFitness = posted.observed?.fitness ?? null
   const f = observedFitness ?? predicted
   const base = 2400 + f * f * 46000
   const s = SAT(Math.max(0.01, lab.hours))
-  const live = {
+  const simulated = {
     views: Math.round(base * s),
     likes: Math.round(base * s * (0.06 + f * 0.1)),
     comments: Math.round(base * s * (0.004 + f * 0.01)),
     shares: Math.round(base * s * (0.003 + f * f * 0.048)),
     saves: Math.round(base * s * (0.006 + f * 0.02)),
   }
-  const running = observedFitness ?? predicted * (0.72 + 0.28 * s)
-  const diff = running - predicted
+  const live = USE_MOCK ? (lab.live ?? simulated) : (lab.live ?? posted.observed)
+  const running = USE_MOCK
+    ? (observedFitness ?? predicted * (0.72 + 0.28 * s))
+    : (lab.live?.fitness ?? observedFitness)
+  const canLearn = USE_MOCK || measuredMetrics(lab.live) !== null
+  const diff = running === null ? null : running - predicted
   const done = Boolean(lab.evolveResult)
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Badge tone="win" dot={!done}>
-          {done ? 'Finished' : 'Live now'}
+        <Badge tone={done || lab.published?.status === 'live' ? 'win' : 'muted'}>
+          {done
+            ? 'Learning complete'
+            : USE_MOCK
+              ? 'Demo simulation'
+              : lab.published?.status === 'live'
+                ? 'Published'
+                : lab.published
+                  ? 'Awaiting publication'
+                  : 'Not deployed yet'}
         </Badge>
         <h3 className="font-display text-lg font-bold">&ldquo;{posted.content.headline}&rdquo;</h3>
       </div>
@@ -552,18 +572,24 @@ function StepResults() {
 
       <div className="card flex flex-wrap items-end gap-8 p-6">
         <div>
-          <p className="label">Spread score</p>
+          <p className="label">{USE_MOCK ? 'Simulated fitness' : 'Observed fitness'}</p>
           <p
             className="num font-display text-6xl font-bold leading-none"
-            style={{ color: scoreColor(running) }}
+            style={{ color: running === null ? C.muted : C.ink }}
           >
-            {Math.round(running * 100)}
+            {running === null ? 'Pending' : fitnessText(running)}
           </p>
           <p className="mt-1.5 text-sm text-muted">
-            AI predicted {predicted ? score(predicted) : '–'} ·{' '}
-            <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
-              {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
-            </strong>
+            Predicted {fitnessText(predicted)}
+            {diff !== null && Number.isFinite(diff) ? (
+              <span>
+                {' '}
+                · Difference {diff >= 0 ? '+' : ''}
+                {diff.toFixed(4)}
+              </span>
+            ) : (
+              ' · Awaiting engagement'
+            )}
           </p>
         </div>
         <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-5">
@@ -574,41 +600,49 @@ function StepResults() {
               ['Comments', live.comments, false],
               ['Shares', live.shares, true],
               ['Saves', live.saves, true],
-            ] as [string, number, boolean][]
+            ] as [string, number | null, boolean][]
           ).map(([k, v, hot]) => (
             <Ticker key={k} label={k} value={v} hot={hot} />
           ))}
         </div>
       </div>
 
-      <div className="card flex flex-col gap-3 p-5">
-        <div className="flex items-center justify-between">
-          <p className="label">Fast-forward the results</p>
-          <span className="num text-sm font-semibold">{lab.hours} hours after posting</span>
+      {USE_MOCK ? (
+        <div className="card flex flex-col gap-3 p-5">
+          <div className="flex items-center justify-between">
+            <p className="label">Fast-forward the results</p>
+            <span className="num text-sm font-semibold">{lab.hours} hours after posting</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            step={1}
+            value={lab.hours}
+            onChange={(e) => setHours(Number(e.target.value))}
+            className="w-full accent-[#6D4AFF]"
+          />
+          <p className="text-xs text-muted">
+            A demo fast-forward through a projected 24 hours, not live data.
+          </p>
         </div>
-        <input
-          type="range"
-          min={0}
-          max={24}
-          step={1}
-          value={lab.hours}
-          onChange={(e) => setHours(Number(e.target.value))}
-          className="w-full accent-[#6D4AFF]"
-        />
-        <p className="text-xs text-muted">
-          A demo fast-forward through a projected 24 hours, not live data.
-        </p>
-      </div>
+      ) : null}
+
+      <EngagementHistory id={posted.id} />
 
       {!done ? (
         <div className="card flex flex-col items-start gap-3 bg-agent-soft/50 p-6 sm:flex-row sm:items-center">
           <div className="flex-1">
             <h3 className="font-display text-lg font-bold">Teach the AI what happened</h3>
             <p className="text-sm text-muted">
-              Feeding the real result back is what makes the next round different from this one.
+              {USE_MOCK
+                ? 'This updates demo beliefs using simulated observations.'
+                : canLearn
+                  ? 'Use the retrieved engagement to update agent beliefs.'
+                  : 'Awaiting all five engagement counts. Missing measurements remain pending.'}
             </p>
           </div>
-          <Button size="lg" onClick={finish} disabled={lab.busy}>
+          <Button size="lg" onClick={finish} disabled={lab.busy || !canLearn}>
             {lab.busy ? <Spinner /> : null}
             Update the AI
           </Button>
@@ -633,7 +667,14 @@ function StepResults() {
               </div>
             ))}
           </div>
+          {!lab.evolveResult!.shifts.length ? (
+            <p className="text-sm">No belief changes reported.</p>
+          ) : null}
+          <p className="text-sm">{lab.evolveResult!.next.note}</p>
           <div className="flex flex-wrap gap-3 pt-1">
+            <Button onClick={() => useStore.getState().createMemes()}>
+              Generate the next candidates
+            </Button>
             <Button onClick={() => setView('learned')}>See everything it has learned</Button>
             <Button variant="secondary" onClick={() => setView('evolution')}>
               See it in the family tree
@@ -645,13 +686,7 @@ function StepResults() {
   )
 }
 
-/**
- * Actually put the meme on a real account, then pull the platform's own numbers
- * back. Instagram is the only platform where this works end to end right now:
- * publishing to your own account from a development-mode Meta app needs no App
- * Review. TikTok's API forces SELF_ONLY visibility until the app is audited, so
- * a post there is invisible and produces no spread to measure.
- */
+/** Publishing and metric retrieval are performed by the backend. */
 function PublishPanel() {
   const lab = useStore((s) => s.lab)
   const publishForReal = useStore((s) => s.publishForReal)
@@ -664,18 +699,15 @@ function PublishPanel() {
         <div>
           <h3 className="font-display text-lg font-bold">Put it on a real account</h3>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Nothing has been published yet — the numbers below are a projection. Publishing sends
-            this meme to the connected {PLATFORM_NAMES[lab.platform]} account, where real people can
-            see and share it.
+            Nothing has been published yet. The backend prepares the media and sends it to the
+            connected {PLATFORM_NAMES[lab.platform]} account. Await its response for upload status.
           </p>
         </div>
 
         {lab.platform === 'tiktok' ? (
           <div className="rounded-xl bg-mid-soft px-3 py-2.5 text-sm leading-relaxed">
-            <strong>TikTok takes one extra tap.</strong> The video is uploaded straight into your
-            TikTok drafts, and you publish it from the app. That is deliberate: it is the only route
-            that produces a genuinely <em>public</em> TikTok post without waiting on TikTok&rsquo;s
-            audit.
+            <strong>TikTok inbox upload.</strong> After upload, follow the backend instructions to
+            finish publishing in TikTok. An upload ID alone does not confirm a public post.
           </div>
         ) : null}
 
@@ -730,15 +762,9 @@ function PublishPanel() {
       </div>
 
       {waiting && lab.published.instructions ? (
-        <ol className="flex list-decimal flex-col gap-1.5 rounded-xl bg-white/70 py-3 pl-8 pr-3 text-sm leading-relaxed">
-          <li>Open TikTok on your phone.</li>
-          <li>
-            Go to your profile, then <strong>Drafts</strong> — the video is already there.
-          </li>
-          <li>
-            Tap <strong>Post</strong>. It goes out public, and the numbers below start moving.
-          </li>
-        </ol>
+        <p className="rounded-xl bg-white/70 p-3 text-sm leading-relaxed">
+          {lab.published.instructions}
+        </p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3 border-t border-line/60 pt-3">
@@ -749,8 +775,8 @@ function PublishPanel() {
         {live ? (
           <span className="text-sm text-muted">
             Checked {new Date(live.fetched_at).toLocaleTimeString()} ·{' '}
-            <strong className="text-ink">{(live.views ?? 0).toLocaleString()}</strong> views,{' '}
-            <strong className="text-ink">{(live.shares ?? 0).toLocaleString()}</strong> shares
+            <strong className="text-ink">{countText(live.views)}</strong> views,{' '}
+            <strong className="text-ink">{countText(live.shares)}</strong> shares
           </span>
         ) : (
           <span className="text-sm text-muted">
@@ -763,21 +789,26 @@ function PublishPanel() {
 
       {live ? (
         <p className="text-sm leading-relaxed text-muted">
-          These are the platform&rsquo;s own numbers. <strong>Update the AI</strong> below will now
-          teach it from these instead of the projection.
+          {USE_MOCK
+            ? 'These are simulated demo measurements.'
+            : 'These measurements were returned by the backend. Learning waits until all required counts are available.'}
         </p>
       ) : null}
     </div>
   )
 }
 
-function Ticker({ label, value, hot }: { label: string; value: number; hot?: boolean }) {
-  const shown = useCountUp(value, 400, true)
+function Ticker({ label, value, hot }: { label: string; value: number | null; hot?: boolean }) {
+  const shown = useCountUp(value ?? 0, 400, true)
   return (
     <div>
       <p className="text-xs text-muted">{label}</p>
       <p className="num font-display text-xl font-bold" style={{ color: hot ? C.win : C.ink }}>
-        {Math.round(shown).toLocaleString()}
+        {value === null
+          ? 'Pending'
+          : USE_MOCK
+            ? Math.round(shown).toLocaleString()
+            : countText(value)}
       </p>
     </div>
   )

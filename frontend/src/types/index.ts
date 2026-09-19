@@ -44,6 +44,8 @@ export interface Prediction {
   fitness: number
   confidence: number
   feature_attribution: FeatureAttribution[]
+  /** Optional provenance supplied by the API, never inferred by the UI. */
+  model_version?: string
 }
 
 export interface Content {
@@ -210,5 +212,16 @@ export interface LiveMetrics {
   shares: number | null
   saves: number | null
   /** Recomputed server-side from the metrics above. */
+  fitness: number | null
+}
+
+/** Read-only history from GET /experiments/{id}/snapshots. */
+export interface EngagementSnapshot {
+  timestamp: string
+  views: number | null
+  likes: number | null
+  comments: number | null
+  shares: number | null
+  saves: number | null
   fitness: number | null
 }

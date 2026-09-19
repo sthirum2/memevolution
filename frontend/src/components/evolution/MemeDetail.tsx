@@ -3,6 +3,9 @@ import { C, STATUS, effectiveFitness, scoreColor, surprise, BIG_SURPRISE } from 
 import { PLATFORM_NAMES, plainFeature, plainTrait, score, titleCase } from '@/lib/plain'
 import { Badge, Bar, Modal, Stat, cx } from '@/components/ui'
 import MemePreview from './MemePreview'
+import EngagementHistory from '@/components/lab/EngagementHistory'
+import { USE_MOCK } from '@/api/client'
+import { fitnessText } from '@/lib/evidence'
 
 const NUMERIC = ['absurdity', 'irony', 'relatability', 'trend_relevance', 'text_density'] as const
 const CATEGORICAL = ['topic', 'humor', 'format', 'hook', 'audio_strategy'] as const
@@ -34,7 +37,11 @@ export default function MemeDetail({
             {exp.generation === 0 ? 'Starting point' : `Generation ${exp.generation}`}
           </span>
           <Badge tone={status.tone} dot={exp.status === 'deployed'}>
-            {status.label}
+            {USE_MOCK
+              ? status.label
+              : exp.deployment.post_id && !exp.deployment.post_id.startsWith('pending_')
+                ? 'Deployment recorded · public status unconfirmed'
+                : 'Not deployed yet'}
           </Badge>
           {exp.deployment.platform ? (
             <Badge>{PLATFORM_NAMES[exp.deployment.platform]}</Badge>
@@ -58,6 +65,12 @@ export default function MemeDetail({
                 <dt className="w-20 shrink-0 text-muted">Sound</dt>
                 <dd className="font-medium">{exp.content.audio}</dd>
               </div>
+              {exp.deployment.post_id && !exp.deployment.post_id.startsWith('pending_') ? (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-muted">Post / upload ID</dt>
+                  <dd className="break-all font-medium">{exp.deployment.post_id}</dd>
+                </div>
+              ) : null}
               {parent ? (
                 <div className="flex gap-2">
                   <dt className="w-20 shrink-0 text-muted">Came from</dt>
@@ -81,7 +94,11 @@ export default function MemeDetail({
           <div className="rounded-xl bg-guess-soft p-4">
             <Stat
               label="AI predicted"
-              value={exp.status === 'pending' ? '–' : (score(exp.prediction.fitness) ?? '–')}
+              value={
+                USE_MOCK
+                  ? (score(exp.prediction.fitness) ?? '–')
+                  : fitnessText(exp.prediction.fitness)
+              }
               color={C.guess}
               size="sm"
               sub={
@@ -101,7 +118,9 @@ export default function MemeDetail({
           >
             <Stat
               label="Actually got"
-              value={score(exp.observed.fitness) ?? '–'}
+              value={
+                USE_MOCK ? (score(exp.observed.fitness) ?? '–') : fitnessText(exp.observed.fitness)
+              }
               color={exp.observed.fitness === null ? C.muted : scoreColor(f)}
               size="sm"
               sub={
@@ -109,7 +128,9 @@ export default function MemeDetail({
                   ? exp.status === 'deployed'
                     ? 'Still counting'
                     : 'Never posted'
-                  : `${(exp.observed.views ?? 0).toLocaleString()} views`
+                  : exp.observed.views === null
+                    ? 'Views pending'
+                    : `${exp.observed.views.toLocaleString()} views`
               }
             />
           </div>
@@ -127,6 +148,7 @@ export default function MemeDetail({
         </div>
 
         {/* why the AI tried it */}
+        <EngagementHistory id={exp.id} />
         <div className="rounded-xl border-l-4 border-agent bg-agent-soft/60 px-4 py-3">
           <p className="label mb-1 text-agent">The AI&rsquo;s reasoning</p>
           <p className="text-sm leading-relaxed">{exp.hypothesis}</p>

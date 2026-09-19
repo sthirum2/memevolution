@@ -23,7 +23,7 @@ export function effectiveFitness(e: Experiment): number {
 
 /** How far reality beat (or embarrassed) the model. null while unobserved. */
 export function surprise(e: Experiment): number | null {
-  if (e.observed.fitness === null) return null
+  if (e.observed.fitness === null || !Number.isFinite(e.prediction.fitness)) return null
   return Math.round((e.observed.fitness - e.prediction.fitness) * 100) / 100
 }
 

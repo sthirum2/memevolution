@@ -9,9 +9,12 @@ import LineageRibbon from './LineageRibbon'
 import MemeCard from './MemeCard'
 import MemeDetail from './MemeDetail'
 import ScorePopover from './ScorePopover'
+import { USE_MOCK } from '@/api/client'
 
 /** One plain sentence describing what happened in a round. */
 function summarise(rows: Experiment[], gen: number): string {
+  if (!USE_MOCK)
+    return `${rows.length} recorded candidates in generation ${gen}. Open a candidate to inspect its genome, prediction, media, and engagement history.`
   if (gen === 0) {
     return 'Before it ran any experiments of its own, the AI started from what already worked in millions of real posts.'
   }
@@ -161,7 +164,7 @@ export default function EvolutionView() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6">
       {/* headline result — the one thing a judge should leave with */}
-      {best && first ? (
+      {USE_MOCK && best && first ? (
         <section className="card flex flex-col gap-5 p-6">
           <div>
             <h2 className="font-display text-2xl font-bold leading-snug">
@@ -213,9 +216,13 @@ export default function EvolutionView() {
 
       <Section
         title="Every meme it has ever made"
-        subtitle="Each round the AI writes a fresh batch of memes. Whichever one gets passed around most becomes the parent of the next round; the rest are dropped."
+        subtitle="Compare recorded generations. Predictions are estimates; observations come after deployment."
         right={
-          <Button variant={playing ? 'secondary' : 'primary'} onClick={startPlay}>
+          <Button
+            variant={playing ? 'secondary' : 'primary'}
+            onClick={startPlay}
+            disabled={!gens.length}
+          >
             {playing ? <Pause size={16} /> : <Play size={16} />}
             {playing ? 'Pause' : 'Play the whole story'}
           </Button>
@@ -262,24 +269,26 @@ export default function EvolutionView() {
         </div>
 
         {/* colour key only — the hero above already explains the score */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-          <span className="font-semibold text-ink">Spread score</span>
-          {(
-            [
-              [80, 'got passed around'],
-              [55, 'did okay'],
-              [25, 'nobody shared it'],
-            ] as [number, string][]
-          ).map(([v, l]) => (
-            <span key={l} className="flex items-center gap-1.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: scoreColor(v / 100) }}
-              />
-              {l}
-            </span>
-          ))}
-        </div>
+        {USE_MOCK ? (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
+            <span className="font-semibold text-ink">Spread score</span>
+            {(
+              [
+                [80, 'got passed around'],
+                [55, 'did okay'],
+                [25, 'nobody shared it'],
+              ] as [number, string][]
+            ).map(([v, l]) => (
+              <span key={l} className="flex items-center gap-1.5">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ background: scoreColor(v / 100) }}
+                />
+                {l}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <div

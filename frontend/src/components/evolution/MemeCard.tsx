@@ -3,6 +3,8 @@ import { STATUS, effectiveFitness, scoreColor, surprise } from '@/lib/fitness'
 import { score } from '@/lib/plain'
 import { Badge, cx } from '@/components/ui'
 import MemePreview from './MemePreview'
+import { USE_MOCK } from '@/api/client'
+import { fitnessText } from '@/lib/evidence'
 
 export default function MemeCard({ exp, onOpen }: { exp: Experiment; onOpen: () => void }) {
   const status = STATUS[exp.status]
@@ -30,7 +32,11 @@ export default function MemeCard({ exp, onOpen }: { exp: Experiment; onOpen: () 
       <div className="flex flex-1 flex-col gap-2 p-3.5">
         <div>
           <Badge tone={status.tone} dot={isLive}>
-            {status.label}
+            {USE_MOCK
+              ? status.label
+              : exp.deployment.post_id && !exp.deployment.post_id.startsWith('pending_')
+                ? 'Deployment recorded'
+                : 'Not deployed yet'}
           </Badge>
         </div>
         <p className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug">
@@ -42,7 +48,7 @@ export default function MemeCard({ exp, onOpen }: { exp: Experiment; onOpen: () 
             <span className="text-[11px] font-medium text-muted">
               {unscored
                 ? 'No score yet'
-                : isLive || exp.observed.fitness !== null
+                : exp.observed.fitness !== null
                   ? 'Spread score'
                   : 'AI predicts'}
             </span>
@@ -50,11 +56,11 @@ export default function MemeCard({ exp, onOpen }: { exp: Experiment; onOpen: () 
               className="num font-display text-3xl font-bold leading-none"
               style={{ color: unscored ? '#A9A7A0' : scoreColor(f) }}
             >
-              {unscored ? '–' : s}
+              {unscored ? '–' : USE_MOCK ? s : fitnessText(f)}
             </span>
           </div>
 
-          {surp !== null ? (
+          {USE_MOCK && surp !== null ? (
             <span
               className={cx(
                 'num rounded-lg px-2 py-1 text-xs font-bold',
@@ -71,7 +77,9 @@ export default function MemeCard({ exp, onOpen }: { exp: Experiment; onOpen: () 
 
         {exp.observed.fitness !== null ? (
           <p className="num text-[11px] text-muted">
-            AI guessed {score(exp.prediction.fitness)} · really got {s}
+            Predicted{' '}
+            {USE_MOCK ? score(exp.prediction.fitness) : fitnessText(exp.prediction.fitness)} ·
+            observed {USE_MOCK ? s : fitnessText(exp.observed.fitness)}
           </p>
         ) : exp.status === 'predicted' ? (
           <p className="text-[11px] text-muted">Waiting to be posted</p>

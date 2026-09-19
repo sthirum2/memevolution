@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --noEmit false --pretty",
+    "typecheck": "tsc -b --pretty",
     "preview": "vite preview",
+    "test": "node scripts/test-evidence.mjs",
     "mock:regen": "node scripts/generate-mock.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\""
   },

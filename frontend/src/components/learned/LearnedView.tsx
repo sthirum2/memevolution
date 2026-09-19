@@ -16,6 +16,8 @@ import type { Experiment } from '@/types'
 import { BELIEF_COLORS, BELIEF_TRAITS, C, pearson } from '@/lib/fitness'
 import { plainTrait, score } from '@/lib/plain'
 import { Section, cx } from '@/components/ui'
+import { USE_MOCK } from '@/api/client'
+import { fitnessText } from '@/lib/evidence'
 
 const AXIS = {
   tick: { fill: '#71716B', fontSize: 12 },
@@ -29,6 +31,7 @@ export default function LearnedView() {
   const open = useStore((s) => s.open)
   const setView = useStore((s) => s.setView)
   const [focus, setFocus] = useState<string | null>(null)
+  const update = useStore((s) => s.lastEvolution)
 
   const first = agentStates[0]
   const last = agentStates[agentStates.length - 1]
@@ -71,6 +74,49 @@ export default function LearnedView() {
     [pairs],
   )
 
+  // The API reconstructs earlier rows using current beliefs; do not present
+  // that as measured learning history. /evolve supplies a genuine before/after.
+  if (!USE_MOCK)
+    return (
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
+        <Section
+          title="What changed after observation"
+          subtitle="Before and after values returned by the agent for this session."
+        >
+          {update ? (
+            <div className="card p-5">
+              <p className="mb-4 font-semibold">Observation: {update.driverId ?? 'Not reported'}</p>
+              {update.shifts.length ? (
+                update.shifts.map((shift) => (
+                  <div
+                    key={shift.trait}
+                    className="flex justify-between gap-4 border-t border-line py-3"
+                  >
+                    <span>{plainTrait(shift.trait)}</span>
+                    <span className="num">
+                      {fitnessText(shift.from)} → {fitnessText(shift.to)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p>No belief changes reported.</p>
+              )}
+              <p className="mt-3 text-sm text-muted">{update.next.note}</p>
+            </div>
+          ) : (
+            <div className="card p-5">
+              Awaiting an observation and agent update. Historical belief snapshots are not
+              available.
+            </div>
+          )}
+        </Section>
+        <p className="text-sm text-muted">
+          Current strategy is shown above. A second generation appears only after the backend
+          generates it.
+        </p>
+      </div>
+    )
+
   // The backend has no /agent-states endpoint yet, so in live mode this screen
   // would otherwise render as a blank white page. Say why instead.
   if (!first || !last || agentStates.length < 2) {
@@ -79,9 +125,9 @@ export default function LearnedView() {
         <div className="card p-8 text-center">
           <h2 className="font-display text-xl font-bold">Nothing to show yet</h2>
           <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-muted">
-            This screen compares what the AI believes now against what it believed at the
-            start. It needs at least two rounds of recorded beliefs, and the server has
-            returned {agentStates.length === 0 ? 'none' : 'only one'}.
+            This screen compares what the AI believes now against what it believed at the start. It
+            needs at least two rounds of recorded beliefs, and the server has returned{' '}
+            {agentStates.length === 0 ? 'none' : 'only one'}.
           </p>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
             If you are running against the live backend, it does not serve{' '}

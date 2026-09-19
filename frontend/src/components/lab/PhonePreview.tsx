@@ -10,11 +10,9 @@ const compact = (n: number) =>
 export default function PhonePreview({
   platform,
   content,
-  projected,
 }: {
   platform: Platform
   content: Content
-  projected: { views: number; likes: number; comments: number; shares: number; saves: number }
 }) {
   const isX = platform === 'x'
   const isInsta = platform === 'instagram'
@@ -47,18 +45,15 @@ export default function PhonePreview({
           <div className="flex items-center gap-4 px-3 py-2.5 text-ink/70">
             {isX ? (
               <>
-                <Action icon={<MessageCircle size={16} />} n={projected.comments} />
-                <Action icon={<Repeat2 size={17} />} n={projected.shares} />
-                <Action icon={<Heart size={16} />} n={projected.likes} />
+                <Action icon={<MessageCircle size={16} />} n={null} />
+                <Action icon={<Repeat2 size={17} />} n={null} />
+                <Action icon={<Heart size={16} />} n={null} />
               </>
             ) : (
               <>
-                <Action icon={<Heart size={17} />} n={projected.likes} />
-                <Action icon={<MessageCircle size={17} />} n={projected.comments} />
-                <Action
-                  icon={isInsta ? <Send size={16} /> : <Share2 size={16} />}
-                  n={projected.shares}
-                />
+                <Action icon={<Heart size={17} />} n={null} />
+                <Action icon={<MessageCircle size={17} />} n={null} />
+                <Action icon={isInsta ? <Send size={16} /> : <Share2 size={16} />} n={null} />
                 <span className="ml-auto">
                   <Bookmark size={16} />
                 </span>
@@ -80,17 +75,17 @@ export default function PhonePreview({
         </div>
       </div>
       <p className="mt-3 text-center text-xs text-muted">
-        Numbers are the AI&rsquo;s estimate, not real engagement.
+        Concept preview ? engagement appears after deployment.
       </p>
     </div>
   )
 }
 
-function Action({ icon, n }: { icon: React.ReactNode; n: number }) {
+function Action({ icon, n }: { icon: React.ReactNode; n: number | null }) {
   return (
     <span className="num flex items-center gap-1 text-[11px] font-medium">
       {icon}
-      {compact(n)}
+      {n === null ? '?' : compact(n)}
     </span>
   )
 }

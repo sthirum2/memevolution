@@ -30,7 +30,7 @@ export default function Header() {
             </span>
           ) : (
             <span className="ml-auto rounded-full bg-win-soft px-3 py-1 text-xs font-semibold text-win-deep">
-              Live
+              Live backend
             </span>
           )}
         </div>
