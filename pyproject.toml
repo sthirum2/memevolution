@@ -8,7 +8,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gemini = ["google-generativeai>=0.5"]
+gemini = ["google-genai>=1.0"]
 dev = ["pytest>=8.0"]
 
 [tool.pytest.ini_options]

@@ -7,7 +7,8 @@ import xgboost as xgb
 EXPECTED_FEATURES = [
     'duration', 'is_video', 'is_ad', 'caption_length',
     'has_hashtags', 'mentions_count', 'hashtags_count',
-    'is_original_sound', 'upload_hour', 'upload_day_of_week'
+    'is_original_sound', 'upload_hour', 'upload_day_of_week',
+    'absurdity', 'irony', 'relatability', 'trend_relevance'
 ]
 
 MODEL_PATH = Path(__file__).resolve().parent / 'memetic_fitness_xgb.json'
@@ -41,7 +42,11 @@ def preprocess_features(features: dict) -> pd.DataFrame:
         'hashtags_count': 0,      # 0 hashtags
         'is_original_sound': 0,   # Not original sound
         'upload_hour': 12,        # Noon
-        'upload_day_of_week': 3   # Thursday
+        'upload_day_of_week': 3,  # Thursday
+        'absurdity': 0.5,         # Neutral (traits are 0.0-1.0 normalized)
+        'irony': 0.5,
+        'relatability': 0.5,
+        'trend_relevance': 0.5
     }
 
     # Merge defaults with provided features

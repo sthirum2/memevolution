@@ -13,6 +13,21 @@ from memevolution.prediction.mock import MockFitnessPredictor
 _LABELS = "ABCDEFGHIJ"
 
 
+def _build_predictor(name: str, seed: int | None):
+    if name == "mock":
+        print("[DEV STUB] Using MockFitnessPredictor - NOT the Calcifer/Role 1 model.\n")
+        return MockFitnessPredictor(seed=seed)
+
+    from memevolution.prediction.role1 import Role1FitnessPredictor
+
+    print(
+        "[ROLE 1] Using Role1FitnessPredictor (model_deployment_package). "
+        "Known gap: output scale is an empirical approximation, not a confirmed "
+        "calibration -- see memevolution/prediction/role1.py for details.\n"
+    )
+    return Role1FitnessPredictor()
+
+
 def _print_generation(result: GenerationResult) -> None:
     print(f"=== MEMEVOLUTION - GENERATION {result.generation} ===\n")
 
@@ -52,8 +67,7 @@ def _print_generation(result: GenerationResult) -> None:
 
 def cmd_generate(args: argparse.Namespace) -> None:
     state = json_store.load_state()
-    predictor = MockFitnessPredictor(seed=args.seed)
-    print("[DEV STUB] Using MockFitnessPredictor - NOT the Calcifer/Role 1 model.\n")
+    predictor = _build_predictor(args.predictor, args.seed)
     rng = random.Random(args.seed)
     result = run_generation(state, predictor, population_size=args.population_size, rng=rng)
     _print_generation(result)
@@ -104,6 +118,12 @@ def build_parser() -> argparse.ArgumentParser:
     gen = sub.add_parser("generate", help="Run one evolutionary generation")
     gen.add_argument("--population-size", type=int, default=5)
     gen.add_argument("--seed", type=int, default=None)
+    gen.add_argument(
+        "--predictor",
+        choices=["mock", "role1"],
+        default="role1",
+        help="Which FitnessPredictor to use (default: role1, Role 1's deployed model)",
+    )
     gen.set_defaults(func=cmd_generate)
 
     status = sub.add_parser("status", help="Show current agent state")
