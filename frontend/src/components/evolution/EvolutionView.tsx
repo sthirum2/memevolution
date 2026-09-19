@@ -9,16 +9,17 @@ import LineageRibbon from './LineageRibbon'
 import MemeCard from './MemeCard'
 import MemeDetail from './MemeDetail'
 
-/** One plain sentence describing what happened in a generation. */
+/** One plain sentence describing what happened in a round. */
 function summarise(rows: Experiment[], gen: number): string {
   if (gen === 0) {
     return 'Before it ran any experiments of its own, the AI started from what already worked in millions of real posts.'
   }
-  const done = rows.filter((e) => e.observed.fitness !== null)
+
+  const posted = rows.filter((e) => e.observed.fitness !== null)
   const winner = rows.find((e) => e.status === 'survived')
   const live = rows.find((e) => e.status === 'deployed')
 
-  if (!done.length) {
+  if (!posted.length && !live) {
     return `The AI wrote ${rows.length} new memes. None have been posted yet.`
   }
   if (live && !winner) {
@@ -26,20 +27,36 @@ function summarise(rows: Experiment[], gen: number): string {
   }
   if (!winner) return `The AI tried ${rows.length} memes in this round.`
 
-  const shock = done.reduce<Experiment | null>((acc, e) => {
-    const s = Math.abs(surprise(e) ?? 0)
-    return s > Math.abs(surprise(acc ?? e) ?? 0) || !acc ? e : acc
-  }, null)
-  const shockAmount = shock ? surprise(shock) : null
+  // How many actually went out changes what the sentence can honestly claim.
+  const allPosted = posted.length === rows.length
+  const opener = allPosted
+    ? `The AI wrote ${rows.length} memes and posted them all.`
+    : `The AI wrote ${rows.length} memes and posted ${posted.length === 1 ? 'one' : posted.length} of them.`
 
-  let sentence = `The AI tried ${rows.length} memes. "${winner.content.headline}" spread furthest with a score of ${score(effectiveFitness(winner))}, so it became the parent of the next round.`
+  const verb = posted.length > 1 ? 'got passed around most' : 'scored'
+  let sentence = `${opener} \u201c${winner.content.headline}\u201d ${verb} ${
+    posted.length > 1
+      ? `with a score of ${score(effectiveFitness(winner))}`
+      : String(score(effectiveFitness(winner)))
+  }, so it becomes the parent of the next round.`
 
-  if (shock && shockAmount !== null && Math.abs(shockAmount) >= 0.15) {
-    sentence +=
-      shockAmount > 0
-        ? ` "${shock.content.headline}" did ${Math.round(shockAmount * 100)} points better than the AI expected.`
-        : ` "${shock.content.headline}" did ${Math.abs(Math.round(shockAmount * 100))} points worse than the AI expected — its biggest miss.`
+  // Call out a big miss, but only when there were siblings to compare against.
+  if (posted.length > 1) {
+    const shock = posted.reduce<Experiment | null>(
+      (acc, e) => (!acc || Math.abs(surprise(e) ?? 0) > Math.abs(surprise(acc) ?? 0) ? e : acc),
+      null,
+    )
+    const amount = shock ? surprise(shock) : null
+    if (shock && amount !== null && Math.abs(amount) >= 0.15) {
+      // Don't name the same meme twice when the winner is also the surprise.
+      const subject = shock.id === winner.id ? 'It also' : `\u201c${shock.content.headline}\u201d`
+      sentence +=
+        amount > 0
+          ? ` ${subject} did ${Math.round(amount * 100)} points better than the AI expected.`
+          : ` ${subject} did ${Math.abs(Math.round(amount * 100))} points worse than the AI expected \u2014 its biggest miss.`
+    }
   }
+
   return sentence
 }
 
@@ -147,11 +164,6 @@ export default function EvolutionView() {
                 ? `After ${gens.length - 1} rounds, its memes get passed on ${passOnGain(first, best)}\u00d7 more often.`
                 : `The AI ran ${gens.length - 1} rounds of experiments.`}
             </h2>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">
-              Every meme gets a{' '}
-              <strong className="font-semibold text-ink">spread score out of 100</strong>. It
-              measures how often people <em>pass a meme on</em> — not how many people see it.
-            </p>
           </div>
 
           <div className="grid gap-4 border-t border-line pt-5 sm:grid-cols-3">
@@ -194,7 +206,7 @@ export default function EvolutionView() {
 
       <Section
         title="Every meme it has ever made"
-        subtitle="Each round the AI writes new memes, posts the most promising one, and keeps whichever spread furthest. That winner becomes the parent of the next round."
+        subtitle="Each round the AI writes a fresh batch of memes. Whichever one gets passed around most becomes the parent of the next round; the rest are dropped."
         right={
           <Button variant={playing ? 'secondary' : 'primary'} onClick={startPlay}>
             {playing ? <Pause size={16} /> : <Play size={16} />}

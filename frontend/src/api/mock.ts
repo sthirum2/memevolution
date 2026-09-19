@@ -376,7 +376,23 @@ function nextId(): string {
   return `exp_${String(Math.max(...nums) + 1).padStart(3, '0')}`
 }
 
+/**
+ * The meme a new batch descends from: the strongest thing in the most recent
+ * round that has actually been posted. Using "last survivor" instead would
+ * hang a new batch off an older round and pile it on top of a round that is
+ * still in progress.
+ */
 function currentParent(): Experiment {
+  const posted = experiments.filter((e) => e.deployment.timestamp !== null)
+  if (posted.length) {
+    const newest = Math.max(...posted.map((e) => e.generation))
+    const pool = posted.filter((e) => e.generation === newest)
+    return pool.reduce((acc, e) => {
+      const a = e.observed.fitness ?? e.prediction.fitness
+      const b = acc.observed.fitness ?? acc.prediction.fitness
+      return a > b ? e : acc
+    })
+  }
   const survivors = experiments.filter((e) => e.status === 'survived')
   if (survivors.length) return survivors[survivors.length - 1]
   return [...experiments].sort((a, b) => b.generation - a.generation)[0]

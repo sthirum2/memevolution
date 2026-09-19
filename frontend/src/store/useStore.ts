@@ -181,10 +181,21 @@ export const useStore = create<Store>((set, get) => ({
     if (!chosen) return
     get().setLab({ busy: true })
     try {
-      const committed = await client.commitCandidate(chosen)
-      const posted = await client.deployExperiment(committed.id, lab.platform)
+      // Save the whole batch, not just the winner. The losing candidates are
+      // part of the record — "every meme it has made" has to actually mean that.
+      // Sequential, so each one gets its own server-assigned id.
+      const saved: Experiment[] = []
+      for (const c of lab.candidates) saved.push(await client.commitCandidate(c))
+
+      const chosenIndex = lab.candidates.findIndex((c) => c.id === chosen.id)
+      const posted = await client.deployExperiment(saved[chosenIndex].id, lab.platform)
+
+      const merged = saved.map((e) => (e.id === posted.id ? posted : e))
       set((s) => ({
-        experiments: [...s.experiments.filter((e) => e.id !== posted.id), posted],
+        experiments: [
+          ...s.experiments.filter((e) => !merged.some((m) => m.id === e.id)),
+          ...merged,
+        ],
         lab: { ...s.lab, busy: false, posted, step: 'results', hours: 0 },
       }))
     } catch (e) {
