@@ -1,0 +1,16 @@
+[project]
+name = "memevolution"
+version = "0.1.0"
+description = "Role 2 — AI Agent / Evolution for Memevolution"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+gemini = ["google-generativeai>=0.5"]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
