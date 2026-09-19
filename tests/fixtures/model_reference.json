@@ -1,0 +1,382 @@
+{
+  "source_joblib_sha256": "243a9b9576366820eb16d700d5f875dbf3fda91d8b1af082b73df41ca0a64fd3",
+  "export_xgboost_version": "3.4.1",
+  "source": "Person 1 ZIP predictor run in Linux, not an independent Colab reference",
+  "cases": [
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.5198999643325806
+    },
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.6273000240325928
+    },
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.8371000289916992
+    },
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.6022000312805176
+    },
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.012399911880493
+    },
+    {
+      "features": {
+        "duration": 6,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.8712999820709229
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.9174000024795532
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.0371999740600586
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.9957000017166138
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.025700092315674
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.4504001140594482
+    },
+    {
+      "features": {
+        "duration": 10,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.041599988937378
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.5024000406265259
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.5590999126434326
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.3336000442504883
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.7630000114440918
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 3.174799919128418
+    },
+    {
+      "features": {
+        "duration": 15,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.588900089263916
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.586300015449524
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 1.9294999837875366
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 0,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.0004000663757324
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 0,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.1324000358581543
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 14,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.6205999851226807
+    },
+    {
+      "features": {
+        "duration": 30,
+        "is_video": 1,
+        "is_ad": 0,
+        "caption_length": 0,
+        "has_hashtags": 0,
+        "mentions_count": 0,
+        "hashtags_count": 0,
+        "is_original_sound": 1,
+        "upload_hour": 23,
+        "upload_day_of_week": 5
+      },
+      "fitness": 2.306299924850464
+    },
+    {
+      "features": {},
+      "fitness": 3.456899881362915
+    },
+    {
+      "features": {
+        "duration": 15,
+        "caption_length": 23,
+        "has_hashtags": 1,
+        "hashtags_count": 2,
+        "mentions_count": 1,
+        "is_ad": 1
+      },
+      "fitness": 1.1787999868392944
+    }
+  ]
+}

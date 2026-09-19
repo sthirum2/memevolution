@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import random
 
 from memevolution.agent.orchestrator import GenerationResult, apply_observation, run_generation
@@ -13,19 +14,23 @@ from memevolution.prediction.mock import MockFitnessPredictor
 _LABELS = "ABCDEFGHIJ"
 
 
-def _build_predictor(name: str, seed: int | None):
+def _build_predictor(
+    name: str,
+    seed: int | None,
+    planned_time: datetime | None = None,
+):
     if name == "mock":
-        print("[DEV STUB] Using MockFitnessPredictor - NOT the Calcifer/Role 1 model.\n")
+        print("[DEV STUB] Using MockFitnessPredictor - NOT the trained Role 1 model.`n")
         return MockFitnessPredictor(seed=seed)
 
-    from memevolution.prediction.role1 import Role1FitnessPredictor
+    from memevolution.prediction.trained import MODEL_VERSION, TrainedFitnessPredictor
 
+    predictor = TrainedFitnessPredictor(planned_time=planned_time)
     print(
-        "[ROLE 1] Using Role1FitnessPredictor (model_deployment_package). "
-        "Known gap: output scale is an empirical approximation, not a confirmed "
-        "calibration -- see memevolution/prediction/role1.py for details.\n"
+        f"[TRAINED ROLE 1 MODEL] {MODEL_VERSION}; "
+        f"posting time: {predictor.planned_time.isoformat()}`n"
     )
-    return Role1FitnessPredictor()
+    return predictor
 
 
 def _print_generation(result: GenerationResult) -> None:
@@ -67,9 +72,18 @@ def _print_generation(result: GenerationResult) -> None:
 
 def cmd_generate(args: argparse.Namespace) -> None:
     state = json_store.load_state()
-    predictor = _build_predictor(args.predictor, args.seed)
+    predictor = _build_predictor(
+        args.predictor,
+        args.seed,
+        args.planned_time,
+    )
     rng = random.Random(args.seed)
-    result = run_generation(state, predictor, population_size=args.population_size, rng=rng)
+    result = run_generation(
+        state,
+        predictor,
+        population_size=args.population_size,
+        rng=rng,
+    )
     _print_generation(result)
 
 
@@ -120,9 +134,15 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--seed", type=int, default=None)
     gen.add_argument(
         "--predictor",
-        choices=["mock", "role1"],
+        choices=["role1", "trained", "mock"],
         default="role1",
-        help="Which FitnessPredictor to use (default: role1, Role 1's deployed model)",
+        help="Fitness predictor to use (default: calibrated Role 1 trained model)",
+    )
+    gen.add_argument(
+        "--planned-time",
+        type=datetime.fromisoformat,
+        default=None,
+        help="ISO posting time with timezone; defaults to current local time",
     )
     gen.set_defaults(func=cmd_generate)
 
@@ -150,3 +170,4 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
+

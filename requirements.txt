@@ -7,3 +7,9 @@ google-genai>=1.0
 
 # Dev/test only
 pytest>=8.0
+
+# Person 1 trained XGBRegressor runtime (no notebook dependencies).
+xgboost==3.4.1
+pandas
+joblib
+scikit-learn
