@@ -1,0 +1,26 @@
+# ── Never commit these ───────────────────────────────────────────────────
+# Real secrets live in .env files. Only the .example versions belong in git.
+.env
+.env.*
+!.env.example
+**/.env
+!**/.env.example
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.py[cod]
+*.db
+
+# Node
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Rendered media — generated at run time, not source
+backend/media/
+
+# macOS
+.DS_Store
