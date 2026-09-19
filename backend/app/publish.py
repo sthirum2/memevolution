@@ -64,30 +64,18 @@ def publish(experiment: dict, platform: str) -> dict:
     content = experiment.get("content") or {}
     genome = experiment.get("genome") or {}
 
+    path, source = make_meme_image(
+        experiment["id"],
+        content.get("headline", ""),
+        content.get("punchline", ""),
+        content.get("visual_description", ""),
+        genome.get("topic", ""),
+    )
+
     if platform == "instagram":
-        # Instagram's photo-post route wants a still image.
-        path, source = make_meme_image(
-            experiment["id"],
-            content.get("headline", ""),
-            content.get("punchline", ""),
-            content.get("visual_description", ""),
-            genome.get("topic", ""),
-        )
         return _publish_instagram(experiment["id"], path.name, content.get("caption", ""), source)
     if platform == "tiktok":
-        # TikTok's content-posting API has no photo-post route in this
-        # integration -- only video inbox-upload -- so this generates real
-        # video (Veo), falling back to a held still frame if Veo can't.
-        from .generate_video import make_meme_video
-
-        path, source = make_meme_video(
-            experiment["id"],
-            content.get("headline", ""),
-            content.get("punchline", ""),
-            content.get("visual_description", ""),
-            genome.get("topic", ""),
-        )
-        return _upload_tiktok(experiment["id"], path, source)
+        return _upload_tiktok(experiment["id"], path, source, content, genome)
     raise PublishError(f"No publisher wired for {platform!r}. Use instagram or tiktok.")
 
 
@@ -142,7 +130,7 @@ def _publish_instagram(experiment_id: str, filename: str, caption: str, source: 
     }
 
 
-def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
+def _upload_tiktok(experiment_id: str, path, source: str, content: dict, genome: dict) -> dict:
     token = os.environ.get("TIKTOK_ACCESS_TOKEN")
     if not token:
         raise PublishError(
@@ -151,9 +139,23 @@ def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
             "forces SELF_ONLY on unaudited apps, so nobody would see it."
         )
 
-    # `path` is already a real video file -- generate_video.make_meme_video()
-    # guarantees that, whichever tier of its fallback ladder produced it.
-    size = path.stat().st_size
+    from .generate_video import make_meme_video
+
+    try:
+        video_path, video_source = make_meme_video(
+            experiment_id,
+            content.get("headline", ""),
+            content.get("punchline", ""),
+            content.get("visual_description", ""),
+            path,
+            genome.get("topic", ""),
+        )
+    except Exception as exc:
+        raise PublishError(
+            f"Could not turn the rendered meme into a video for TikTok: {exc}"
+        ) from None
+
+    size = video_path.stat().st_size
     try:
         init = _post(
             "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/",
@@ -172,7 +174,7 @@ def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
         publish_id = init.get("data", {}).get("publish_id", "")
         upload_url = init.get("data", {}).get("upload_url")
         if upload_url:
-            body = path.read_bytes()
+            body = video_path.read_bytes()
             req = urllib.request.Request(upload_url, data=body, method="PUT")
             req.add_header("Content-Range", f"bytes 0-{size - 1}/{size}")
             req.add_header("Content-Type", "video/mp4")
@@ -192,6 +194,7 @@ def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
             "there — tap Post. It goes out public."
         ),
         "image_source": source,
+        "video_source": video_source,
     }
 
 

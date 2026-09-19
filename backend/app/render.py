@@ -15,7 +15,6 @@ MP4 for that platform.
 from __future__ import annotations
 
 import hashlib
-import re
 import subprocess
 import textwrap
 from pathlib import Path
@@ -162,6 +161,123 @@ def render_meme(
     return path
 
 
+def draw_caption_on_canvas(
+    width: int,
+    height: int,
+    headline: str,
+    punchline: str | None = None,
+    transparent: bool = False,
+) -> Image.Image:
+    """
+    Same caption look as draw_caption() above, generalized to any width and
+    height so it can also be composited onto a non-square, non-1080 video
+    (Veo's 9:16 output) rather than only the fixed 1080x1080 image canvas.
+
+    transparent=True returns an RGBA image with nothing drawn but the text
+    (meant to be overlaid onto video via ffmpeg); draw_caption() itself is
+    untouched, so the existing image pipeline is unaffected by this.
+    """
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0) if transparent else (0, 0, 0, 255))
+    d = ImageDraw.Draw(img)
+    scale = width / CANVAS
+    margin = int(MARGIN * scale)
+    usable = width - margin * 2
+
+    size = int(92 * scale)
+    min_size = int(34 * scale)
+    while size > min_size:
+        f = _font(size)
+        lines = _wrap(d, headline, f, usable)
+        if len(lines) * (size + int(14 * scale)) <= height * 0.46:
+            break
+        size -= max(1, int(6 * scale))
+    f = _font(size)
+    lines = _wrap(d, headline, f, usable)
+
+    y = int(height * 0.16)
+    for line in lines:
+        w = d.textlength(line, font=f)
+        x = (width - w) / 2
+        d.text((x + 3, y + 3), line, font=f, fill=(0, 0, 0, 180))  # drop shadow
+        d.text((x, y), line, font=f, fill=(255, 255, 255, 255))
+        y += size + int(14 * scale)
+
+    if punchline and punchline.strip() and punchline.strip() != "—":
+        psize = int(40 * scale)
+        pf = _font(psize)
+        plines = _wrap(d, punchline.upper(), pf, usable)
+        line_h = int(52 * scale)
+        py = height - margin - len(plines) * line_h
+        for line in plines:
+            w = d.textlength(line, font=pf)
+            x = (width - w) / 2
+            d.text((x + 2, py + 2), line, font=pf, fill=(0, 0, 0, 170))
+            d.text((x, py), line, font=pf, fill=(199, 240, 74, 255))  # the acid accent
+            py += line_h
+
+    return img
+
+
+def burn_captions_onto_video(
+    video_path: Path,
+    out_path: Path,
+    headline: str,
+    punchline: str | None = None,
+    timeout: float = 30.0,
+) -> Path:
+    """
+    Overlay the exact headline/punchline text onto an already-generated
+    video (Veo's output), the same way overlay_text() burns it onto a still
+    image -- so the joke's wording is always exactly what the agent chose,
+    never a video model's own (unreliable) text rendering. Veo's prompt
+    deliberately asks for no text in the footage; this is the step that
+    actually puts the caption there.
+
+    Renders the caption at a fixed 1080x1920 canvas and uses ffmpeg's
+    scale2ref filter to resize it to match whatever resolution the source
+    video actually came back at, so this doesn't need to probe the video's
+    dimensions first.
+
+    Preserves the source video's audio stream untouched (-c:a copy) since
+    Veo's videos come with native audio baked into the generation.
+    """
+    import imageio_ffmpeg
+
+    caption = draw_caption_on_canvas(1080, 1920, headline, punchline, transparent=True)
+    caption_png = out_path.with_suffix(".caption.png")
+    caption.save(caption_png)
+
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-i", str(video_path),
+        "-loop", "1",
+        "-i", str(caption_png),
+        "-filter_complex",
+        "[1:v][0:v]scale2ref[cap][vid];[vid][cap]overlay=0:0:shortest=1[outv]",
+        "-map", "[outv]",
+        "-map", "0:a?",
+        "-c:a", "copy",
+        "-movflags", "+faststart",
+        str(out_path),
+    ]
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"ffmpeg timed out overlaying captions on {video_path.name}") from exc
+    finally:
+        caption_png.unlink(missing_ok=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg could not overlay captions on {video_path.name} "
+            f"(exit {result.returncode}): {result.stderr[-500:]}"
+        )
+    return out_path
+
+
 def image_to_video(
     image_path: Path,
     out_path: Path | None = None,
@@ -217,126 +333,6 @@ def image_to_video(
             f"(exit {result.returncode}): {result.stderr[-500:]}"
         )
     return out_path
-
-
-def _video_caption_overlay(width: int, height: int, headline: str, punchline: str | None) -> Image.Image:
-    """A transparent frame the same size as the video, with the caption burned
-    on -- composited over every frame via ffmpeg's overlay filter below.
-
-    Reuses the same layout language as draw_caption() (headline near the top,
-    punchline near the bottom, white with a drop shadow and an acid-green
-    punchline) but parameterized by the actual frame size instead of the
-    fixed square CANVAS, since real video comes back at whatever aspect
-    ratio/resolution was requested from Veo.
-    """
-    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    margin = int(width * 0.08)
-    usable = width - margin * 2
-
-    size = int(height * 0.075)
-    min_size = max(18, int(height * 0.03))
-    while size > min_size:
-        f = _font(size)
-        lines = _wrap(d, headline, f, usable)
-        if len(lines) * int(size * 1.15) <= height * 0.3:
-            break
-        size -= 4
-    f = _font(size)
-    lines = _wrap(d, headline, f, usable)
-
-    y = int(height * 0.10)
-    line_h = int(size * 1.15)
-    for line in lines:
-        w = d.textlength(line, font=f)
-        x = (width - w) / 2
-        d.text((x + 3, y + 3), line, font=f, fill=(0, 0, 0, 200))
-        d.text((x, y), line, font=f, fill=(255, 255, 255, 255))
-        y += line_h
-
-    if punchline and punchline.strip() and punchline.strip() != "—":
-        p_size = max(16, int(height * 0.033))
-        pf = _font(p_size)
-        plines = _wrap(d, punchline.upper(), pf, usable)
-        p_line_h = int(p_size * 1.4)
-        py = height - margin - len(plines) * p_line_h
-        for line in plines:
-            w = d.textlength(line, font=pf)
-            x = (width - w) / 2
-            d.text((x + 2, py + 2), line, font=pf, fill=(0, 0, 0, 190))
-            d.text((x, py), line, font=pf, fill=(199, 240, 74, 255))
-            py += p_line_h
-
-    return img
-
-
-def _probe_video_size(path: Path, ffmpeg: str, timeout: float = 15.0) -> tuple[int, int]:
-    """ffmpeg -i prints stream info (including WxH) to stderr even with no
-    output file; parsing that avoids a separate ffprobe dependency."""
-    result = subprocess.run(
-        [ffmpeg, "-i", str(path)],
-        capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout,
-    )
-    match = re.search(r"(\d{2,5})x(\d{2,5})", result.stderr)
-    if not match:
-        raise RuntimeError(f"could not determine video dimensions for {path.name}")
-    return int(match.group(1)), int(match.group(2))
-
-
-def overlay_text_on_video(
-    src: Path,
-    dst: Path,
-    headline: str,
-    punchline: str | None = None,
-    timeout: float = 60.0,
-) -> Path:
-    """Burn the caption onto every frame of a real video.
-
-    Renders the caption once as a transparent PNG (via _video_caption_overlay)
-    and composites it with ffmpeg's `overlay` filter, rather than fighting
-    ffmpeg drawtext's escaping rules for arbitrary meme text -- quotes,
-    colons, emoji all just work as pixels this way. The video's own audio
-    track (Veo generates audio natively) is preserved; if there is none,
-    `0:a?` just drops that map instead of failing.
-    """
-    import imageio_ffmpeg
-
-    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-    width, height = _probe_video_size(src, ffmpeg, timeout=min(timeout, 15.0))
-
-    overlay_img = _video_caption_overlay(width, height, headline, punchline)
-    overlay_path = dst.with_name(dst.stem + "_caption.png")
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    overlay_img.save(overlay_path, "PNG")
-
-    cmd = [
-        ffmpeg,
-        "-y",
-        "-i", str(src),
-        "-i", str(overlay_path),
-        "-filter_complex", "[0:v][1:v]overlay=0:0:format=auto",
-        "-map", "0:a?",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-movflags", "+faststart",
-        str(dst),
-    ]
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"ffmpeg timed out overlaying a caption on {src.name}") from exc
-    finally:
-        overlay_path.unlink(missing_ok=True)
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"ffmpeg could not overlay a caption on {src.name} "
-            f"(exit {result.returncode}): {result.stderr[-500:]}"
-        )
-    return dst
 
 
 if __name__ == "__main__":
