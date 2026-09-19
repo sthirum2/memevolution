@@ -126,6 +126,50 @@ definition, the API computes it when the caller does not supply one, and
 `backend/tests/test_fitness_parity.py` reads the constants out of `score.ts` and fails if
 the two implementations drift.
 
+## Running the agent loop (verified end to end)
+
+The agent lives in its own repo. Installed alongside this one, the whole loop runs:
+
+```bash
+pip install -e /path/to/memevolution_agent
+pip install pandas xgboost scikit-learn
+brew install libomp          # xgboost will not import on macOS without it
+
+export PYTHONPATH=/path/to/memevolution-frontend/backend
+python -m memevolution generate            # 5 candidates, real XGBoost predictions
+python -m memevolution observe <id> --views 8400 --likes 760 \
+    --comments 52 --shares 210 --saves 130 --fitness 0.52
+python -m memevolution status              # beliefs have moved
+```
+
+**`--fitness` is required** — the agent cannot derive it, which is why
+`backend/app/fitness.py` exists. Get the number from `scripts/observe.py`, which computes
+it and prints the exact `memevolution observe` command to run.
+
+Verified: predicted 0.91 → actual 0.52 → error −0.39 → absurdity moved 0.50 → 0.44, and it
+moved the trait that had actually been mutated. Explore/exploit works too; one run picked a
+0.69 candidate over a 1.00 one.
+
+`brew install libomp` is not optional on macOS. Without it xgboost fails to import with a
+`libxgboost.dylib could not be loaded` error that does not mention OpenMP in the first line.
+
+### Open question for Role 1 (measured, not guessed)
+
+Sampling 400 random genomes through the real XGBoost model after the current empirical
+rescale:
+
+```
+  p5 0.155   p25 0.371   p50 0.507   p75 0.617   p95 0.826
+  mean 0.494   stdev 0.200
+  saturated at 1.000 : 2.2%
+  saturated at 0.000 : 1.8%
+```
+
+Centred sensibly, but **4% of predictions clip at the bounds**, so the assumed input window
+is slightly too narrow at both ends. A clipped prediction carries no gradient, so the agent
+learns nothing from those. Needs the target's true definition and range from Role 1 to fix
+properly.
+
 ## Small things worth knowing
 
 - **The spread score is defined in one place**, `frontend/src/lib/score.ts`. The mock backend
