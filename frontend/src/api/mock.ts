@@ -25,6 +25,7 @@ import type {
   SelectionResult,
 } from '@/types'
 import { clamp, delta, fit } from '@/lib/format'
+import { spreadScore } from '@/lib/score'
 
 const LATENCY = { fast: 120, normal: 300, think: 620 }
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
@@ -571,16 +572,9 @@ export async function recordMetrics(id: string, metrics: MetricsInput): Promise<
   await sleep(LATENCY.normal)
   const target = experiments.find((e) => e.id === id)
   if (!target) throw new Error(`recordMetrics: unknown experiment ${id}`)
-  // Experimental memetic fitness: propagation-weighted, normalised by reach so
-  // a small account with a high share rate is not buried by a large one.
-  const v = Math.max(1, metrics.views)
-  const fitness = clamp(
-    0.34 * Math.min(1, metrics.shares / v / 0.05) +
-      0.24 * Math.min(1, metrics.saves / v / 0.03) +
-      0.18 * Math.min(1, metrics.comments / v / 0.015) +
-      0.14 * Math.min(1, metrics.likes / v / 0.16) +
-      0.1 * Math.min(1, Math.log10(v) / 5.2),
-  )
+  // Defined in src/lib/score.ts so the tooltip that explains this number is
+  // showing a breakdown of the same sum, not a re-typed copy of it.
+  const fitness = spreadScore(metrics)
   target.observed = {
     ...metrics,
     fitness: Math.round(fitness * 100) / 100,

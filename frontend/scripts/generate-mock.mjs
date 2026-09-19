@@ -361,6 +361,53 @@ const SPEC = [
 // Fitness is a normalised propagation score, weighted toward shares/saves —
 // it is NOT views. A small account with a high share rate outranks a big
 // account coasting on reach.
+//
+// KEEP IN SYNC with src/lib/score.ts — the app shows a breakdown of this exact
+// sum in the score tooltip, so if the two drift the UI starts lying. The
+// assertion at the bottom of this file fails loudly if they do.
+const SCORE_PARTS = [
+  ['shares', 0.34, 0.05],
+  ['saves', 0.24, 0.03],
+  ['comments', 0.18, 0.015],
+  ['likes', 0.14, 0.16],
+]
+const REACH = { weight: 0.1, logCap: 5.2 }
+
+function spreadScore(m) {
+  const v = Math.max(1, m.views)
+  const rates = SCORE_PARTS.reduce((sum, [k, w, cap]) => sum + w * Math.min(1, m[k] / v / cap), 0)
+  return Math.min(1, rates + REACH.weight * Math.min(1, Math.log10(v) / REACH.logCap))
+}
+
+/**
+ * The storyline fixes the score; the engagement has to justify it.
+ * Generate plausible engagement, then bisect a multiplier on the interaction
+ * counts until spreadScore() reproduces the authored target exactly. Without
+ * this the numbers in the tooltip would not add up to the number on the card.
+ */
+function solveEngagement(target, seedScale = 1) {
+  const base = engagementFor(target, seedScale)
+  let lo = 0
+  let hi = 40
+  let best = base
+  for (let i = 0; i < 60; i++) {
+    const k = (lo + hi) / 2
+    const trial = {
+      views: base.views,
+      likes: Math.round(base.likes * k),
+      comments: Math.round(base.comments * k),
+      shares: Math.round(base.shares * k),
+      saves: Math.round(base.saves * k),
+    }
+    const got = spreadScore(trial)
+    best = trial
+    if (Math.abs(got - target) < 0.0005) break
+    if (got < target) lo = k
+    else hi = k
+  }
+  return best
+}
+
 function engagementFor(fitness, seedScale = 1) {
   const base = 2400 + fitness * fitness * 46000 * seedScale
   const views = Math.round(base * (0.85 + rnd() * 0.3))
@@ -402,13 +449,13 @@ const experiments = SPEC.map((s, idx) => {
 
   let observed = { views: null, likes: null, comments: null, shares: null, saves: null, fitness: null, timeseries: [] }
   if (finished) {
-    const e = engagementFor(s.obs)
-    observed = { ...e, fitness: round2(s.obs), timeseries: timeseries(e, FULL_HOURS) }
+    const e = solveEngagement(s.obs)
+    // Store the score the engagement actually produces, not the target.
+    observed = { ...e, fitness: round2(spreadScore(e)), timeseries: timeseries(e, FULL_HOURS) }
   } else if (live) {
-    // Deployed 6h ago and still climbing — partial numbers, provisional fitness.
-    const projected = 0.84
-    const e = engagementFor(projected, 0.42)
-    observed = { ...e, fitness: 0.79, timeseries: timeseries(e, LIVE_HOURS) }
+    // Deployed 6h ago and still climbing — partial numbers, provisional score.
+    const e = solveEngagement(0.79, 0.42)
+    observed = { ...e, fitness: round2(spreadScore(e)), timeseries: timeseries(e, LIVE_HOURS) }
   }
 
   const deployed = finished || live
@@ -571,4 +618,16 @@ writeFileSync(resolve(ROOT, 'src/data/corpus.json'), JSON.stringify(corpus, null
 experiments.forEach((e, i) => {
   writeFileSync(resolve(ROOT, `public/specimens/${e.id}.svg`), specimenSvg(e, i))
 })
+// Guard: every stored score must be reproducible from its own engagement.
+for (const e of experiments) {
+  if (e.observed.fitness === null) continue
+  const got = Math.round(spreadScore(e.observed) * 100) / 100
+  if (Math.abs(got - e.observed.fitness) > 0.01) {
+    throw new Error(
+      `${e.id}: stored score ${e.observed.fitness} but its engagement computes to ${got}. ` +
+        `SCORE_PARTS here and in src/lib/score.ts have drifted apart.`,
+    )
+  }
+}
+
 console.log(`wrote ${experiments.length} experiments, ${agentStates.length} agent states, ${experiments.length} specimen frames`)

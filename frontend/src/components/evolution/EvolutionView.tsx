@@ -8,6 +8,7 @@ import { Button, Section, cx } from '@/components/ui'
 import LineageRibbon from './LineageRibbon'
 import MemeCard from './MemeCard'
 import MemeDetail from './MemeDetail'
+import ScorePopover from './ScorePopover'
 
 /** One plain sentence describing what happened in a round. */
 function summarise(rows: Experiment[], gen: number): string {
@@ -74,18 +75,22 @@ function HeroStat({
   value,
   color,
   caption,
+  exp,
 }: {
   label: string
   value: number | null
   color: string
   caption: string
+  exp: Experiment
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col items-start gap-1.5">
       <span className="label">{label}</span>
-      <span className="num font-display text-5xl font-bold leading-none" style={{ color }}>
-        {value ?? '–'}
-      </span>
+      <ScorePopover exp={exp}>
+        <span className="num font-display text-5xl font-bold leading-none" style={{ color }}>
+          {value ?? '–'}
+        </span>
+      </ScorePopover>
       <span className="text-sm leading-snug text-muted">{caption}</span>
     </div>
   )
@@ -171,6 +176,7 @@ export default function EvolutionView() {
               label="Where it started"
               value={score(first.observed.fitness ?? first.prediction.fitness)}
               color="#71716B"
+              exp={first}
               caption={
                 oneIn(first.observed.shares, first.observed.views)
                   ? `${oneIn(first.observed.shares, first.observed.views)} people who saw it shared it`
@@ -181,6 +187,7 @@ export default function EvolutionView() {
               label="Where it got to"
               value={score(best.observed.fitness)}
               color="#15A34A"
+              exp={best}
               caption={
                 oneIn(best.observed.shares, best.observed.views)
                   ? `${oneIn(best.observed.shares, best.observed.views)} people who saw it shared it`

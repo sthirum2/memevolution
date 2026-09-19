@@ -75,6 +75,8 @@ src/
     learned/         screen 3 — before/after, trajectory chart, calibration scatter
   data/            generated demo data — don't hand-edit, run `npm run mock:regen`
   lib/
+    score.ts         THE SPREAD SCORE — weights defined once; mock.ts computes
+                     it and the hover tooltip explains it from the same table
     plain.ts         machine names → plain English, and 0–1 → 0–100
     fitness.ts       colour and status rules
     format.ts        number formatting
@@ -227,7 +229,9 @@ Worth keeping in the pitch, since judging is on the memetics argument:
 
 - **"Spread score" is our own measure**, not a measure of going viral. It weighs shares and
   saves heavily and adjusts for audience size, so a small account that gets passed around
-  beats a big one that just gets seen.
+  beats a big one that just gets seen. Hovering any headline score shows the exact breakdown,
+  and `scripts/generate-mock.mjs` fails the build if the demo data's scores stop matching
+  their own engagement numbers.
 - **Traits like "weirdness" are AI judgements**, not facts about the world.
 - **The chance-of-spreading percentage is a defined quantity** — the modelled probability of
   beating the top 10% of the historical data — and the app shows the AI being wrong about it.

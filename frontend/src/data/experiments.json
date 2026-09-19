@@ -57,10 +57,10 @@
     },
     "observed": {
       "views": 16368,
-      "likes": 1864,
-      "comments": 146,
-      "shares": 278,
-      "saves": 254,
+      "likes": 1833,
+      "comments": 144,
+      "shares": 273,
+      "saves": 250,
       "fitness": 0.52,
       "timeseries": [
         {
@@ -72,44 +72,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 682,
-          "likes": 78,
+          "likes": 76,
           "shares": 11
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 1995,
-          "likes": 227,
-          "shares": 32
+          "likes": 223,
+          "shares": 31
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 3615,
-          "likes": 412,
-          "shares": 57
+          "likes": 405,
+          "shares": 56
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 6560,
-          "likes": 747,
-          "shares": 104
+          "likes": 735,
+          "shares": 102
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 10694,
-          "likes": 1218,
-          "shares": 169
+          "likes": 1198,
+          "shares": 166
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 14150,
-          "likes": 1611,
-          "shares": 224
+          "likes": 1585,
+          "shares": 219
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 15336,
-          "likes": 1747,
-          "shares": 242
+          "likes": 1717,
+          "shares": 238
         }
       ]
     }
@@ -178,10 +178,10 @@
     },
     "observed": {
       "views": 7328,
-      "likes": 698,
-      "comments": 60,
-      "shares": 55,
-      "saves": 93,
+      "likes": 494,
+      "comments": 42,
+      "shares": 39,
+      "saves": 66,
       "fitness": 0.31,
       "timeseries": [
         {
@@ -193,44 +193,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 309,
-          "likes": 29,
+          "likes": 21,
           "shares": 2
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 872,
-          "likes": 83,
-          "shares": 6
+          "likes": 59,
+          "shares": 4
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 1666,
-          "likes": 159,
-          "shares": 12
+          "likes": 112,
+          "shares": 8
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 3007,
-          "likes": 286,
-          "shares": 21
+          "likes": 203,
+          "shares": 15
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 4768,
-          "likes": 454,
-          "shares": 33
+          "likes": 321,
+          "shares": 24
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 6462,
-          "likes": 615,
-          "shares": 45
+          "likes": 436,
+          "shares": 32
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 6801,
-          "likes": 648,
-          "shares": 47
+          "likes": 458,
+          "shares": 34
         }
       ]
     }
@@ -304,10 +304,10 @@
     },
     "observed": {
       "views": 20279,
-      "likes": 2389,
-      "comments": 214,
-      "shares": 415,
-      "saves": 403,
+      "likes": 2295,
+      "comments": 206,
+      "shares": 399,
+      "saves": 387,
       "fitness": 0.59,
       "timeseries": [
         {
@@ -319,44 +319,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 830,
-          "likes": 98,
-          "shares": 16
+          "likes": 94,
+          "shares": 15
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 2431,
-          "likes": 286,
-          "shares": 46
+          "likes": 275,
+          "shares": 44
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 4660,
-          "likes": 549,
-          "shares": 89
+          "likes": 527,
+          "shares": 85
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 8018,
-          "likes": 945,
-          "shares": 153
+          "likes": 907,
+          "shares": 147
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 13152,
-          "likes": 1549,
-          "shares": 250
+          "likes": 1488,
+          "shares": 241
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 17912,
-          "likes": 2110,
-          "shares": 341
+          "likes": 2027,
+          "shares": 328
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 18807,
-          "likes": 2216,
-          "shares": 358
+          "likes": 2128,
+          "shares": 344
         }
       ]
     }
@@ -435,10 +435,10 @@
     },
     "observed": {
       "views": 25146,
-      "likes": 3450,
-      "comments": 304,
-      "shares": 754,
-      "saves": 529,
+      "likes": 3495,
+      "comments": 308,
+      "shares": 764,
+      "saves": 536,
       "fitness": 0.73,
       "timeseries": [
         {
@@ -450,44 +450,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 1069,
-          "likes": 147,
+          "likes": 149,
           "shares": 30
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 3058,
-          "likes": 420,
-          "shares": 85
+          "likes": 425,
+          "shares": 86
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 5617,
-          "likes": 771,
-          "shares": 157
+          "likes": 781,
+          "shares": 159
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 10054,
-          "likes": 1379,
-          "shares": 280
+          "likes": 1397,
+          "shares": 284
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 15869,
-          "likes": 2177,
-          "shares": 443
+          "likes": 2206,
+          "shares": 448
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 21880,
-          "likes": 3002,
-          "shares": 610
+          "likes": 3041,
+          "shares": 618
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 24331,
-          "likes": 3338,
-          "shares": 679
+          "likes": 3382,
+          "shares": 688
         }
       ]
     }
@@ -566,10 +566,10 @@
     },
     "observed": {
       "views": 5294,
-      "likes": 452,
-      "comments": 41,
-      "shares": 35,
-      "saves": 60,
+      "likes": 296,
+      "comments": 27,
+      "shares": 23,
+      "saves": 39,
       "fitness": 0.27,
       "timeseries": [
         {
@@ -581,44 +581,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 219,
-          "likes": 19,
+          "likes": 12,
           "shares": 1
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 654,
-          "likes": 56,
-          "shares": 4
+          "likes": 37,
+          "shares": 3
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 1206,
-          "likes": 103,
-          "shares": 7
+          "likes": 67,
+          "shares": 5
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 2178,
-          "likes": 186,
-          "shares": 13
+          "likes": 122,
+          "shares": 9
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 3400,
-          "likes": 290,
-          "shares": 21
+          "likes": 190,
+          "shares": 14
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 4511,
-          "likes": 385,
-          "shares": 28
+          "likes": 252,
+          "shares": 18
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 5105,
-          "likes": 436,
-          "shares": 31
+          "likes": 285,
+          "shares": 21
         }
       ]
     }
@@ -697,10 +697,10 @@
     },
     "observed": {
       "views": 11477,
-      "likes": 1184,
-      "comments": 99,
-      "shares": 151,
-      "saves": 171,
+      "likes": 1064,
+      "comments": 89,
+      "shares": 136,
+      "saves": 154,
       "fitness": 0.44,
       "timeseries": [
         {
@@ -712,44 +712,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 485,
-          "likes": 50,
-          "shares": 6
+          "likes": 45,
+          "shares": 5
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 1401,
-          "likes": 144,
-          "shares": 17
+          "likes": 130,
+          "shares": 15
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 2592,
-          "likes": 267,
-          "shares": 32
+          "likes": 240,
+          "shares": 29
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 4601,
-          "likes": 475,
-          "shares": 56
+          "likes": 427,
+          "shares": 51
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 7275,
-          "likes": 750,
-          "shares": 89
+          "likes": 674,
+          "shares": 80
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 9922,
-          "likes": 1024,
-          "shares": 121
+          "likes": 920,
+          "shares": 109
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 10788,
-          "likes": 1113,
-          "shares": 132
+          "likes": 1000,
+          "shares": 119
         }
       ]
     }
@@ -837,10 +837,10 @@
     },
     "observed": {
       "views": 30724,
-      "likes": 4697,
-      "comments": 400,
-      "shares": 1064,
-      "saves": 730,
+      "likes": 4750,
+      "comments": 405,
+      "shares": 1076,
+      "saves": 738,
       "fitness": 0.81,
       "timeseries": [
         {
@@ -852,44 +852,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 1303,
-          "likes": 199,
+          "likes": 201,
           "shares": 42
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 3638,
-          "likes": 556,
-          "shares": 117
+          "likes": 562,
+          "shares": 118
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 6950,
-          "likes": 1063,
-          "shares": 224
+          "likes": 1075,
+          "shares": 226
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 12110,
-          "likes": 1851,
-          "shares": 390
+          "likes": 1872,
+          "shares": 394
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 19786,
-          "likes": 3025,
-          "shares": 637
+          "likes": 3059,
+          "shares": 644
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 27105,
-          "likes": 4144,
-          "shares": 873
+          "likes": 4191,
+          "shares": 883
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 28871,
-          "likes": 4414,
-          "shares": 930
+          "likes": 4464,
+          "shares": 940
         }
       ]
     }
@@ -963,10 +963,10 @@
     },
     "observed": {
       "views": 17353,
-      "likes": 2279,
-      "comments": 205,
-      "shares": 366,
-      "saves": 353,
+      "likes": 2181,
+      "comments": 196,
+      "shares": 350,
+      "saves": 338,
       "fitness": 0.62,
       "timeseries": [
         {
@@ -978,44 +978,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 726,
-          "likes": 95,
+          "likes": 91,
           "shares": 14
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 2072,
-          "likes": 272,
-          "shares": 41
+          "likes": 260,
+          "shares": 39
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 3888,
-          "likes": 511,
-          "shares": 76
+          "likes": 489,
+          "shares": 73
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 7115,
-          "likes": 934,
-          "shares": 140
+          "likes": 894,
+          "shares": 133
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 11165,
-          "likes": 1466,
-          "shares": 219
+          "likes": 1403,
+          "shares": 209
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 14705,
-          "likes": 1931,
-          "shares": 288
+          "likes": 1848,
+          "shares": 276
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 16390,
-          "likes": 2153,
-          "shares": 321
+          "likes": 2060,
+          "shares": 307
         }
       ]
     }
@@ -1094,10 +1094,10 @@
     },
     "observed": {
       "views": 8370,
-      "likes": 807,
-      "comments": 73,
-      "shares": 83,
-      "saves": 120,
+      "likes": 662,
+      "comments": 60,
+      "shares": 68,
+      "saves": 98,
       "fitness": 0.38,
       "timeseries": [
         {
@@ -1109,44 +1109,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 357,
-          "likes": 34,
+          "likes": 28,
           "shares": 3
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 1008,
-          "likes": 97,
-          "shares": 9
+          "likes": 80,
+          "shares": 8
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 1853,
-          "likes": 179,
-          "shares": 17
+          "likes": 147,
+          "shares": 14
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 3276,
-          "likes": 316,
-          "shares": 30
+          "likes": 259,
+          "shares": 25
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 5435,
-          "likes": 524,
-          "shares": 50
+          "likes": 430,
+          "shares": 41
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 7225,
-          "likes": 697,
-          "shares": 67
+          "likes": 571,
+          "shares": 55
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 7791,
-          "likes": 751,
-          "shares": 72
+          "likes": 616,
+          "shares": 59
         }
       ]
     }
@@ -1215,10 +1215,10 @@
     },
     "observed": {
       "views": 17495,
-      "likes": 2144,
-      "comments": 185,
-      "shares": 307,
-      "saves": 327,
+      "likes": 1997,
+      "comments": 172,
+      "shares": 286,
+      "saves": 305,
       "fitness": 0.55,
       "timeseries": [
         {
@@ -1230,44 +1230,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 733,
-          "likes": 90,
-          "shares": 12
+          "likes": 84,
+          "shares": 11
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 2128,
-          "likes": 261,
-          "shares": 35
+          "likes": 243,
+          "shares": 32
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 4041,
-          "likes": 495,
-          "shares": 66
+          "likes": 461,
+          "shares": 61
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 7115,
-          "likes": 872,
-          "shares": 116
+          "likes": 812,
+          "shares": 108
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 10996,
-          "likes": 1348,
-          "shares": 179
+          "likes": 1255,
+          "shares": 167
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 14973,
-          "likes": 1835,
-          "shares": 244
+          "likes": 1709,
+          "shares": 228
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 17021,
-          "likes": 2086,
-          "shares": 278
+          "likes": 1943,
+          "shares": 259
         }
       ]
     }
@@ -1350,10 +1350,10 @@
     },
     "observed": {
       "views": 33840,
-      "likes": 4976,
-      "comments": 478,
-      "shares": 1308,
-      "saves": 786,
+      "likes": 5151,
+      "comments": 495,
+      "shares": 1354,
+      "saves": 814,
       "fitness": 0.86,
       "timeseries": [
         {
@@ -1365,44 +1365,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 1420,
-          "likes": 209,
-          "shares": 51
+          "likes": 216,
+          "shares": 53
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 4143,
-          "likes": 609,
-          "shares": 149
+          "likes": 631,
+          "shares": 154
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 7737,
-          "likes": 1138,
-          "shares": 278
+          "likes": 1178,
+          "shares": 288
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 13386,
-          "likes": 1968,
-          "shares": 481
+          "likes": 2038,
+          "shares": 498
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 21887,
-          "likes": 3218,
-          "shares": 787
+          "likes": 3332,
+          "shares": 814
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 29605,
-          "likes": 4353,
-          "shares": 1064
+          "likes": 4506,
+          "shares": 1102
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 32389,
-          "likes": 4763,
-          "shares": 1164
+          "likes": 4930,
+          "shares": 1205
         }
       ]
     }
@@ -1476,10 +1476,10 @@
     },
     "observed": {
       "views": 32541,
-      "likes": 4836,
-      "comments": 431,
-      "shares": 1095,
-      "saves": 728,
+      "likes": 4882,
+      "comments": 435,
+      "shares": 1105,
+      "saves": 735,
       "fitness": 0.79,
       "timeseries": [
         {
@@ -1491,44 +1491,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 1385,
-          "likes": 206,
-          "shares": 43
+          "likes": 208,
+          "shares": 44
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 3905,
-          "likes": 580,
-          "shares": 122
+          "likes": 586,
+          "shares": 123
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 7421,
-          "likes": 1103,
-          "shares": 232
+          "likes": 1113,
+          "shares": 234
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 13006,
-          "likes": 1933,
-          "shares": 407
+          "likes": 1951,
+          "shares": 411
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 21272,
-          "likes": 3161,
-          "shares": 666
+          "likes": 3191,
+          "shares": 672
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 27846,
-          "likes": 4138,
-          "shares": 871
+          "likes": 4178,
+          "shares": 879
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 31014,
-          "likes": 4609,
-          "shares": 971
+          "likes": 4653,
+          "shares": 979
         }
       ]
     }
@@ -1607,10 +1607,10 @@
     },
     "observed": {
       "views": 10158,
-      "likes": 1053,
-      "comments": 77,
-      "shares": 115,
-      "saves": 151,
+      "likes": 928,
+      "comments": 68,
+      "shares": 101,
+      "saves": 133,
       "fitness": 0.41,
       "timeseries": [
         {
@@ -1622,44 +1622,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 435,
-          "likes": 45,
-          "shares": 5
+          "likes": 40,
+          "shares": 4
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 1234,
-          "likes": 128,
-          "shares": 13
+          "likes": 113,
+          "shares": 11
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 2297,
-          "likes": 238,
-          "shares": 24
+          "likes": 210,
+          "shares": 21
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 4039,
-          "likes": 419,
-          "shares": 43
+          "likes": 369,
+          "shares": 37
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 6602,
-          "likes": 684,
-          "shares": 70
+          "likes": 603,
+          "shares": 61
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 8709,
-          "likes": 903,
-          "shares": 92
+          "likes": 796,
+          "shares": 81
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 9777,
-          "likes": 1014,
-          "shares": 103
+          "likes": 893,
+          "shares": 90
         }
       ]
     }
@@ -1728,10 +1728,10 @@
     },
     "observed": {
       "views": 24642,
-      "likes": 3273,
-      "comments": 290,
-      "shares": 639,
-      "saves": 489,
+      "likes": 3290,
+      "comments": 292,
+      "shares": 642,
+      "saves": 492,
       "fitness": 0.68,
       "timeseries": [
         {
@@ -1749,38 +1749,38 @@
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 3027,
-          "likes": 402,
+          "likes": 404,
           "shares": 73
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 5570,
-          "likes": 740,
-          "shares": 134
+          "likes": 744,
+          "shares": 135
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 9954,
-          "likes": 1322,
-          "shares": 240
+          "likes": 1329,
+          "shares": 241
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 15688,
-          "likes": 2084,
-          "shares": 378
+          "likes": 2095,
+          "shares": 380
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 21133,
-          "likes": 2807,
-          "shares": 510
+          "likes": 2821,
+          "shares": 512
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 22921,
-          "likes": 3044,
-          "shares": 553
+          "likes": 3060,
+          "shares": 555
         }
       ]
     }
@@ -1868,10 +1868,10 @@
     },
     "observed": {
       "views": 35370,
-      "likes": 5427,
-      "comments": 461,
-      "shares": 1552,
-      "saves": 891,
+      "likes": 5644,
+      "comments": 479,
+      "shares": 1614,
+      "saves": 927,
       "fitness": 0.91,
       "timeseries": [
         {
@@ -1883,44 +1883,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 1469,
-          "likes": 225,
-          "shares": 60
+          "likes": 234,
+          "shares": 62
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 4195,
-          "likes": 644,
-          "shares": 171
+          "likes": 669,
+          "shares": 178
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 8099,
-          "likes": 1243,
-          "shares": 331
+          "likes": 1292,
+          "shares": 344
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 14150,
-          "likes": 2171,
-          "shares": 577
+          "likes": 2258,
+          "shares": 600
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 22524,
-          "likes": 3456,
-          "shares": 919
+          "likes": 3594,
+          "shares": 956
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 30460,
-          "likes": 4674,
-          "shares": 1243
+          "likes": 4860,
+          "shares": 1293
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 33678,
-          "likes": 5167,
-          "shares": 1374
+          "likes": 5374,
+          "shares": 1429
         }
       ]
     }
@@ -1989,10 +1989,10 @@
     },
     "observed": {
       "views": 22379,
-      "likes": 2979,
-      "comments": 256,
-      "shares": 652,
-      "saves": 480,
+      "likes": 3040,
+      "comments": 261,
+      "shares": 665,
+      "saves": 490,
       "fitness": 0.72,
       "timeseries": [
         {
@@ -2004,44 +2004,44 @@
         {
           "t": "2026-09-18T10:00:00.000Z",
           "views": 919,
-          "likes": 122,
+          "likes": 125,
           "shares": 25
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 2678,
-          "likes": 357,
-          "shares": 73
+          "likes": 364,
+          "shares": 74
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 4944,
-          "likes": 658,
-          "shares": 134
+          "likes": 672,
+          "shares": 137
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 9073,
-          "likes": 1208,
-          "shares": 246
+          "likes": 1233,
+          "shares": 251
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 14315,
-          "likes": 1906,
-          "shares": 388
+          "likes": 1945,
+          "shares": 396
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 19553,
-          "likes": 2603,
-          "shares": 530
+          "likes": 2656,
+          "shares": 540
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 20834,
-          "likes": 2773,
-          "shares": 564
+          "likes": 2830,
+          "shares": 576
         }
       ]
     }
@@ -2120,10 +2120,10 @@
     },
     "observed": {
       "views": 20577,
-      "likes": 2460,
+      "likes": 2456,
       "comments": 217,
-      "shares": 399,
-      "saves": 374,
+      "shares": 398,
+      "saves": 373,
       "fitness": 0.59,
       "timeseries": [
         {
@@ -2141,38 +2141,38 @@
         {
           "t": "2026-09-18T12:00:00.000Z",
           "views": 2474,
-          "likes": 296,
+          "likes": 295,
           "shares": 45
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
           "views": 4766,
-          "likes": 570,
+          "likes": 569,
           "shares": 86
         },
         {
           "t": "2026-09-18T21:00:00.000Z",
           "views": 8061,
-          "likes": 964,
+          "likes": 962,
           "shares": 145
         },
         {
           "t": "2026-09-19T09:00:00.000Z",
           "views": 13171,
-          "likes": 1575,
-          "shares": 238
+          "likes": 1572,
+          "shares": 237
         },
         {
           "t": "2026-09-20T09:00:00.000Z",
           "views": 17539,
-          "likes": 2097,
-          "shares": 316
+          "likes": 2093,
+          "shares": 315
         },
         {
           "t": "2026-09-21T09:00:00.000Z",
           "views": 19818,
-          "likes": 2369,
-          "shares": 357
+          "likes": 2365,
+          "shares": 356
         }
       ]
     }
@@ -2336,11 +2336,11 @@
       "post_id": "7218830000013206906"
     },
     "observed": {
-      "views": 17468,
-      "likes": 2574,
-      "comments": 240,
-      "shares": 668,
-      "saves": 390,
+      "views": 15753,
+      "likes": 2315,
+      "comments": 214,
+      "shares": 559,
+      "saves": 347,
       "fitness": 0.79,
       "timeseries": [
         {
@@ -2351,33 +2351,33 @@
         },
         {
           "t": "2026-09-18T10:00:00.000Z",
-          "views": 6857,
-          "likes": 1010,
-          "shares": 244
+          "views": 6184,
+          "likes": 909,
+          "shares": 204
         },
         {
           "t": "2026-09-18T11:00:00.000Z",
-          "views": 10941,
-          "likes": 1612,
-          "shares": 389
+          "views": 9866,
+          "likes": 1450,
+          "shares": 326
         },
         {
           "t": "2026-09-18T12:00:00.000Z",
-          "views": 13367,
-          "likes": 1970,
-          "shares": 475
+          "views": 12055,
+          "likes": 1772,
+          "shares": 398
         },
         {
           "t": "2026-09-18T13:00:00.000Z",
-          "views": 15483,
-          "likes": 2281,
-          "shares": 551
+          "views": 13962,
+          "likes": 2052,
+          "shares": 461
         },
         {
           "t": "2026-09-18T15:00:00.000Z",
-          "views": 16633,
-          "likes": 2451,
-          "shares": 592
+          "views": 15000,
+          "likes": 2204,
+          "shares": 495
         }
       ]
     }
