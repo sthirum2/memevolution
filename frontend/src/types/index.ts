@@ -155,3 +155,5 @@ export interface EvolveResult {
 }
 
 export type ViewKey = 'organism' | 'specimen' | 'mind' | 'lab' | 'corpus'
+
+
