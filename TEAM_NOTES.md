@@ -26,9 +26,15 @@ yourself — nothing depends on it.
 From `integration` (or from `main` once both roles are merged in):
 
 ```bash
-./setup.sh          # once: backend venv + frontend deps
-./dev.sh --seed     # both services, and load demo data into an empty database
+./setup.sh          # once: venv, agent, prediction model, frontend deps
+./dev.sh --seed     # both services, and demo data in an empty database
+./test.sh           # every test, one command
 ```
+
+`setup.sh` ends by checking that the agent imports, the prediction model
+constructs and scoring works, and names whichever one failed. If it says the
+prediction model is unavailable, the agent falls back to a stub predictor and
+the numbers stop meaning anything — fix that before demoing.
 
 Frontend http://localhost:5173 · backend http://127.0.0.1:8000 (`/docs` for the API).
 

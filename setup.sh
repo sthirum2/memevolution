@@ -17,6 +17,9 @@ echo "==> agent + prediction model"
 # falls back to a stub and /agent-states returns 503.
 ./backend/.venv/bin/pip install -q -e .
 ./backend/.venv/bin/pip install -q pandas xgboost scikit-learn
+# pytest, so the fitness parity test can run - it is what stops the Python and
+# TypeScript definitions of the spread score drifting apart.
+./backend/.venv/bin/pip install -q pytest
 
 # xgboost will not import on macOS without OpenMP, and its error message does
 # not mention OpenMP on the first line, which costs people half an hour.
@@ -66,6 +69,7 @@ echo "Setup complete."
 echo "  ./dev.sh          start everything (frontend :5173, backend :8000)"
 echo "  ./dev.sh --seed   also load demo data into an empty database"
 echo "  ./run_agent.sh    one agent turn from the terminal"
+echo "  ./test.sh         run every test"
 echo
 echo "Optional, for real content and real posting — put these in backend/.env:"
 echo "  GEMINI_API_KEY    https://aistudio.google.com/apikey   (writes and draws the memes)"
