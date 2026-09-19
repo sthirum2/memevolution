@@ -22,6 +22,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
+from app.env import load_dotenv  # noqa: E402
+
+load_dotenv()  # so a key in backend/.env is picked up
+
 from app.generate_image import DEFAULT_MODEL, make_meme_image  # noqa: E402
 
 DATA = ROOT / "frontend" / "src" / "data" / "experiments.json"

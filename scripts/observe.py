@@ -38,6 +38,10 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from app.fitness import breakdown, spread_score  # noqa: E402
 
+from app.env import load_dotenv  # noqa: E402
+
+load_dotenv()  # so a key in backend/.env is picked up
+
 GRAPH = "https://graph.facebook.com/v21.0"
 
 

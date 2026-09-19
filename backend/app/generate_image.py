@@ -32,6 +32,10 @@ from pathlib import Path
 
 from .render import OUT_DIR, overlay_text
 
+from .env import load_dotenv
+
+load_dotenv()  # so a key in backend/.env is picked up
+
 DEFAULT_MODEL = "gemini-3.1-flash-image"
 
 # Steer away from the house style of AI images, which reads as stock art and is
