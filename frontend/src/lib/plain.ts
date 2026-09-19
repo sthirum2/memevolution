@@ -75,3 +75,21 @@ export const PLATFORM_NAMES: Record<string, string> = {
   instagram: 'Instagram',
   x: 'X',
 }
+
+/**
+ * "1 in 59 people" — the concrete version of a share rate.
+ * Far easier to hold in your head than "1.7%", and it says what the spread
+ * score is actually made of without showing anyone a formula.
+ */
+export function oneIn(part: number | null, whole: number | null): string | null {
+  if (!part || !whole || part <= 0 || whole <= 0) return null
+  return `1 in ${Math.round(whole / part).toLocaleString()}`
+}
+
+export function shareRate(exp: {
+  observed: { shares: number | null; views: number | null }
+}): number | null {
+  const { shares, views } = exp.observed
+  if (!shares || !views) return null
+  return shares / views
+}

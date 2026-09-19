@@ -3,7 +3,7 @@ import { Pause, Play, Trophy } from 'lucide-react'
 import { useStore } from '@/store/useStore'
 import type { Experiment } from '@/types'
 import { effectiveFitness, scoreColor, surprise } from '@/lib/fitness'
-import { score } from '@/lib/plain'
+import { oneIn, score, shareRate } from '@/lib/plain'
 import { Button, Section, cx } from '@/components/ui'
 import LineageRibbon from './LineageRibbon'
 import MemeCard from './MemeCard'
@@ -41,6 +41,37 @@ function summarise(rows: Experiment[], gen: number): string {
         : ` "${shock.content.headline}" did ${Math.abs(Math.round(shockAmount * 100))} points worse than the AI expected — its biggest miss.`
   }
   return sentence
+}
+
+/** How much more often people re-send its memes now than at the start. */
+function passOnGain(first: Experiment, best: Experiment): string | null {
+  const a = shareRate(first)
+  const b = shareRate(best)
+  if (!a || !b || a <= 0) return null
+  const x = b / a
+  return x < 1.1 ? null : x.toFixed(1).replace(/\.0$/, '')
+}
+
+function HeroStat({
+  label,
+  value,
+  color,
+  caption,
+}: {
+  label: string
+  value: number | null
+  color: string
+  caption: string
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="label">{label}</span>
+      <span className="num font-display text-5xl font-bold leading-none" style={{ color }}>
+        {value ?? '–'}
+      </span>
+      <span className="text-sm leading-snug text-muted">{caption}</span>
+    </div>
+  )
 }
 
 export default function EvolutionView() {
@@ -107,37 +138,58 @@ export default function EvolutionView() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6">
-      {/* headline result — the one number a judge should leave with */}
+      {/* headline result — the one thing a judge should leave with */}
       {best && first ? (
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="card flex flex-col gap-1 p-5">
-            <span className="label">Where it started</span>
-            <span className="num font-display text-4xl font-bold text-muted">
-              {score(first.observed.fitness ?? first.prediction.fitness)}
-            </span>
-            <span className="text-sm text-muted">Copying what already worked</span>
+        <section className="card flex flex-col gap-5 p-6">
+          <div>
+            <h2 className="font-display text-2xl font-bold leading-snug">
+              {passOnGain(first, best)
+                ? `After ${gens.length - 1} rounds, its memes get passed on ${passOnGain(first, best)}\u00d7 more often.`
+                : `The AI ran ${gens.length - 1} rounds of experiments.`}
+            </h2>
+            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">
+              Every meme gets a{' '}
+              <strong className="font-semibold text-ink">spread score out of 100</strong>. It
+              measures how often people <em>pass a meme on</em> — not how many people see it.
+            </p>
           </div>
-          <div className="card flex flex-col gap-1 p-5">
-            <span className="label">Where it got to</span>
-            <span className="num font-display text-4xl font-bold text-win">
-              {score(best.observed.fitness)}
-            </span>
-            <span className="text-sm text-muted">After {gens.length - 1} rounds of evolution</span>
+
+          <div className="grid gap-4 border-t border-line pt-5 sm:grid-cols-3">
+            <HeroStat
+              label="Where it started"
+              value={score(first.observed.fitness ?? first.prediction.fitness)}
+              color="#71716B"
+              caption={
+                oneIn(first.observed.shares, first.observed.views)
+                  ? `${oneIn(first.observed.shares, first.observed.views)} people who saw it shared it`
+                  : 'Copying what already worked'
+              }
+            />
+            <HeroStat
+              label="Where it got to"
+              value={score(best.observed.fitness)}
+              color="#15A34A"
+              caption={
+                oneIn(best.observed.shares, best.observed.views)
+                  ? `${oneIn(best.observed.shares, best.observed.views)} people who saw it shared it`
+                  : `After ${gens.length - 1} rounds`
+              }
+            />
+            <div className="flex flex-col gap-1.5">
+              <span className="label">Its best meme</span>
+              <span className="font-display text-base font-bold leading-snug">
+                &ldquo;{best.content.headline}&rdquo;
+              </span>
+              <button
+                type="button"
+                onClick={() => open(best.id)}
+                className="self-start text-sm font-semibold text-agent underline-offset-2 hover:underline"
+              >
+                See why it worked →
+              </button>
+            </div>
           </div>
-          <div className="card flex flex-col gap-1 p-5">
-            <span className="label">Its best meme</span>
-            <span className="font-display text-base font-bold leading-snug">
-              &ldquo;{best.content.headline}&rdquo;
-            </span>
-            <button
-              type="button"
-              onClick={() => open(best.id)}
-              className="self-start text-sm font-semibold text-agent underline-offset-2 hover:underline"
-            >
-              See why it worked →
-            </button>
-          </div>
-        </div>
+        </section>
       ) : null}
 
       <Section
@@ -190,25 +242,24 @@ export default function EvolutionView() {
           ))}
         </div>
 
-        {/* score legend, so the number needs no explanation */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl bg-card px-4 py-3 text-sm text-muted">
+        {/* colour key only — the hero above already explains the score */}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
           <span className="font-semibold text-ink">Spread score</span>
-          <span>0–100, based mostly on shares and saves rather than views</span>
-          <span className="ml-auto flex items-center gap-3">
-            {[
-              [80, 'spread well'],
+          {(
+            [
+              [80, 'got passed around'],
               [55, 'did okay'],
-              [25, 'flopped'],
-            ].map(([v, l]) => (
-              <span key={l} className="flex items-center gap-1.5">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ background: scoreColor((v as number) / 100) }}
-                />
-                {l}
-              </span>
-            ))}
-          </span>
+              [25, 'nobody shared it'],
+            ] as [number, string][]
+          ).map(([v, l]) => (
+            <span key={l} className="flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: scoreColor(v / 100) }}
+              />
+              {l}
+            </span>
+          ))}
         </div>
       </section>
 
