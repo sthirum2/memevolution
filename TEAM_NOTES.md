@@ -47,27 +47,39 @@ VITE_USE_MOCK=true    # demo data inside the frontend. Every screen works.
 VITE_USE_MOCK=false   # talk to the real backend.
 ```
 
-**Demo with `VITE_USE_MOCK=true`.** Nothing can fail on stage and no network is involved.
-Use live mode to prove the integration is real, then switch back. Vite only reads `.env` at
+`VITE_USE_MOCK=false` is now the default and it is fully wired: the browser drives the real
+agent, the real XGBoost predictor scores the candidates, Gemini writes and draws the meme,
+and a real result feeds back into the agent's beliefs. Run `./dev.sh` and it works.
+
+`VITE_USE_MOCK=true` is the fallback for presenting somewhere you do not trust the machine
+or the network — every screen works with no backend at all. Vite only reads `.env` at
 startup, so restart after changing it.
 
-## What is not finished
+## The loop, end to end
 
-Against the live backend, "The memes" works. The other two screens are waiting on:
+All three screens work against the live backend. Pressing **Create 5 memes** in the browser
+runs a real evolutionary step in the API process:
 
-1. **`GET /agent-states`** — without it "What it learned" has nothing to draw. That screen is
-   the argument that the agent learned anything, so this is the highest-value gap.
-2. **The meme text is not stored.** Cards read `campus · talking_head` because the API
-   returns no `headline` / `caption` / `punchline` / `visual_description` / `audio` /
-   `media_url`. Right now it looks like a meme app with no memes in it.
-3. **Three genome traits have no columns** — `text_density`, `caption_length`,
-   `audio_strategy`.
-4. **`confidence` and `feature_attribution`** are not returned with a prediction.
-5. **Generate / select / evolve** belong to the agent service, which is not up yet. The
-   "Try it" tab therefore only runs on mock data.
+```
+browser  POST /generation
+  -> agent mutates the surviving genome into 5 candidates
+  -> the real XGBoost model scores each one
+  -> explore/exploit picks one
+  -> Gemini writes its concept
+browser  shows all five, you approve one
+browser  POST /experiments/{id}/publish   -> Gemini draws it, it goes to the platform
+browser  POST /evolve                     -> beliefs move on the prediction error
+```
 
-Exact request and response shapes for all of these:
-[`frontend/README.md`](frontend/README.md#backend-integration).
+Verified through the browser against the real stack: predicted 0.695, observed 0.67,
+beliefs shifted. No mocks anywhere in that path.
+
+Two things are still approximations rather than gaps:
+
+- **`confidence` is not returned with a prediction.** The agent's predictor gives a fitness
+  but no confidence, so the UI says "Confidence not available" rather than inventing one.
+- **`feature_attribution` is empty** for live predictions, so the "what drove this" chart is
+  blank against the real backend. It has data on demo data.
 
 ## Posting for real
 

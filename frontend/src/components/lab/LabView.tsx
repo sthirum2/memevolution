@@ -520,7 +520,12 @@ function StepResults() {
 
   if (!posted) return null
 
-  const f = posted.observed.fitness ?? posted.prediction.fitness
+  // A record coming back from the live API can be missing either of these -
+  // an experiment stored before a prediction was attached, or one never
+  // observed. Reading straight through them white-screens the whole tab.
+  const predicted = posted.prediction?.fitness ?? 0
+  const observedFitness = posted.observed?.fitness ?? null
+  const f = observedFitness ?? predicted
   const base = 2400 + f * f * 46000
   const s = SAT(Math.max(0.01, lab.hours))
   const live = {
@@ -530,8 +535,8 @@ function StepResults() {
     shares: Math.round(base * s * (0.003 + f * f * 0.048)),
     saves: Math.round(base * s * (0.006 + f * 0.02)),
   }
-  const running = posted.observed.fitness ?? posted.prediction.fitness * (0.72 + 0.28 * s)
-  const diff = running - posted.prediction.fitness
+  const running = observedFitness ?? predicted * (0.72 + 0.28 * s)
+  const diff = running - predicted
   const done = Boolean(lab.evolveResult)
 
   return (
@@ -555,7 +560,7 @@ function StepResults() {
             {Math.round(running * 100)}
           </p>
           <p className="mt-1.5 text-sm text-muted">
-            AI predicted {score(posted.prediction.fitness)} ·{' '}
+            AI predicted {predicted ? score(predicted) : '–'} ·{' '}
             <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
               {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
             </strong>

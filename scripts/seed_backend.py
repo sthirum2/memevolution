@@ -95,6 +95,16 @@ def main() -> int:
                     for m in exp["mutations"]
                 ],
                 "hypothesis": exp["hypothesis"],
+                # The meme itself, so the UI shows the joke rather than
+                # "campus · talking_head".
+                "content": {
+                    "headline": exp["content"]["headline"],
+                    "visual_description": exp["content"]["visual_description"],
+                    "punchline": exp["content"]["punchline"],
+                    "caption": exp["content"]["caption"],
+                    "audio": exp["content"]["audio"],
+                    "media_url": exp["content"]["media_url"],
+                },
             },
         )
 

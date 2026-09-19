@@ -20,6 +20,10 @@ class Experiment(Base):
     status: Mapped[str] = mapped_column(String(30), nullable=False, default="selected", index=True)
     hypothesis: Mapped[str] = mapped_column(Text, nullable=False)
     mutations: Mapped[list[dict]] = mapped_column(JsonType, nullable=False, default=list)
+    # The meme itself. Without these the API can describe a genome but not the
+    # artefact, and the UI ends up showing "campus · talking_head" where the
+    # joke should be.
+    content: Mapped[dict] = mapped_column(JsonType, nullable=False, default=dict)
     deployment_platform: Mapped[str] = mapped_column(String(30), nullable=False, default="tiktok")
     post_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

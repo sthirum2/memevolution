@@ -23,6 +23,17 @@ class Mutation(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class ContentIn(BaseModel):
+    """The postable artefact: what the viewer actually sees and reads."""
+
+    headline: str = ""
+    visual_description: str = ""
+    punchline: str = ""
+    caption: str = ""
+    audio: str = ""
+    media_url: str = ""
+
+
 class ExperimentCreate(BaseModel):
     id: str | None = None
     generation: int = Field(ge=0)
@@ -31,6 +42,7 @@ class ExperimentCreate(BaseModel):
     genome: GenomeInput
     mutations: list[Mutation] = Field(default_factory=list)
     hypothesis: str
+    content: ContentIn = Field(default_factory=ContentIn)
 
 
 class PredictionCreate(BaseModel):
@@ -106,6 +118,7 @@ class ExperimentResponse(BaseModel):
     genome: GenomeResponse
     mutations: list[Mutation]
     hypothesis: str
+    content: ContentIn = Field(default_factory=ContentIn)
     prediction: PredictionResponse | None
     deployment: DeploymentResponse
     observed: ObservedResponse

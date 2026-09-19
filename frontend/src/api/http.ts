@@ -45,6 +45,7 @@ type BackendExperiment = {
   >
   mutations: Experiment['mutations']
   hypothesis: string
+  content?: Partial<Experiment['content']>
   prediction: { fitness: number; model_version: string } | null
   deployment: Experiment['deployment']
   observed: Experiment['observed']
@@ -94,13 +95,16 @@ function normalizeExperiment(raw: BackendExperiment): Experiment {
     prediction: raw.prediction
       ? { fitness: raw.prediction.fitness, confidence: Number.NaN, feature_attribution: [] }
       : { fitness: 0, confidence: 0, feature_attribution: [] },
+    // The API stores the real meme text now. Fall back to describing the
+    // genome only when a record predates that column.
     content: {
-      headline: `${raw.genome.topic} · ${raw.genome.format}`,
-      visual_description: 'Content concept is managed by the agent.',
-      punchline: '—',
-      caption: '—',
-      audio: 'Not provided',
-      media_url: '/specimens/exp_000.svg',
+      headline: raw.content?.headline || `${raw.genome.topic} · ${raw.genome.format}`,
+      visual_description:
+        raw.content?.visual_description || 'No concept was written for this one.',
+      punchline: raw.content?.punchline || '—',
+      caption: raw.content?.caption || '—',
+      audio: raw.content?.audio || 'not specified',
+      media_url: raw.content?.media_url || '/specimens/exp_000.svg',
     },
     deployment: raw.deployment,
     observed: { ...raw.observed, timeseries: [] },
@@ -115,7 +119,7 @@ export const getExperiments = async () => {
 export const getExperiment = async (id: string) =>
   normalizeExperiment(await req_<BackendExperiment>(`/experiments/${id}`))
 
-export const getAgentStates = async (): Promise<AgentState[]> => []
+export const getAgentStates = () => req_<AgentState[]>('/agent-states')
 
 export const getGenerations = async () => {
   const groups = await req_<BackendGeneration[]>('/generations')
@@ -156,47 +160,84 @@ export async function generateCandidates(
   params: GenerateParams,
   onCandidate?: (e: Experiment, index: number) => void,
 ): Promise<Experiment[]> {
-  void params
-  void onCandidate
-  throw new Error(
-    'Live generation creation is owned by the agent integration, not this backend API.',
-  )
+  // The backend runs the real evolutionary step in-process: the XGBoost
+  // predictor scores the candidates and Gemini writes the selected concept.
+  const list = await req_<Experiment[]>('/generation', {
+    method: 'POST',
+    body: JSON.stringify({
+      count: params.count ?? 5,
+      topic: params.topic,
+      platform: params.platform,
+      riskAppetite: params.riskAppetite,
+    }),
+  })
+  // Reveal them one at a time so the UI reads the same as it does on mock data.
+  for (let i = 0; i < list.length; i++) {
+    onCandidate?.(list[i], i)
+    if (i < list.length - 1) await new Promise((r) => setTimeout(r, 260))
+  }
+  return list
 }
 
 export async function selectCandidate(
   candidates: Experiment[],
   riskAppetite = 0.2,
 ): Promise<SelectionResult> {
-  void candidates
-  void riskAppetite
-  throw new Error(
-    'Live candidate selection is owned by the agent integration, not this backend API.',
-  )
+  // The agent already chose during /generation; this returns that decision.
+  return req_<SelectionResult>('/select', {
+    method: 'POST',
+    body: JSON.stringify({
+      candidate_ids: candidates.map((c) => c.id),
+      risk_appetite: riskAppetite,
+    }),
+  })
 }
 
-export const deployExperiment = (id: string, platform: Platform) => {
-  void id
-  void platform
-  throw new Error(
-    'Live deployment requires a TikTok post_id and is completed by the human workflow.',
-  )
-}
+export const deployExperiment = (id: string, platform: Platform) =>
+  req_<BackendExperiment>(`/experiments/${id}/deploy`, {
+    method: 'POST',
+    // A real post id arrives via publishPost; this marks intent to deploy so
+    // the record exists before the platform call returns.
+    body: JSON.stringify({ platform, post_id: `pending_${id}` }),
+  }).then(normalizeExperiment)
 
 /** Persists a generated candidate so it has a server-side id before deploy. */
-export const commitCandidate = (candidate: Experiment) =>
-  req_<BackendExperiment>('/experiments', { method: 'POST', body: JSON.stringify(candidate) }).then(
-    normalizeExperiment,
-  )
+export async function commitCandidate(candidate: Experiment): Promise<Experiment> {
+  const saved = await req_<BackendExperiment>('/experiments', {
+    method: 'POST',
+    body: JSON.stringify(candidate),
+  })
+  // The create endpoint takes no prediction, so attach it separately. Without
+  // this the stored experiment has none, and predicted-vs-actual - the whole
+  // point of the comparison - shows 0.
+  if (candidate.prediction?.fitness) {
+    try {
+      await req_<unknown>(`/experiments/${saved.id}/prediction`, {
+        method: 'POST',
+        body: JSON.stringify({
+          fitness: candidate.prediction.fitness,
+          model_version: 'role1-xgboost',
+        }),
+      })
+    } catch (e) {
+      // Not fatal - the meme is saved, it just loses its predicted score.
+      console.warn('could not attach prediction', e)
+    }
+  }
+  return normalizeExperiment(await req_<BackendExperiment>(`/experiments/${saved.id}`))
+}
 
 export const recordMetrics = (id: string, metrics: MetricsInput) =>
-  req_<Experiment>(`/experiments/${id}/metrics`, {
+  req_<BackendExperiment>(`/experiments/${id}/metrics`, {
     method: 'POST',
     body: JSON.stringify(metrics),
-  })
+  }).then(normalizeExperiment)
 
-export const evolve = async (): Promise<EvolveResult> => {
-  throw new Error('Live evolution is owned by the agent integration, not this backend API.')
-}
+export const evolve = (experimentId?: string, metrics?: Record<string, number>) =>
+  req_<EvolveResult>('/evolve', {
+    method: 'POST',
+    body: JSON.stringify({ experiment_id: experimentId, ...(metrics ?? {}) }),
+  })
 
 /**
  * Publish for real. The backend owns the platform call because it holds the

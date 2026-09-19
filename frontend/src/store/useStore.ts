@@ -298,7 +298,8 @@ export const useStore = create<Store>((set, get) => ({
               saves: Math.round(fallbackViews * (0.006 + p * 0.02)),
             }
       const updated = await client.recordMetrics(lab.posted.id, metrics)
-      const evolveResult = await client.evolve()
+      // The live backend needs to know which experiment produced these numbers.
+      const evolveResult = await client.evolve(lab.posted.id, metrics)
       const [experiments, agentStates, generations] = await Promise.all([
         client.getExperiments(),
         client.getAgentStates(),

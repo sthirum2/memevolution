@@ -44,7 +44,8 @@ export interface MemevolutionApi {
   publishPost(req: PublishRequest): Promise<PublishResult>
   /** Pull real numbers back from the platform for a published post. */
   fetchLiveMetrics(id: string): Promise<LiveMetrics>
-  evolve(): Promise<EvolveResult>
+  /** Teach the agent from a real result. id is required against the live backend. */
+  evolve(experimentId?: string, metrics?: Record<string, number>): Promise<EvolveResult>
 }
 
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
@@ -68,7 +69,7 @@ export const deployExperiment = (id: string, platform: Platform) =>
 export const recordMetrics = (id: string, m: MetricsInput) => impl.recordMetrics(id, m)
 export const publishPost = (req: PublishRequest) => impl.publishPost(req)
 export const fetchLiveMetrics = (id: string) => impl.fetchLiveMetrics(id)
-export const evolve = () => impl.evolve()
+export const evolve = (id?: string, m?: Record<string, number>) => impl.evolve(id, m)
 
 /** Shown in the top bar so it is never ambiguous which backend is answering. */
 export const backendLabel = USE_MOCK ? 'MOCK' : 'LIVE'

@@ -8,9 +8,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from .config import get_settings
 from .fitness import spread_score
+from . import agent_bridge, publish as publish_mod
 from .database import get_db, initialize_database
 from .models import EngagementSnapshot, Experiment, Genome, Prediction
 from .schemas import (
+    ContentIn,
     DeploymentResponse,
     DeployCreate,
     ExperimentCreate,
@@ -68,6 +70,7 @@ def to_response(experiment: Experiment) -> ExperimentResponse:
         genome=GenomeResponse.model_validate(experiment.genome),
         mutations=experiment.mutations or [],
         hypothesis=experiment.hypothesis,
+        content=ContentIn(**(experiment.content or {})),
         prediction=(
             PredictionResponse(fitness=experiment.prediction.predicted_fitness, model_version=experiment.prediction.model_version)
             if experiment.prediction
@@ -100,6 +103,7 @@ def create_experiment(payload: ExperimentCreate, db: Session = Depends(get_db)) 
         parent_id=payload.parent_id,
         status=payload.status,
         hypothesis=payload.hypothesis,
+        content=payload.content.model_dump(),
         mutations=[mutation.model_dump(by_alias=True) for mutation in payload.mutations],
         genome=Genome(**payload.genome.model_dump()),
     )
@@ -228,3 +232,113 @@ def record_metrics(
     db.commit()
     db.expire(experiment, ["snapshots"])
     return to_response(get_experiment_or_404(db, experiment_id))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The agent, driven from the browser.
+#
+# The agent and this API share a package and a virtualenv, so these run the
+# real evolutionary step in-process: the real XGBoost predictor scores the
+# candidates and Gemini writes the concept. Nothing here is simulated.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@app.get("/agent-states")
+def agent_states() -> list[dict]:
+    """Belief history for the 'What it learned' screen."""
+    try:
+        return agent_bridge.agent_states()
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"agent unavailable: {exc}") from exc
+
+
+@app.post("/generation")
+def generation(payload: dict | None = None) -> list[dict]:
+    """Run one real generation and return the candidates the agent produced."""
+    payload = payload or {}
+    try:
+        result = agent_bridge.run_generation(
+            population_size=int(payload.get("count", 5)),
+            topic=payload.get("topic"),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"generation failed: {exc}") from exc
+
+    # Stash the selection so /select can answer without re-running the agent.
+    app.state.last_selection = result["selection"]
+    app.state.last_candidates = {c["id"]: c for c in result["candidates"]}
+    return result["candidates"]
+
+
+@app.post("/select")
+# NB: not named `select` — that would shadow sqlalchemy.select, which every
+# query in this module depends on, and break /experiments at runtime.
+def select_candidate(payload: dict | None = None) -> dict:
+    """The choice the agent already made during /generation."""
+    selection = getattr(app.state, "last_selection", None)
+    if not selection:
+        raise HTTPException(status_code=409, detail="Run POST /generation first")
+    return selection
+
+
+@app.post("/evolve")
+def evolve(payload: dict | None = None) -> dict:
+    """Record real engagement and let the agent learn from the prediction error."""
+    payload = payload or {}
+    experiment_id = payload.get("experiment_id")
+    if not experiment_id:
+        raise HTTPException(status_code=422, detail="experiment_id is required")
+    metrics = {
+        k: payload.get(k)
+        for k in ("views", "likes", "comments", "shares", "saves", "fitness")
+        if payload.get(k) is not None
+    }
+    try:
+        return agent_bridge.apply_observation(experiment_id, metrics)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"evolve failed: {exc}") from exc
+
+
+@app.get("/corpus")
+def corpus() -> dict:
+    """Historical grounding. Empty shape keeps the UI happy until Role 1 fills it."""
+    return {
+        "datasets": [],
+        "fitnessDistribution": [],
+        "traitCorrelation": [],
+        "propagationByFormat": [],
+    }
+
+
+@app.post("/experiments/{experiment_id}/publish")
+def publish_experiment(experiment_id: str, payload: dict, db: Session = Depends(get_db)) -> dict:
+    """Render the meme and put it on a real account."""
+    experiment = get_experiment_or_404(db, experiment_id)
+    platform = (payload or {}).get("platform", "instagram")
+    try:
+        result = publish_mod.publish(to_response(experiment).model_dump(), platform)
+    except publish_mod.PublishError as exc:
+        # 409: the request is fine, the operator's setup is not. The UI shows
+        # this text directly, so it has to say what to actually do.
+        raise HTTPException(status_code=409, detail=str(exc)) from None
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"publish failed: {exc}") from exc
+
+    experiment.post_id = result["post_id"]
+    experiment.deployment_platform = result["platform"]
+    experiment.deployed_at = datetime.now(timezone.utc)
+    experiment.status = "deployed"
+    db.commit()
+    return result
+
+
+@app.get("/experiments/{experiment_id}/live-metrics")
+def experiment_live_metrics(experiment_id: str, db: Session = Depends(get_db)) -> dict:
+    """Pull the platform's own numbers for a published post."""
+    experiment = get_experiment_or_404(db, experiment_id)
+    try:
+        return publish_mod.live_metrics(to_response(experiment).model_dump())
+    except publish_mod.PublishError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None

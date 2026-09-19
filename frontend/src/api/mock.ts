@@ -586,7 +586,10 @@ export async function recordMetrics(id: string, metrics: MetricsInput): Promise<
   return clone(target)
 }
 
-export async function evolve(): Promise<EvolveResult> {
+export async function evolve(
+  _experimentId?: string,
+  _metrics?: Record<string, number>,
+): Promise<EvolveResult> {
   await sleep(LATENCY.think)
   const previous = latestState()
   const generation = previous.generation + 1
