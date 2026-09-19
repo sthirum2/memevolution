@@ -17,8 +17,8 @@ class GenomeInput(BaseModel):
 
 class Mutation(BaseModel):
     trait: str
-    from_value: float = Field(alias="from", ge=0, le=1)
-    to: float = Field(ge=0, le=1)
+    from_value: float | int | str = Field(alias="from")
+    to: float | int | str
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -50,11 +50,11 @@ class DeployCreate(BaseModel):
 
 class MetricsCreate(BaseModel):
     timestamp: datetime | None = None
-    views: int = Field(ge=0)
-    likes: int = Field(ge=0)
-    comments: int = Field(ge=0)
-    shares: int = Field(ge=0)
-    saves: int = Field(ge=0)
+    views: int | None = Field(default=None, ge=0)
+    likes: int | None = Field(default=None, ge=0)
+    comments: int | None = Field(default=None, ge=0)
+    shares: int | None = Field(default=None, ge=0)
+    saves: int | None = Field(default=None, ge=0)
     fitness: float | None = Field(default=None, ge=0, le=1)
 
 

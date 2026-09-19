@@ -30,8 +30,8 @@ create table if not exists engagement_snapshots (
   id bigserial primary key,
   experiment_id text not null references experiments(id) on delete cascade,
   timestamp timestamptz not null default now(),
-  views integer not null, likes integer not null, comments integer not null,
-  shares integer not null, saves integer not null, fitness double precision
+  views integer, likes integer, comments integer,
+  shares integer, saves integer, fitness double precision
 );
 
 create index if not exists experiments_generation_idx on experiments(generation);
