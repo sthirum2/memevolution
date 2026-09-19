@@ -113,7 +113,7 @@ export default function LabView() {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -6, filter: 'blur(5px)' }}
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto w-full max-w-5xl pb-24"
+            className="mx-auto w-full max-w-5xl pb-32"
           >
             {lab.stage === 'seed' ? <StageSeed /> : null}
             {lab.stage === 'generate' ? <StageGenerate /> : null}

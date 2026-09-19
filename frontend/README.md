@@ -20,7 +20,8 @@ with no component changes. See [Backend integration](#backend-integration).
 npm install && npm run dev
 ```
 
-Then open http://localhost:5173.
+Then open http://localhost:5173. No `.env` is needed to run — mock data is the default, so a
+fresh clone works immediately.
 
 | Script            | What it does                                            |
 | ----------------- | ------------------------------------------------------- |
