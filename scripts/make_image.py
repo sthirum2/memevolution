@@ -82,7 +82,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if not os.environ.get("GEMINI_API_KEY"):
-        print("GEMINI_API_KEY not set — using the fallback backdrop.")
+        print("GEMINI_API_KEY not set - using the fallback backdrop.")
         print("Get a key at https://aistudio.google.com/apikey, then:")
         print("  export GEMINI_API_KEY=...\n")
 

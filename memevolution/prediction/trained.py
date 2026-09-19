@@ -26,10 +26,12 @@ def genome_features(
     features.update(
         duration=genome.video_length, is_video=1, is_ad=int(is_ad),
         upload_hour=posting_time.hour, upload_day_of_week=posting_time.weekday(),
-        absurdity=genome.absurdity * 10,
-        irony=genome.irony * 10,
-        relatability=genome.relatability * 10,
-        trend_relevance=genome.trend_relevance * 10,
+        # Confirmed directly with the model's author: these four traits are
+        # 0.0-1.0 normalized in training, same as MemeGenome -- no rescale.
+        absurdity=genome.absurdity,
+        irony=genome.irony,
+        relatability=genome.relatability,
+        trend_relevance=genome.trend_relevance,
     )
     if genome.audio_strategy in {"original_sound", "trending_audio"}:
         features["is_original_sound"] = int(genome.audio_strategy == "original_sound")
@@ -57,7 +59,13 @@ class TrainedFitnessPredictor:
                                    planned_time=planned_time if planned_time is not None else self.planned_time,
                                    is_ad=is_ad)
         raw_score = predict_fitness(features)
-        converted_score = raw_score / 100.0
+        # Empirically-observed range of the model's raw output over realistic
+        # genome-derived inputs is roughly [0, 4.5] (p5=0.4, p50=2.3, p95=3.9),
+        # not [0, 100] -- dividing by 100 crushed every real prediction into an
+        # indistinguishable ~0.004-0.04 band. This linear rescale is still an
+        # empirical approximation, not a calibration Person 1 has confirmed;
+        # values outside the realistic range still clip at 0/1 below.
+        converted_score = raw_score / 4.5
         if not math.isfinite(converted_score):
             raise ValueError(
                 f"Trained model returned non-finite raw prediction {raw_score!r} "

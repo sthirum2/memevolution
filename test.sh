@@ -2,7 +2,14 @@
 # Every test in the repo, in one command.
 set -uo pipefail
 cd "$(dirname "$0")"
-PY=./backend/.venv/bin/python
+
+# venv layout differs by platform: Scripts/ on Windows, bin/ everywhere else.
+if [ -f backend/.venv/Scripts/python.exe ]; then
+  PY=./backend/.venv/Scripts/python
+else
+  PY=./backend/.venv/bin/python
+fi
+[ -x "$PY" ] || { echo "Run ./setup.sh first (no venv at backend/.venv)." >&2; exit 1; }
 fail=0
 
 echo "==> agent + prediction model"
@@ -14,8 +21,8 @@ echo "==> api + spread-score parity"
 
 echo
 echo "==> frontend typecheck + build"
-npm --prefix frontend run build >/dev/null 2>&1 \
-  && echo "build ok" || { echo "build FAILED"; fail=1; }
+build_log=$(npm --prefix frontend run build 2>&1) \
+  && echo "build ok" || { echo "build FAILED"; echo "$build_log"; fail=1; }
 
 echo
 [ $fail -eq 0 ] && echo "everything passed" || echo "something failed (see above)"

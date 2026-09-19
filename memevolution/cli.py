@@ -20,7 +20,7 @@ def _build_predictor(
     planned_time: datetime | None = None,
 ):
     if name == "mock":
-        print("[DEV STUB] Using MockFitnessPredictor - NOT the trained Role 1 model.`n")
+        print("[DEV STUB] Using MockFitnessPredictor - NOT the trained Role 1 model.\n")
         return MockFitnessPredictor(seed=seed)
 
     from memevolution.prediction.trained import MODEL_VERSION, TrainedFitnessPredictor
@@ -28,7 +28,7 @@ def _build_predictor(
     predictor = TrainedFitnessPredictor(planned_time=planned_time)
     print(
         f"[TRAINED ROLE 1 MODEL] {MODEL_VERSION}; "
-        f"posting time: {predictor.planned_time.isoformat()}`n"
+        f"posting time: {predictor.planned_time.isoformat()}\n"
     )
     return predictor
 

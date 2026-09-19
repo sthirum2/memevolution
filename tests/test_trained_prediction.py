@@ -24,7 +24,8 @@ def test_exact_features_and_caption(genome_factory):
         "duration": 10, "is_video": 1, "is_ad": 1, "caption_length": 23,
         "has_hashtags": 1, "mentions_count": 1, "hashtags_count": 2,
         "is_original_sound": 1, "upload_hour": 14, "upload_day_of_week": 5,
-        "absurdity": 5.0, "irony": 5.0, "relatability": 5.0, "trend_relevance": 5.0,
+        # 0.0-1.0 native, confirmed with the model's author -- not rescaled.
+        "absurdity": 0.5, "irony": 0.5, "relatability": 0.5, "trend_relevance": 0.5,
     }
     assert list(features) == model.EXPECTED_FEATURES
     assert list(model.preprocess_features(dict(reversed(list(features.items())))).columns) == model.EXPECTED_FEATURES
@@ -79,7 +80,11 @@ def test_out_of_range_score_is_visible_but_clipped(raw_score, expected, monkeypa
     assert "clipping_occurred=True" in caplog.text
 
 
-@pytest.mark.parametrize("raw_score, expected", [(1.1, 0.011), (2.5, 0.025), (0.0, 0.0), (100.0, 1.0)])
+@pytest.mark.parametrize(
+    "raw_score, expected",
+    # Empirical realistic range is ~[0, 4.5] (see trained.py), not [0, 100].
+    [(1.1, 1.1 / 4.5), (2.5, 2.5 / 4.5), (0.0, 0.0), (100.0, 1.0)],
+)
 def test_raw_score_converts_to_normalized_fitness(raw_score, expected, monkeypatch, genome_factory):
     monkeypatch.setattr(trained, "load_model", lambda: None)
     predictor = trained.TrainedFitnessPredictor(planned_time=POSTING_TIME)
@@ -89,8 +94,9 @@ def test_raw_score_converts_to_normalized_fitness(raw_score, expected, monkeypat
 
 def test_valid_score_wrapper_does_not_invent_confidence(monkeypatch, genome_factory):
     # Unit test only; this is not claimed as a real-model prediction.
+    # 1.8 / 4.5 == 0.4, chosen so the expected value stays a clean round number.
     monkeypatch.setattr(trained, "load_model", lambda: None)
-    monkeypatch.setattr(trained, "predict_fitness", lambda features: 40.0)
+    monkeypatch.setattr(trained, "predict_fitness", lambda features: 1.8)
     prediction = trained.TrainedFitnessPredictor().predict_fitness(genome_factory())
     assert prediction.fitness == 0.4
     assert prediction.confidence is None

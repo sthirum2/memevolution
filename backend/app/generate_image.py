@@ -72,7 +72,7 @@ def generate_visual(
     try:
         from google import genai  # lazy: optional dependency
     except ImportError:
-        print("[image] google-genai not installed — pip install google-genai")
+        print("[image] google-genai not installed - pip install google-genai")
         return None
 
     try:

@@ -9,7 +9,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PY=./backend/.venv/bin/python
+# venv layout differs by platform: Scripts/ on Windows, bin/ everywhere else.
+if [ -f backend/.venv/Scripts/python.exe ]; then
+  PY=./backend/.venv/Scripts/python
+else
+  PY=./backend/.venv/bin/python
+fi
 [ -x "$PY" ] || { echo "Run ./setup.sh first." >&2; exit 1; }
 
 # The agent reads the key from the shell; everything else reads backend/.env.
