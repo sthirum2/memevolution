@@ -177,11 +177,23 @@ The agent writes a concept; Gemini draws it. Same SDK and the **same
 account, no second bill, no new dependency.
 
 ```bash
-export GEMINI_API_KEY=...            # https://aistudio.google.com/apikey
-python3 scripts/make_image.py exp_006          # one
-python3 scripts/make_image.py --all            # every experiment
+# put GEMINI_API_KEY in backend/.env, then:
+
+# pictures for the demo memes (the hand-written ones the UI ships with)
+python3 scripts/make_image.py --all
+
+# pictures for what the AGENT actually generated
+python3 scripts/make_image.py --from-agent \
+    --agent-data /path/to/memevolution_agent/data/experiments.json --all
+
 open backend/media
 ```
+
+Two different sets, and it is easy to confuse them. Without `--from-agent` you are
+illustrating the 21 demo memes, which is what the UI shows. With it you are illustrating
+what the agent wrote on its last run. The agent stores a MemeConcept; the text burned onto
+the image is its `opening`, because that is the hook a viewer reads — the `title` is only
+an internal name for the concept.
 
 Then `scripts/post_to_instagram.py` picks up the generated image automatically.
 
