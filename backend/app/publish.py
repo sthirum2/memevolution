@@ -139,7 +139,16 @@ def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
             "forces SELF_ONLY on unaudited apps, so nobody would see it."
         )
 
-    size = path.stat().st_size
+    from .render import image_to_video
+
+    try:
+        video_path = image_to_video(path)
+    except Exception as exc:
+        raise PublishError(
+            f"Could not turn the rendered meme into a video for TikTok: {exc}"
+        ) from None
+
+    size = video_path.stat().st_size
     try:
         init = _post(
             "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/",
@@ -158,7 +167,7 @@ def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
         publish_id = init.get("data", {}).get("publish_id", "")
         upload_url = init.get("data", {}).get("upload_url")
         if upload_url:
-            body = path.read_bytes()
+            body = video_path.read_bytes()
             req = urllib.request.Request(upload_url, data=body, method="PUT")
             req.add_header("Content-Range", f"bytes 0-{size - 1}/{size}")
             req.add_header("Content-Type", "video/mp4")

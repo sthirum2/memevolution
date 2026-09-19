@@ -6,12 +6,16 @@ real image file over HTTP. The frontend's memes are an SVG backdrop plus text
 drawn by the browser, which exists nowhere as a file, so this renders the same
 thing server-side into something a platform will take.
 
-1080x1080, JPEG, which satisfies both Instagram and TikTok photo posts.
+1080x1080, JPEG, which Instagram takes directly. TikTok's content-posting API
+has no photo-post route in play here -- only video inbox-upload (see
+publish.py) -- so `image_to_video` below wraps the same JPEG into a real
+MP4 for that platform.
 """
 
 from __future__ import annotations
 
 import hashlib
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -20,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 CANVAS = 1080
 MARGIN = 80
 OUT_DIR = Path(__file__).resolve().parents[1] / "media"
+VIDEO_DURATION_SECONDS = 5.0
 
 # macOS ships these; fall back to Pillow's bundled font so this never hard-fails.
 FONT_CANDIDATES = [
@@ -154,6 +159,63 @@ def render_meme(
     path = out_dir / f"{experiment_id}.jpg"
     img.convert("RGB").save(path, "JPEG", quality=90, optimize=True)
     return path
+
+
+def image_to_video(
+    image_path: Path,
+    out_path: Path | None = None,
+    duration: float = VIDEO_DURATION_SECONDS,
+    timeout: float = 20.0,
+) -> Path:
+    """Wrap a still JPEG into a real MP4 for TikTok's video-only upload route.
+
+    TikTok's content-posting API has no photo-post endpoint in this
+    integration -- publish.py uploads to the video inbox-upload route and
+    labels the body `video/mp4`. Handing it the raw JPEG bytes under that
+    label is not a real video and TikTok will reject or mangle it. This
+    holds the exact same rendered frame for `duration` seconds instead --
+    same visual, same caption, just a container TikTok actually accepts.
+    A real generative-video pipeline (Veo, on the same API Role 2 already
+    uses) can replace this later without changing anything downstream:
+    publish.py only cares that it gets back a valid video file.
+
+    Uses `imageio-ffmpeg`'s bundled static ffmpeg binary rather than
+    requiring one on the system PATH, so this doesn't need a platform-
+    specific install step for the rest of the team.
+    """
+    import imageio_ffmpeg
+
+    out_path = out_path or image_path.with_suffix(".mp4")
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-loop", "1",
+        "-i", str(image_path),
+        "-f", "lavfi",
+        "-i", "anullsrc=r=44100:cl=stereo",
+        "-t", str(duration),
+        "-vf", f"scale={CANVAS}:{CANVAS}",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-shortest",
+        "-movflags", "+faststart",
+        str(out_path),
+    ]
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"ffmpeg timed out converting {image_path.name} to video") from exc
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg could not turn {image_path.name} into a video "
+            f"(exit {result.returncode}): {result.stderr[-500:]}"
+        )
+    return out_path
 
 
 if __name__ == "__main__":
