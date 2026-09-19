@@ -15,7 +15,7 @@ import pytest
 
 pytest.importorskip("imageio_ffmpeg")
 
-from app.render import image_to_video, render_meme
+from app.render import image_to_video, overlay_text_on_video, render_meme
 
 
 @pytest.fixture
@@ -66,3 +66,62 @@ def test_image_to_video_raises_on_bad_input(tmp_path):
     # fast; production uses image_to_video's real default (20s).
     with pytest.raises(RuntimeError):
         image_to_video(bogus, out_path=tmp_path / "out.mp4", timeout=3.0)
+
+
+@pytest.fixture
+def synthetic_video(tmp_path):
+    """A real, playable video (no Veo call) to exercise the caption-overlay
+    path against -- color test pattern + a tone, vertical like Veo's output."""
+    import imageio_ffmpeg
+
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    path = tmp_path / "synthetic.mp4"
+    cmd = [
+        ffmpeg, "-y",
+        "-f", "lavfi", "-i", "testsrc2=size=720x1280:rate=25:duration=2",
+        "-f", "lavfi", "-i", "sine=frequency=440:duration=2",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        str(path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=30)
+    assert result.returncode == 0, result.stderr
+    return path
+
+
+def test_overlay_text_on_video_produces_a_real_mp4(synthetic_video, tmp_path):
+    out_path = tmp_path / "captioned.mp4"
+    result = overlay_text_on_video(synthetic_video, out_path, "a headline", "a punchline")
+
+    assert result == out_path
+    assert out_path.exists()
+    assert b"ftyp" in out_path.read_bytes()[:64]
+
+
+def test_overlay_text_on_video_preserves_resolution_and_audio(synthetic_video, tmp_path):
+    import imageio_ffmpeg
+
+    out_path = tmp_path / "captioned.mp4"
+    overlay_text_on_video(synthetic_video, out_path, "a headline", "a punchline")
+
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    result = subprocess.run([ffmpeg, "-i", str(out_path)], capture_output=True, text=True)
+    assert "720x1280" in result.stderr
+    assert "Video: h264" in result.stderr
+    assert "Audio: aac" in result.stderr
+
+
+def test_overlay_text_on_video_cleans_up_its_temp_overlay_png(synthetic_video, tmp_path):
+    out_path = tmp_path / "captioned.mp4"
+    overlay_text_on_video(synthetic_video, out_path, "a headline", "a punchline")
+
+    leftovers = list(tmp_path.glob("*_caption.png"))
+    assert leftovers == []
+
+
+def test_overlay_text_on_video_raises_on_bad_input(tmp_path):
+    bogus = tmp_path / "not_a_video.mp4"
+    bogus.write_bytes(b"not a real video")
+
+    with pytest.raises(RuntimeError):
+        overlay_text_on_video(bogus, tmp_path / "out.mp4", "a headline")
