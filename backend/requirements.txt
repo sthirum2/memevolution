@@ -3,3 +3,5 @@ uvicorn[standard]>=0.30,<1
 sqlalchemy>=2.0,<3
 pydantic-settings>=2.0,<3
 psycopg[binary]>=3.2,<4
+# rendering memes to a real JPEG for publishing
+Pillow>=10,<13
