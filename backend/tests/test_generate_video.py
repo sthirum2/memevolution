@@ -184,7 +184,11 @@ def test_make_meme_video_uses_veo_when_it_succeeds(monkeypatch, tmp_path):
 
 
 def test_make_meme_video_falls_back_when_veo_unavailable(monkeypatch, tmp_path):
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)  # generate_video short-circuits to None
+    # Empty rather than deleted: make_meme_video imports generate_audio lazily,
+    # that import runs load_dotenv(), and load_dotenv only skips names already
+    # present — so a deleted key is restored from .env mid-test and the call
+    # reaches the real paid Veo API instead of short-circuiting.
+    monkeypatch.setenv("GEMINI_API_KEY", "")
 
     def _fake_make_meme_image(experiment_id, headline, punchline, visual_description, topic, out_dir=None):
         path = Path(out_dir) / f"{experiment_id}.jpg"

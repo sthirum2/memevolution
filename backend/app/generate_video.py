@@ -12,11 +12,26 @@ from .env import load_dotenv
 
 load_dotenv()  # so a key in backend/.env is picked up
 
-DEFAULT_MODEL = "veo-3.1-lite-generate-preview"
-VERTEX_MODEL = "veo-3.1-lite-generate-001"  # the Vertex ID; "-preview" 404s there
+# Veo tier, and what it costs per 8-second clip at 720p:
+#   lite      $0.05/s -> $0.40   roughest motion and detail
+#   fast      $0.10/s -> $0.80   the large quality jump; the default here
+#   standard  $0.40/s -> $3.20   best, but eight times lite for one clip
+# Only the selected candidate is rendered, so a round costs one clip. Set
+# VEO_TIER in backend/.env to move between them without touching code.
+_TIERS = {
+    "lite": ("veo-3.1-lite-generate-preview", "veo-3.1-lite-generate-001"),
+    "fast": ("veo-3.1-fast-generate-preview", "veo-3.1-fast-generate-001"),
+    "standard": ("veo-3.1-generate-preview", "veo-3.1-generate-001"),
+}
+VEO_TIER = os.environ.get("VEO_TIER", "fast").strip().lower()
+if VEO_TIER not in _TIERS:
+    print(f"[video] unknown VEO_TIER {VEO_TIER!r}; falling back to 'fast'")
+    VEO_TIER = "fast"
+
+DEFAULT_MODEL, VERTEX_MODEL = _TIERS[VEO_TIER]  # "-preview" 404s on Vertex
 
 VIDEO_ASPECT_RATIO = "9:16"  # vertical video
-VIDEO_RESOLUTION = "720p"  # cheapest tier; lite doesn't support 4k
+VIDEO_RESOLUTION = os.environ.get("VEO_RESOLUTION", "720p").strip()
 VIDEO_DURATION_SECONDS = "8"  # Veo only accepts "4", "6" or "8"
 
 POLL_INTERVAL_SECONDS = 10.0
