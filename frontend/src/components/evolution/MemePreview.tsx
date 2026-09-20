@@ -9,7 +9,7 @@ export default function MemePreview({
   content,
   ratio = 'square',
   size = 'md',
-  faded,
+  faded: _faded,
   className,
   showPunchline = true,
 }: {
@@ -33,16 +33,10 @@ export default function MemePreview({
     size === 'sm' ? 'text-[11px] leading-snug' : size === 'lg' ? 'text-xl' : 'text-sm leading-snug'
   const punch = size === 'sm' ? 'text-[8px]' : size === 'lg' ? 'text-sm' : 'text-[10px]'
 
+  if (content.media_url) return <img src={content.media_url} alt={content.headline} loading="lazy" className={cx('w-full object-contain', aspect, className)} />
   return (
     <div className={cx('relative overflow-hidden bg-ink', aspect, className)}>
-      <img
-        src={content.media_url}
-        alt=""
-        aria-hidden
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ opacity: faded ? 0.35 : 0.7, filter: faded ? 'grayscale(0.8)' : 'none' }}
-      />
+      <span className="absolute bottom-1 left-2 text-[10px] text-white/60">Concept only ? image not generated</span>
       <div
         className="absolute inset-0"
         style={{

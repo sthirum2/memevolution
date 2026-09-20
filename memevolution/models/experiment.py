@@ -27,7 +27,7 @@ class Deployment(BaseModel):
     a post exists.
     """
 
-    platform: str = "tiktok"
+    platform: str = "instagram"
     timestamp: datetime | None = None
     post_id: str | None = None
 

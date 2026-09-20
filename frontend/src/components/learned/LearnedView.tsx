@@ -84,11 +84,7 @@ export default function LearnedView() {
             returned {agentStates.length === 0 ? 'none' : 'only one'}.
           </p>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
-            If you are running against the live backend, it does not serve{' '}
-            <code className="rounded bg-paper px-1.5 py-0.5 text-xs">GET /agent-states</code> yet.
-            Set <code className="rounded bg-paper px-1.5 py-0.5 text-xs">VITE_USE_MOCK=true</code>{' '}
-            in <code className="rounded bg-paper px-1.5 py-0.5 text-xs">frontend/.env</code> to see
-            this screen with demo data.
+            Run a generation and update the agent from an Instagram observation to build its belief history.
           </p>
         </div>
       </div>
@@ -96,7 +92,7 @@ export default function LearnedView() {
   }
 
   // Biggest movers, which is what the takeaway cards talk about.
-  const moves = BELIEF_TRAITS.map((t) => ({
+  const moves = BELIEF_TRAITS.filter(t => t in first.beliefs && t in last.beliefs).map((t) => ({
     trait: t,
     from: first.beliefs[t] ?? 0,
     to: last.beliefs[t] ?? 0,

@@ -4,7 +4,7 @@ import { PLATFORM_NAMES, plainFeature, plainTrait, score, titleCase } from '@/li
 import { Badge, Bar, Modal, Stat, cx } from '@/components/ui'
 import MemePreview from './MemePreview'
 
-const NUMERIC = ['absurdity', 'irony', 'relatability', 'trend_relevance', 'text_density'] as const
+const NUMERIC = ['absurdity', 'irony', 'relatability', 'trend_relevance'] as const
 const CATEGORICAL = ['topic', 'humor', 'format', 'hook', 'audio_strategy'] as const
 
 export default function MemeDetail({
@@ -224,7 +224,7 @@ export default function MemeDetail({
                   )}
                 >
                   <p className="text-xs text-muted">{k}</p>
-                  <p className="num font-display text-lg font-bold">{(v ?? 0).toLocaleString()}</p>
+                  <p className="num font-display text-lg font-bold">{v === null ? '?' : v.toLocaleString()}</p>
                 </div>
               ))}
             </div>

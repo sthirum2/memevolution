@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --noEmit false --pretty",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "preview": "vite preview",
     "mock:regen": "node scripts/generate-mock.mjs",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\"",
+    "test:contract": "node scripts/test-contract.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

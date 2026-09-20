@@ -7,6 +7,6 @@ psycopg[binary]>=3.2,<4
 Pillow>=10,<13
 # AI image + video generation (same key as the agent's concept generation)
 google-genai>=1.0
-# wraps the rendered JPEG into a real MP4 for TikTok's video-only upload route;
+# optional standalone still-to-video rendering utility;
 # bundles a static ffmpeg binary so nobody needs a system install
 imageio-ffmpeg>=0.5
