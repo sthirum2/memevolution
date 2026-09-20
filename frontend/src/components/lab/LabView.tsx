@@ -37,7 +37,7 @@ export default function LabView() {
   return <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
     <div><h2 className="font-display text-2xl font-bold">Run an Instagram experiment</h2>
       <p className="mt-2 text-muted">Generate strategies, review the selected image, then measure real engagement.</p></div>
-    <p className="text-sm font-semibold text-agent">{lab.step === 'setup' ? '1 ? Choose a strategy' : lab.step === 'candidates' ? '2 ? Model selection' : lab.step === 'review' ? '3 ? Review and approve' : '4 ? Observe and learn'}</p>
+    <p className="text-sm font-semibold text-agent">{lab.step === 'setup' ? '1 · Choose a strategy' : lab.step === 'candidates' ? '2 · Model selection' : lab.step === 'review' ? '3 · Review and approve' : '4 · Observe and learn'}</p>
     {lab.error && <div role="alert" className="rounded-xl border border-dead bg-dead-soft p-4">{lab.error}</div>}
     {lab.step === 'setup' && <>
       <ConfigWarning />
@@ -48,12 +48,12 @@ export default function LabView() {
         <p className="text-sm text-muted">XGBoost scores all five; Gemini writes the selected concept. Nothing is posted yet.</p>
       </div>
       {saved.length > 0 && <div className="card p-5"><h3 className="mb-3 font-bold">Continue a saved experiment</h3>
-        <div className="flex flex-wrap gap-2">{saved.slice().reverse().map(e => <Button key={e.id} variant="secondary" onClick={() => resume(e.id)} disabled={lab.busy}>Generation {e.generation} ? {e.deployment.post_id ? 'Posted' : 'Draft'}</Button>)}</div>
+        <div className="flex flex-wrap gap-2">{saved.slice().reverse().map(e => <Button key={e.id} variant="secondary" onClick={() => resume(e.id)} disabled={lab.busy}>Generation {e.generation} · {e.deployment.post_id ? 'Posted' : 'Draft'}</Button>)}</div>
       </div>}
     </>}
     {lab.step === 'candidates' && <>
       <div className="grid gap-3 sm:grid-cols-2">{lab.candidates.map(e => <div key={e.id} className={`card p-5 ${chosen?.id === e.id ? 'border-agent' : ''}`}>
-        <p className="text-xs text-muted">{e.id}{chosen?.id === e.id ? ' ? Selected' : ''}</p>
+        <p className="text-xs text-muted">{e.id}{chosen?.id === e.id ? ' · Selected' : ''}</p>
         <h3 className="mt-2 font-bold">{e.content.headline}</h3><p className="my-2 text-sm">{e.hypothesis}</p>
         <p className="font-semibold">Predicted fitness: {display(score(e.prediction.fitness))}/100</p>
       </div>)}</div>
@@ -84,7 +84,7 @@ export default function LabView() {
         {posted.observed.timeseries.length ? <table className="w-full text-left text-sm"><thead><tr><th>Time</th><th>Views</th><th>Likes</th><th>Shares</th></tr></thead><tbody>{posted.observed.timeseries.map((p,i) => <tr key={`${p.t}-${i}`}><td>{new Date(p.t).toLocaleString()}</td><td>{display(p.views)}</td><td>{display(p.likes)}</td><td>{display(p.shares)}</td></tr>)}</tbody></table> : <p className="text-muted">No snapshots saved yet.</p>}
       </div>
       {lab.evolveResult ? <div className="card bg-win-soft p-5"><h3 className="font-bold">Observation applied</h3>
-        {lab.evolveResult.shifts.length ? lab.evolveResult.shifts.map(s => <p key={s.trait}>{plainTrait(s.trait)}: {s.from.toFixed(3)} ? {s.to.toFixed(3)}</p>) : <p>The observation was recorded; no numeric belief changed.</p>}
+        {lab.evolveResult.shifts.length ? lab.evolveResult.shifts.map(s => <p key={s.trait}>{plainTrait(s.trait)}: {s.from.toFixed(3)} → {s.to.toFixed(3)}</p>) : <p>The observation was recorded; no numeric belief changed.</p>}
       </div> : <Button onClick={finish} disabled={lab.busy || lab.fetching || posted.observed.fitness === null}>{lab.busy && <Spinner />}Update the agent from this observation</Button>}
     </>}
     {lab.step !== 'setup' && <Button variant="secondary" onClick={resetLab} disabled={lab.busy || lab.fetching}>Start another round</Button>}

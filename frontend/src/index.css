@@ -10,6 +10,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* The palette is light-only. Without this, a dark-mode browser renders native
+     controls dark while the page stays light -- the topic input came out as
+     near-black text on a dark grey box. */
+  :root {
+    color-scheme: light;
+  }
+
   html,
   body,
   #root {

@@ -36,7 +36,7 @@ export default function MemePreview({
   if (content.media_url) return <img src={content.media_url} alt={content.headline} loading="lazy" className={cx('w-full object-contain', aspect, className)} />
   return (
     <div className={cx('relative overflow-hidden bg-ink', aspect, className)}>
-      <span className="absolute bottom-1 left-2 text-[10px] text-white/60">Concept only ? image not generated</span>
+      <span className="absolute bottom-1 left-2 text-[10px] text-white/60">Concept only · image not generated</span>
       <div
         className="absolute inset-0"
         style={{

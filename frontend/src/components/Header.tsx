@@ -21,7 +21,7 @@ export default function Header() {
             An AI that posts memes, watches what happens, and gets better at it.
           </p>
 
-          <span className="ml-auto rounded-full bg-win-soft px-3 py-1 text-xs font-semibold text-win-deep">Instagram ? Real data</span>
+          <span className="ml-auto rounded-full bg-win-soft px-3 py-1 text-xs font-semibold text-win-deep">Instagram · Real data</span>
         </div>
 
         <nav className="flex gap-1">
