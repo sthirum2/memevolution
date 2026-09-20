@@ -96,21 +96,35 @@ def _publish_instagram(experiment_id: str, filename: str, caption: str, source: 
         )
 
     media_url = f"{base}/media/{filename}"
+    # A reel and a photo are different container types on the Graph API: video
+    # goes up as media_type=REELS with video_url, and image_url rejects an mp4
+    # outright. The pipeline produces video now, so the container follows the
+    # file rather than being fixed to one kind.
+    is_video = filename.lower().endswith((".mp4", ".mov"))
+    payload = (
+        {"media_type": "REELS", "video_url": media_url}
+        if is_video
+        else {"image_url": media_url}
+    )
+    noun = "reel" if is_video else "image"
     try:
         container = _post(
             f"{GRAPH}/{ig_id}/media",
-            {"image_url": media_url, "caption": caption, "access_token": token},
+            {**payload, "caption": caption, "access_token": token},
         )
         cid = container["id"]
-        for _ in range(10):
+        # Video transcoding is far slower than an image fetch, so it gets a
+        # longer budget; a premature give-up here risks a duplicate post.
+        attempts = 60 if is_video else 10
+        for _ in range(attempts):
             st = _get(f"{GRAPH}/{cid}?fields=status_code&access_token={token}")
             if st.get("status_code") == "FINISHED":
                 break
             if st.get("status_code") == "ERROR":
-                raise PublishError("Instagram could not process the image.")
+                raise PublishError(f"Instagram could not process the {noun}.")
             time.sleep(2)
         else:
-            raise PublishError("Instagram image processing timed out; no publish request was sent")
+            raise PublishError(f"Instagram {noun} processing timed out; no publish request was sent")
         published = _post(
             f"{GRAPH}/{ig_id}/media_publish", {"creation_id": cid, "access_token": token}
         )

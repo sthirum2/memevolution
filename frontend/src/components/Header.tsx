@@ -11,6 +11,8 @@ const TABS: { key: View; label: string }[] = [
 export default function Header() {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
+  const mode = useStore((s) => s.mode)
+  const setMode = useStore((s) => s.setMode)
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
@@ -21,7 +23,33 @@ export default function Header() {
             An AI that posts memes, watches what happens, and gets better at it.
           </p>
 
-          <span className="ml-auto rounded-full bg-win-soft px-3 py-1 text-xs font-semibold text-win-deep">Instagram · Real data</span>
+          <div className="ml-auto flex items-center gap-2">
+            <span
+              className={
+                mode === 'live'
+                  ? 'rounded-full bg-win-soft px-3 py-1 text-xs font-semibold text-win-deep'
+                  : 'rounded-full bg-agent-soft px-3 py-1 text-xs font-semibold text-agent'
+              }
+            >
+              {mode === 'live' ? 'Instagram · Real data' : 'Demo · Simulated engagement'}
+            </span>
+            <div className="flex rounded-full border border-line p-0.5" role="group" aria-label="Data mode">
+              {(['live', 'demo'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cx(
+                    'rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors',
+                    mode === m ? 'bg-ink text-paper' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <nav className="flex gap-1">

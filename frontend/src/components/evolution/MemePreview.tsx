@@ -33,7 +33,14 @@ export default function MemePreview({
     size === 'sm' ? 'text-[11px] leading-snug' : size === 'lg' ? 'text-xl' : 'text-sm leading-snug'
   const punch = size === 'sm' ? 'text-[8px]' : size === 'lg' ? 'text-sm' : 'text-[10px]'
 
-  if (content.media_url) return <img src={content.media_url} alt={content.headline} loading="lazy" className={cx('w-full object-contain', aspect, className)} />
+  if (content.media_url) {
+    const media = cx('w-full object-contain', aspect, className)
+    // The pipeline's real artifact is a reel, so a generated .mp4 has to play
+    // rather than render as a broken <img>.
+    return /\.mp4(\?|$)/i.test(content.media_url)
+      ? <video src={content.media_url} className={media} controls loop muted playsInline preload="metadata" />
+      : <img src={content.media_url} alt={content.headline} loading="lazy" className={media} />
+  }
   return (
     <div className={cx('relative overflow-hidden bg-ink', aspect, className)}>
       <span className="absolute bottom-1 left-2 text-[10px] text-white/60">Concept only · image not generated</span>

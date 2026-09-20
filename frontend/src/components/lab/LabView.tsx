@@ -29,8 +29,36 @@ function ConfigWarning() {
     Restart the backend afterwards.
   </div>
 }
+const DEMO_FIELDS = ['views', 'likes', 'comments', 'shares', 'saves'] as const
+
+/** Type engagement numbers and push them through the real scoring path. */
+function DemoObservation({ onApply, busy }: { onApply: (m: Record<string, number>) => void; busy: boolean }) {
+  const [values, setValues] = useState<Record<string, string>>({
+    views: '4200', likes: '380', comments: '44', shares: '210', saves: '150',
+  })
+  const numbers = Object.fromEntries(DEMO_FIELDS.map(k => [k, Number(values[k])]))
+  const valid = DEMO_FIELDS.every(k => Number.isFinite(numbers[k]) && numbers[k] >= 0) && numbers.views > 0
+  return <div className="card flex flex-col gap-4 border-agent p-6">
+    <div>
+      <h3 className="font-display text-xl font-bold">Simulated observation</h3>
+      <p className="mt-1 text-sm text-muted">
+        These numbers are typed, not measured — nothing is published and no Instagram data is read.
+        They are scored and learned from by the same backend code a real post uses.
+      </p>
+    </div>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {DEMO_FIELDS.map(k => <label key={k} className="text-sm font-semibold capitalize">{k}
+        <input inputMode="numeric" value={values[k]} onChange={e => setValues(v => ({ ...v, [k]: e.target.value }))}
+          className="mt-1 block w-full rounded-xl border border-line p-2" />
+      </label>)}
+    </div>
+    <Button onClick={() => onApply(numbers)} disabled={!valid || busy}>{busy && <Spinner />}Apply observation</Button>
+  </div>
+}
+
 export default function LabView() {
-  const { lab, experiments, setLab, createMemes, prepare, postIt, refreshLive, finish, resetLab, resume } = useStore()
+  const { lab, experiments, mode, setLab, createMemes, prepare, postIt, refreshLive, finish, resetLab, resume, simulate } = useStore()
+  const demo = mode === 'demo'
   const chosen = lab.candidates.find(e => e.id === lab.selection?.selectedId)
   const posted = lab.posted
   const saved = experiments.filter(e => e.selection?.selectedId === e.id)
@@ -60,23 +88,36 @@ export default function LabView() {
       <p>{lab.selection?.reasoning}</p>
       <Button onClick={prepare} disabled={lab.busy || !chosen}>{lab.busy && <Spinner />}Generate image for review</Button>
     </>}
-    {lab.step === 'review' && chosen && <div className="grid gap-6 sm:grid-cols-2">
-      <PhonePreview content={chosen.content} />
-      <div className="card flex flex-col items-start gap-4 p-6">
-        <h3 className="font-display text-xl font-bold">Approve this Instagram post</h3>
-        <p>The image and caption shown here will be published to your connected Instagram account.</p>
-        <p className="text-sm text-muted">Predicted fitness: {display(score(chosen.prediction.fitness))}/100. This score is not a probability or an engagement forecast.</p>
-        <label className="flex gap-3"><input type="checkbox" checked={lab.approved} onChange={e => setLab({ approved: e.target.checked })} />I approve publishing this image and caption.</label>
-        <Button variant="danger" onClick={postIt} disabled={!lab.approved || lab.busy}>{lab.busy && <Spinner />}Publish to Instagram</Button>
+    {lab.step === 'review' && chosen && <>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <PhonePreview content={chosen.content} />
+        <div className="card flex flex-col items-start gap-4 p-6">
+          <h3 className="font-display text-xl font-bold">{demo ? 'Review the generated media' : 'Approve this Instagram post'}</h3>
+          <p>{demo
+            ? 'Nothing will be published. Enter engagement numbers below to drive the rest of the loop.'
+            : 'The media and caption shown here will be published to your connected Instagram account.'}</p>
+          {chosen.content.media_source && <p className="text-sm text-muted">
+            Media source: <strong>{chosen.content.media_source}</strong>
+            {chosen.content.media_source !== 'veo' && ' — not AI-generated video'}
+          </p>}
+          <p className="text-sm text-muted">Predicted fitness: {display(score(chosen.prediction.fitness))}/100. This score is not a probability or an engagement forecast.</p>
+          {!demo && <>
+            <label className="flex gap-3"><input type="checkbox" checked={lab.approved} onChange={e => setLab({ approved: e.target.checked })} />I approve publishing this media and caption.</label>
+            <Button variant="danger" onClick={postIt} disabled={!lab.approved || lab.busy}>{lab.busy && <Spinner />}Publish to Instagram</Button>
+          </>}
+        </div>
       </div>
-    </div>}
+      {demo && <DemoObservation busy={lab.busy} onApply={m => simulate(m as never)} />}
+    </>}
     {lab.step === 'results' && posted && <>
       <div className="card flex flex-col gap-3 p-5">
-        <h3 className="font-display text-xl font-bold">Published to Instagram</h3>
-        <p className="text-sm">Media ID: {posted.deployment.post_id}</p>
-        {posted.publish_result?.permalink && <a className="text-agent underline" href={posted.publish_result.permalink} target="_blank" rel="noreferrer">Open Instagram post</a>}
-        <Button variant="secondary" onClick={refreshLive} disabled={lab.fetching || lab.busy}>{lab.fetching && <Spinner />}Fetch and save Instagram metrics</Button>
-        <p className="text-sm text-muted">Missing metrics remain unavailable. Instagram insights can take time to arrive.</p>
+        <h3 className="font-display text-xl font-bold">{demo ? 'Simulated run' : 'Published to Instagram'}</h3>
+        <p className="text-sm">{demo ? 'Not published. Engagement below was entered by hand.' : `Media ID: ${posted.deployment.post_id}`}</p>
+        {!demo && posted.publish_result?.permalink && <a className="text-agent underline" href={posted.publish_result.permalink} target="_blank" rel="noreferrer">Open Instagram post</a>}
+        {!demo && <>
+          <Button variant="secondary" onClick={refreshLive} disabled={lab.fetching || lab.busy}>{lab.fetching && <Spinner />}Fetch and save Instagram metrics</Button>
+          <p className="text-sm text-muted">Missing metrics remain unavailable. Instagram insights can take time to arrive.</p>
+        </>}
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{(['views','likes','comments','shares','saves'] as const).map(k => <div className="card p-4" key={k}><p className="capitalize text-muted">{k}</p><strong className="text-2xl">{display(posted.observed[k])}</strong></div>)}</div>
       <div className="card p-5"><p>Predicted fitness: {display(score(posted.prediction.fitness))}/100</p><p>Observed fitness: {display(score(posted.observed.fitness))}/100</p></div>

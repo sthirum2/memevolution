@@ -33,6 +33,9 @@ class ContentIn(BaseModel):
     caption: str = ""
     audio: str = ""
     media_url: str = ""
+    # Which tier produced media_url: "veo", "image-wrapped" or "fallback". The
+    # UI shows it verbatim so a rendered card is never presented as Veo output.
+    media_source: str | None = None
 
 
 class ExperimentCreate(BaseModel):
@@ -57,7 +60,10 @@ class PredictionCreate(BaseModel):
 
 class DeployCreate(BaseModel):
     post_id: str = Field(min_length=1, max_length=200)
-    platform: Literal["instagram"] = "instagram"
+    # "demo" records a run that was never published: the operator supplies the
+    # engagement numbers instead. Kept distinct from "instagram" so a simulated
+    # observation can never be read back as real platform data.
+    platform: Literal["instagram", "demo"] = "instagram"
     timestamp: datetime | None = None
 
     @field_validator("post_id")

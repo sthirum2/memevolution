@@ -6,7 +6,7 @@ import random
 from dataclasses import dataclass
 
 from memevolution.evolution.learning import update_state
-from memevolution.evolution.population import generate_population
+from memevolution.evolution.population import _select_parent, generate_population
 from memevolution.evolution.selection import SelectionResult, select_candidate
 from memevolution.llm.gemini import ConceptGenerator, get_concept_generator
 from memevolution.models.agent import AgentState
@@ -52,16 +52,24 @@ def run_generation(
         counter += 1
         return f"exp_{counter:03d}"
 
+    parent = None
+    if topic:
+        # An operator-chosen topic pins the subject for the whole batch, so the
+        # parent carries it and `topic` is held out of the mutable pool; the
+        # candidates then differ by format/humor/hook instead of drifting off
+        # the subject that was asked for.
+        parent = _select_parent(state).model_copy(update={"topic": topic})
+
     candidates = generate_population(
         state,
         population_size=population_size,
+        parent=parent,
         id_factory=id_factory,
         rng=rng,
+        pin_topic=bool(topic),
     )
 
     for candidate in candidates:
-        if topic:
-            candidate.genome.topic = topic
         candidate.prediction = predictor.predict_fitness(candidate.genome)
 
     selection = select_candidate(candidates, exploration_rate=state.exploration_rate, rng=rng)

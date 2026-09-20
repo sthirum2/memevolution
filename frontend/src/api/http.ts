@@ -1,4 +1,4 @@
-import type { AgentState, CorpusStats, Experiment, GenerateParams, GenerationSummary, LiveMetrics, PublishResult, SelectionResult, EvolveResult } from '@/types'
+import type { AgentState, CorpusStats, Experiment, GenerateParams, GenerationSummary, LiveMetrics, MetricsInput, PublishResult, SelectionResult, EvolveResult } from '@/types'
 
 // Empty origin supports the backend-served build and Vite's development proxy.
 const BASE = (import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -75,3 +75,24 @@ export const prepareExperiment = async (id: string) => normalizeExperiment(await
 export const publishPost = (id: string) => post<PublishResult>(`/experiments/${id}/publish`, { platform: 'instagram' })
 export const fetchLiveMetrics = (id: string) => post<LiveMetrics>(`/experiments/${id}/live-metrics`)
 export const evolve = (id: string) => post<EvolveResult>('/evolve', { experiment_id: id })
+
+/**
+ * Demo mode: mark the experiment deployed without touching Instagram.
+ *
+ * The post id is deliberately prefixed so nothing downstream can mistake a
+ * simulated run for a real one -- there is no Instagram media behind it.
+ */
+export const demoDeploy = async (id: string) =>
+  normalizeExperiment(await post<BackendExperiment>(`/experiments/${id}/deploy`, {
+    platform: 'demo', post_id: `demo_${id}`,
+  }))
+
+/**
+ * Demo mode: hand the backend engagement numbers the operator typed.
+ *
+ * This is the same endpoint a real observation uses, so the figures run
+ * through the real spread_score and land in the same snapshot table; only
+ * their origin differs, and `platform: 'demo'` records that.
+ */
+export const recordMetrics = async (id: string, metrics: MetricsInput) =>
+  normalizeExperiment(await post<BackendExperiment>(`/experiments/${id}/metrics`, metrics))

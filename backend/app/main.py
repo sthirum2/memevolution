@@ -439,23 +439,24 @@ def prepare_experiment(experiment_id: str, db: Session = Depends(get_db)) -> Exp
         if not content.get("headline") or not content.get("visual_description"):
             raise HTTPException(status_code=409, detail="A generated concept is required")
         if not content.get("media_url"):
+            # The artifact this pipeline is meant to produce is a reel, so this
+            # asks for video and takes whichever tier answers. The source is
+            # recorded verbatim -- 'veo', 'image-wrapped' or 'fallback' -- so
+            # nothing downstream can present a rendered card as generated video.
+            from .generate_video import make_meme_video
             try:
-                from .generate_image import make_meme_image
-                reasons: list[str] = []
-                path, source = make_meme_image(experiment.id, content["headline"], content.get("punchline"),
-                                              content["visual_description"], experiment.genome.topic,
-                                              on_error=reasons.append)
-                if source != "gemini":
-                    detail = f" {reasons[0]}" if reasons else ""
-                    raise publish_mod.PublishError(
-                        f"Gemini image generation failed.{detail} No fallback image is approved for publishing."
-                    )
-                content["media_url"] = f"/media/{path.name}"
-                content["_image_source"] = source
-                experiment.content = content
-                db.commit()
-            except publish_mod.PublishError as exc:
-                raise HTTPException(status_code=503, detail=str(exc)) from exc
+                path, source = make_meme_video(
+                    experiment.id, content["headline"], content.get("punchline"),
+                    content["visual_description"], experiment.genome.topic,
+                )
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=503, detail=f"Media generation failed: {type(exc).__name__}: {exc}"
+                ) from exc
+            content["media_url"] = f"/media/{path.name}"
+            content["media_source"] = source
+            experiment.content = content
+            db.commit()
         return to_response(experiment)
 
 
@@ -471,8 +472,8 @@ def publish_experiment(experiment_id: str, payload: PublishRequest, db: Session 
             raise HTTPException(status_code=409, detail="Experiment already has an Instagram post")
         if content.get("_publishing"):
             raise HTTPException(status_code=409, detail="Previous publish outcome is uncertain. Check Instagram before retrying; attach its media ID with /deploy if it succeeded.")
-        if not content.get("media_url") or content.get("_image_source") != "gemini":
-            raise HTTPException(status_code=409, detail="Prepare and review the generated image first")
+        if not content.get("media_url"):
+            raise HTTPException(status_code=409, detail="Prepare and review the generated media first")
         try:
             publish_mod.validate_configuration()
         except publish_mod.PublishError as exc:

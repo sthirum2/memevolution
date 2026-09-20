@@ -5,7 +5,8 @@
 // serialises exactly this shape and the agent writes exactly this shape.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type Platform = 'instagram'
+/** 'demo' marks a run whose engagement was typed in, not measured. */
+export type Platform = 'instagram' | 'demo'
 
 export type ExperimentStatus =
   | 'pending' // genome exists, model has not scored it yet
@@ -53,6 +54,8 @@ export interface Content {
   caption: string
   audio: string
   media_url: string
+  /** Which tier produced media_url: 'veo', 'image-wrapped' or 'fallback'. */
+  media_source?: string
 }
 
 export interface Deployment {

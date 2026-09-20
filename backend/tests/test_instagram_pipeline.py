@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from app import main, publish, generate_image
+from app import main, publish, generate_video
 from app.database import Base, get_db
 from memevolution.llm import gemini
 from memevolution.prediction import role1
@@ -52,8 +52,8 @@ def test_full_pipeline_and_restart_contract(client, monkeypatch, tmp_path):
         del main.app.state.last_selection
     assert client.post("/select", json={"candidate_ids": [r["id"] for r in rows]}).json()["selectedId"] == selected
     assert client.post("/select", json={"candidate_ids": [selected]}).status_code == 409
-    path = tmp_path / (selected + ".jpg")
-    monkeypatch.setattr(generate_image, "make_meme_image", lambda *a, **kw: (path, "gemini"))
+    path = tmp_path / (selected + ".mp4")
+    monkeypatch.setattr(generate_video, "make_meme_video", lambda *a, **kw: (path, "veo"))
     base = "/experiments/" + selected
     assert client.post(base + "/publish", json={}).status_code == 409
     prepared = client.post(base + "/prepare").json()

@@ -5,7 +5,13 @@ from __future__ import annotations
 import random
 from typing import Callable
 
-from memevolution.evolution.mutation import ALL_TRAITS, generate_hypothesis, mutate
+from memevolution.evolution.mutation import (
+    ALL_TRAITS,
+    CATEGORICAL_TRAITS,
+    CATEGORICAL_VALUES,
+    generate_hypothesis,
+    mutate,
+)
 from memevolution.models.agent import AgentState
 from memevolution.models.experiment import Experiment
 from memevolution.models.genome import MemeGenome
@@ -32,6 +38,27 @@ def _select_parent(state: AgentState) -> MemeGenome:
     return SEED_GENOME
 
 
+def _assign_traits(population_size: int, rng: random.Random) -> list[str]:
+    """One belief-bearing trait per candidate, spread across the pool.
+
+    Only these traits teach the agent anything: learning.update_state moves a
+    belief for absurdity/irony/relatability/trend_relevance/video_length/
+    audio_strategy and ignores the categorical ones. So every candidate carries
+    one of these as its controlled variable, guaranteeing that whichever
+    candidate wins, the observation that follows can update a belief.
+    """
+    pool = [t for t in ALL_TRAITS if t not in CATEGORICAL_TRAITS]
+    rng.shuffle(pool)
+    return [pool[i % len(pool)] for i in range(population_size)]
+
+
+def _distinct_formats(parent_format: str, count: int, rng: random.Random) -> list[str]:
+    """`count` formats, as distinct as the pool allows, none of them the parent's."""
+    pool = [f for f in CATEGORICAL_VALUES["format"] if f != parent_format]
+    rng.shuffle(pool)
+    return [pool[i % len(pool)] for i in range(count)]
+
+
 def generate_population(
     state: AgentState,
     population_size: int = 5,
@@ -40,6 +67,7 @@ def generate_population(
     parent_id: str | None = None,
     id_factory: Callable[[], str],
     rng: random.Random | None = None,
+    pin_topic: bool = False,
 ) -> list[Experiment]:
     """Generate ~population_size candidates, each testing one different trait.
 
@@ -53,13 +81,27 @@ def generate_population(
     parent_genome = parent or _select_parent(state)
     next_generation = state.generation + 1
 
-    trait_pool = list(ALL_TRAITS)
-    rng.shuffle(trait_pool)
-    assigned_traits = [trait_pool[i % len(trait_pool)] for i in range(population_size)]
+    assigned_traits = _assign_traits(population_size, rng)
+    # Format is the axis a viewer actually sees, so it is varied across the
+    # batch rather than left to chance: on its own the belief-bearing trait is
+    # a number, and five candidates carrying the parent's wording read as one
+    # idea repeated no matter how the numbers differ.
+    formats = _distinct_formats(parent_genome.format, population_size, rng)
+    # Some candidates also shift a second categorical so the batch differs in
+    # voice and framing, not only in what kind of clip it is.
+    flavour = [t for t in CATEGORICAL_TRAITS if t not in ("format", "topic")]
+    if not pin_topic:
+        flavour.append("topic")
+    rng.shuffle(flavour)
 
     candidates: list[Experiment] = []
-    for trait in assigned_traits:
-        mutated_genome, mutations = mutate(parent_genome, state, traits=[trait], rng=rng)
+    for i, (trait, fmt) in enumerate(zip(assigned_traits, formats)):
+        traits = [trait, "format"]
+        if i % 2 == 1 and flavour:
+            traits.append(flavour[(i // 2) % len(flavour)])
+        mutated_genome, mutations = mutate(
+            parent_genome, state, traits=traits, rng=rng, forced={"format": fmt}
+        )
         hypothesis = generate_hypothesis(mutations)
         candidates.append(
             Experiment(
