@@ -65,7 +65,7 @@ export default function LabView() {
   const saved = experiments.filter(e => e.selection?.selectedId === e.id)
   return <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
     <div><h2 className="font-display text-2xl font-bold">Run an Instagram experiment</h2>
-      <p className="mt-2 text-muted">Generate strategies, review the selected image, then measure real engagement.</p></div>
+      <p className="mt-2 text-muted">Generate strategies, review the selected video, then measure real engagement.</p></div>
     <p className="text-sm font-semibold text-agent">{lab.step === 'setup' ? '1 · Choose a strategy' : lab.step === 'candidates' ? '2 · Model selection' : lab.step === 'review' ? '3 · Review and approve' : '4 · Observe and learn'}</p>
     {lab.error && <div role="alert" className="rounded-xl border border-dead bg-dead-soft p-4">{lab.error}</div>}
     {lab.step === 'setup' && <>
@@ -87,7 +87,7 @@ export default function LabView() {
         <p className="font-semibold">Predicted fitness: {display(score(e.prediction.fitness))}/100</p>
       </div>)}</div>
       <p>{lab.selection?.reasoning}</p>
-      <Button onClick={prepare} disabled={lab.busy || !chosen}>{lab.busy && <Spinner />}Generate image for review</Button>
+      <Button onClick={prepare} disabled={lab.busy || !chosen}>{lab.busy && <Spinner />}Generate video for review</Button>
     </>}
     {lab.step === 'review' && chosen && <>
       <div className="grid gap-6 sm:grid-cols-2">
