@@ -1,9 +1,17 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from pathlib import Path
+
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+import urllib.parse
+import urllib.request
+import json
+from sqlalchemy import select, delete as sa_delete
 from sqlalchemy.orm import Session, selectinload
 
 from .config import get_settings
@@ -40,9 +48,25 @@ app.add_middleware(
 tiktok_service = ManualTikTokService()
 
 
+_DIST = Path(__file__).parent.parent.parent / "frontend" / "dist"
+_MEDIA = Path(__file__).parent.parent / "media"
+
+
+@app.get("/media/{filename}")
+def serve_media(filename: str):
+    """Rendered memes, served from the same port as everything else so one
+    tunnel covers the app, the API, and the images Meta fetches to publish."""
+    file = _MEDIA / filename
+    if not file.exists() or not file.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(str(file))
+
+
 @app.on_event("startup")
 def create_tables() -> None:
     initialize_database()
+    if _DIST.exists():
+        app.mount("/assets", StaticFiles(directory=str(_DIST / "assets")), name="assets")
 
 
 @app.get("/health")
@@ -301,6 +325,69 @@ def evolve(payload: dict | None = None) -> dict:
         raise HTTPException(status_code=503, detail=f"evolve failed: {exc}") from exc
 
 
+@app.delete("/experiments")
+def clear_all(db: Session = Depends(get_db)) -> dict:
+    """Wipe everything for a clean demo reset."""
+    db.execute(sa_delete(EngagementSnapshot))
+    db.execute(sa_delete(Prediction))
+    db.execute(sa_delete(Genome))
+    db.execute(sa_delete(Experiment))
+    db.commit()
+    return {"cleared": True}
+
+
+def _update_env_file(key: str, value: str) -> None:
+    env_path = Path(__file__).parent.parent / ".env"
+    text = env_path.read_text() if env_path.exists() else ""
+    lines = text.splitlines()
+    new_lines, updated = [], False
+    for line in lines:
+        if line.startswith(f"{key}="):
+            new_lines.append(f"{key}={value}")
+            updated = True
+        else:
+            new_lines.append(line)
+    if not updated:
+        new_lines.append(f"{key}={value}")
+    env_path.write_text("\n".join(new_lines) + "\n")
+
+
+@app.post("/refresh-ig-token")
+def refresh_ig_token(payload: dict) -> dict:
+    """Exchange a short-lived Graph API token for a 60-day long-lived one and save it."""
+    token = (payload or {}).get("token")
+    app_id = (payload or {}).get("app_id") or os.environ.get("IG_APP_ID", "")
+    app_secret = (payload or {}).get("app_secret") or os.environ.get("IG_APP_SECRET", "")
+    if not token:
+        raise HTTPException(status_code=422, detail="Provide a 'token' field with your short-lived access token.")
+    if not app_id or not app_secret:
+        raise HTTPException(
+            status_code=422,
+            detail="Also provide 'app_id' and 'app_secret' (or set IG_APP_ID / IG_APP_SECRET in backend/.env).",
+        )
+    url = (
+        f"https://graph.facebook.com/v21.0/oauth/access_token"
+        f"?grant_type=fb_exchange_token"
+        f"&client_id={urllib.parse.quote(str(app_id))}"
+        f"&client_secret={urllib.parse.quote(str(app_secret))}"
+        f"&fb_exchange_token={urllib.parse.quote(str(token))}"
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=15) as r:
+            resp = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        raise HTTPException(status_code=502, detail=f"Facebook returned an error: {body[:400]}") from None
+    long_token = resp.get("access_token")
+    if not long_token:
+        raise HTTPException(status_code=502, detail=f"Unexpected response: {resp}")
+    os.environ["IG_ACCESS_TOKEN"] = long_token
+    _update_env_file("IG_APP_ID", str(app_id))
+    _update_env_file("IG_APP_SECRET", str(app_secret))
+    _update_env_file("IG_ACCESS_TOKEN", long_token)
+    return {"long_lived_token": long_token, "expires_in_seconds": resp.get("expires_in", 5183944)}
+
+
 @app.get("/corpus")
 def corpus() -> dict:
     """Historical grounding. Empty shape keeps the UI happy until Role 1 fills it."""
@@ -342,3 +429,37 @@ def experiment_live_metrics(experiment_id: str, db: Session = Depends(get_db)) -
         return publish_mod.live_metrics(to_response(experiment).model_dump())
     except publish_mod.PublishError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
+
+
+# Temporary OAuth callback route to capture TikTok authorization code
+_tiktok_code: dict = {}
+
+@app.get("/callback")
+def tiktok_callback(code: str = "", error: str = "", error_description: str = ""):
+    """Captures TikTok OAuth callback code. Temporary route for token generation."""
+    if error:
+        return {"error": error, "description": error_description}
+    _tiktok_code["code"] = code
+    return {
+        "status": "✅ Success! Copy this code and paste it to Claude:",
+        "code": code,
+        "next": "Paste this code to Claude to exchange for an access token"
+    }
+
+@app.get("/tiktok-code")
+def get_tiktok_code():
+    """Read the captured TikTok code."""
+    return _tiktok_code
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_frontend(full_path: str):
+    """Serve the built React frontend for any non-API route."""
+    if not _DIST.exists():
+        return {"error": "Frontend not built. Run: cd frontend && npm run build"}
+    # Serve static assets directly
+    file = _DIST / full_path
+    if file.exists() and file.is_file():
+        return FileResponse(str(file))
+    # SPA fallback — always return index.html
+    return FileResponse(str(_DIST / "index.html"))

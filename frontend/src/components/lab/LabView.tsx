@@ -13,7 +13,7 @@ import {
 import { useStore } from '@/store/useStore'
 import type { LabStep } from '@/store/useStore'
 import type { Platform } from '@/types'
-import { USE_MOCK } from '@/api/client'
+import { isDemoMode } from '@/api/client'
 import { C, scoreColor } from '@/lib/fitness'
 import { PLATFORM_NAMES, plainTrait, score } from '@/lib/plain'
 import { useCountUp } from '@/lib/useCountUp'
@@ -459,7 +459,7 @@ function StepReview() {
                 The AI chose it, but a person has to approve it. Real people will see this on{' '}
                 {PLATFORM_NAMES[lab.platform]}.
               </p>
-              {USE_MOCK ? (
+              {isDemoMode() ? (
                 <p className="mt-2 text-sm font-medium text-guess">
                   Right now this is a demo — nothing actually gets posted.
                 </p>
@@ -504,10 +504,11 @@ function StepResults() {
   const finish = useStore((s) => s.finish)
   const setView = useStore((s) => s.setView)
   const posted = lab.posted
+  const liveMode = !isDemoMode()
 
-  // Let the first few hours run on their own so the panel feels alive.
+  // The fast-forward animation is a demo-only fiction — never run it against real data.
   useEffect(() => {
-    if (!posted || lab.hours > 0) return
+    if (liveMode || !posted || lab.hours > 0) return
     let h = 0
     const id = window.setInterval(() => {
       h += 1
@@ -516,7 +517,7 @@ function StepResults() {
     }, 110)
     return () => window.clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [posted?.id])
+  }, [posted?.id, liveMode])
 
   if (!posted) return null
 
@@ -525,19 +526,37 @@ function StepResults() {
   // observed. Reading straight through them white-screens the whole tab.
   const predicted = posted.prediction?.fitness ?? 0
   const observedFitness = posted.observed?.fitness ?? null
-  const f = observedFitness ?? predicted
-  const base = 2400 + f * f * 46000
-  const s = SAT(Math.max(0.01, lab.hours))
-  const live = {
-    views: Math.round(base * s),
-    likes: Math.round(base * s * (0.06 + f * 0.1)),
-    comments: Math.round(base * s * (0.004 + f * 0.01)),
-    shares: Math.round(base * s * (0.003 + f * f * 0.048)),
-    saves: Math.round(base * s * (0.006 + f * 0.02)),
+
+  type Metrics = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null }
+  let live: Metrics
+  let running: number | null
+  let diff: number | null
+
+  if (liveMode) {
+    // Real data only, ever. No computed curve, no fallback — "—" until it is pulled.
+    const real = lab.live
+    live = real
+      ? { views: real.views, likes: real.likes, comments: real.comments, shares: real.shares, saves: real.saves }
+      : { views: null, likes: null, comments: null, shares: null, saves: null }
+    running = observedFitness ?? real?.fitness ?? null
+    diff = running !== null ? running - predicted : null
+  } else {
+    const f = observedFitness ?? predicted
+    const base = 2400 + f * f * 46000
+    const s = SAT(Math.max(0.01, lab.hours))
+    live = {
+      views: Math.round(base * s),
+      likes: Math.round(base * s * (0.06 + f * 0.1)),
+      comments: Math.round(base * s * (0.004 + f * 0.01)),
+      shares: Math.round(base * s * (0.003 + f * f * 0.048)),
+      saves: Math.round(base * s * (0.006 + f * 0.02)),
+    }
+    running = observedFitness ?? predicted * (0.72 + 0.28 * s)
+    diff = running - predicted
   }
-  const running = observedFitness ?? predicted * (0.72 + 0.28 * s)
-  const diff = running - predicted
+
   const done = Boolean(lab.evolveResult)
+  const canFinish = !liveMode || Boolean(lab.live && lab.live.views !== null)
 
   return (
     <div className="flex flex-col gap-6">
@@ -552,63 +571,87 @@ function StepResults() {
 
       <div className="card flex flex-wrap items-end gap-8 p-6">
         <div>
-          <p className="label">Spread score</p>
+          <p className="label" title="Weighted viral potential: 34% shares + 24% saves + 18% comments + 14% likes + 10% reach">Spread score</p>
           <p
-            className="num font-display text-6xl font-bold leading-none"
-            style={{ color: scoreColor(running) }}
+            className="num font-display text-6xl font-bold leading-none cursor-help"
+            style={{ color: running === null ? undefined : scoreColor(running) }}
+            title="Weighted viral potential: 34% shares + 24% saves + 18% comments + 14% likes + 10% reach"
           >
-            {Math.round(running * 100)}
+            {running === null ? '—' : Math.round(running * 100)}
           </p>
           <p className="mt-1.5 text-sm text-muted">
-            AI predicted {predicted ? score(predicted) : '–'} ·{' '}
-            <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
-              {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
-            </strong>
+            AI predicted {predicted ? score(predicted) : '–'}
+            {running !== null && diff !== null ? (
+              <>
+                {' '}
+                ·{' '}
+                <strong style={{ color: diff >= 0 ? C.win : C.dead }}>
+                  {diff >= 0 ? 'beat it by' : 'missed by'} {Math.abs(Math.round(diff * 100))}
+                </strong>
+              </>
+            ) : (
+              ' · waiting for real data'
+            )}
           </p>
         </div>
         <div className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-5">
           {(
             [
-              ['Views', live.views, false],
-              ['Likes', live.likes, false],
-              ['Comments', live.comments, false],
-              ['Shares', live.shares, true],
-              ['Saves', live.saves, true],
-            ] as [string, number, boolean][]
-          ).map(([k, v, hot]) => (
-            <Ticker key={k} label={k} value={v} hot={hot} />
+              ['Views', live.views, false, 'Total times this content was seen'],
+              ['Likes', live.likes, false, 'Number of likes this post received'],
+              ['Comments', live.comments, false, 'Number of comments left on this post'],
+              ['Shares', live.shares, true, 'Times shared — strongest signal for virality (34% of spread score)'],
+              ['Saves', live.saves, true, 'Times saved — signals deep interest (24% of spread score)'],
+            ] as [string, number | null, boolean, string][]
+          ).map(([k, v, hot, tip]) => (
+            <Ticker key={k} label={k} value={v} hot={hot} tip={tip} />
           ))}
         </div>
       </div>
 
-      <div className="card flex flex-col gap-3 p-5">
-        <div className="flex items-center justify-between">
-          <p className="label">Fast-forward the results</p>
-          <span className="num text-sm font-semibold">{lab.hours} hours after posting</span>
+      {liveMode ? (
+        <div className="card flex flex-col gap-3 p-5">
+          <p className="label">Live numbers</p>
+          <p className="text-sm text-muted">
+            {!lab.published
+              ? 'Publish to Instagram, then pull the real numbers — nothing on this screen is estimated in live mode.'
+              : lab.live
+                ? `Real data pulled from ${PLATFORM_NAMES[lab.platform]} — use "Pull the real numbers" above to refresh.`
+                : 'Post is live. Use "Pull the real numbers" above to load real engagement data.'}
+          </p>
         </div>
-        <input
-          type="range"
-          min={0}
-          max={24}
-          step={1}
-          value={lab.hours}
-          onChange={(e) => setHours(Number(e.target.value))}
-          className="w-full accent-[#6D4AFF]"
-        />
-        <p className="text-xs text-muted">
-          A demo fast-forward through a projected 24 hours, not live data.
-        </p>
-      </div>
+      ) : (
+        <div className="card flex flex-col gap-3 p-5">
+          <div className="flex items-center justify-between">
+            <p className="label">Fast-forward the results</p>
+            <span className="num text-sm font-semibold">{lab.hours} hours after posting</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            step={1}
+            value={lab.hours}
+            onChange={(e) => setHours(Number(e.target.value))}
+            className="w-full accent-[#6D4AFF]"
+          />
+          <p className="text-xs text-muted">
+            Demo mode — fast-forward through a projected 24 hours.
+          </p>
+        </div>
+      )}
 
       {!done ? (
         <div className="card flex flex-col items-start gap-3 bg-agent-soft/50 p-6 sm:flex-row sm:items-center">
           <div className="flex-1">
             <h3 className="font-display text-lg font-bold">Teach the AI what happened</h3>
             <p className="text-sm text-muted">
-              Feeding the real result back is what makes the next round different from this one.
+              {canFinish
+                ? 'Feeding the real result back is what makes the next round different from this one.'
+                : 'Pull the real numbers above first — in live mode the AI only learns from real engagement.'}
             </p>
           </div>
-          <Button size="lg" onClick={finish} disabled={lab.busy}>
+          <Button size="lg" onClick={finish} disabled={lab.busy || !canFinish}>
             {lab.busy ? <Spinner /> : null}
             Update the AI
           </Button>
@@ -664,9 +707,12 @@ function PublishPanel() {
         <div>
           <h3 className="font-display text-lg font-bold">Put it on a real account</h3>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            Nothing has been published yet — the numbers below are a projection. Publishing sends
-            this meme to the connected {PLATFORM_NAMES[lab.platform]} account, where real people can
-            see and share it.
+            Nothing has been published yet
+            {isDemoMode()
+              ? ' — the numbers below are a projection.'
+              : ' — the numbers below stay blank until you publish and pull real data.'}{' '}
+            Publishing sends this meme to the connected {PLATFORM_NAMES[lab.platform]} account, where
+            real people can see and share it.
           </p>
         </div>
 
@@ -684,7 +730,7 @@ function PublishPanel() {
             {lab.busy ? <Spinner /> : null}
             Publish to {PLATFORM_NAMES[lab.platform]}
           </Button>
-          {USE_MOCK ? (
+          {isDemoMode() ? (
             <span className="text-sm text-muted">
               Demo mode — this simulates a publish, nothing is posted anywhere.
             </span>
@@ -771,13 +817,13 @@ function PublishPanel() {
   )
 }
 
-function Ticker({ label, value, hot }: { label: string; value: number; hot?: boolean }) {
-  const shown = useCountUp(value, 400, true)
+function Ticker({ label, value, hot, tip }: { label: string; value: number | null; hot?: boolean; tip?: string }) {
+  const shown = useCountUp(value ?? 0, 400, true)
   return (
-    <div>
+    <div title={tip} className={tip ? 'cursor-help' : undefined}>
       <p className="text-xs text-muted">{label}</p>
-      <p className="num font-display text-xl font-bold" style={{ color: hot ? C.win : C.ink }}>
-        {Math.round(shown).toLocaleString()}
+      <p className="num font-display text-xl font-bold" style={{ color: value === null ? undefined : hot ? C.win : C.ink }}>
+        {value === null ? '—' : Math.round(shown).toLocaleString()}
       </p>
     </div>
   )

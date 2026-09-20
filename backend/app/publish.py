@@ -108,7 +108,7 @@ def _publish_instagram(experiment_id: str, filename: str, caption: str, source: 
             "run ./scripts/tunnel.sh — because Meta fetches the image from its own servers."
         )
 
-    media_url = f"{base}/{filename}"
+    media_url = f"{base}/media/{filename}"
     try:
         container = _post(
             f"{GRAPH}/{ig_id}/media",

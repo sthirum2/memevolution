@@ -11,6 +11,7 @@ import type {
   SelectionResult,
 } from '@/types'
 import * as client from '@/api/client'
+import { isDemoMode, setDemoMode } from '@/api/client'
 
 export type View = 'evolution' | 'lab' | 'learned'
 export type LabStep = 'setup' | 'candidates' | 'review' | 'results'
@@ -66,10 +67,13 @@ interface Store {
   view: View
   selectedGen: number
   openId: string | null
+  demoMode: boolean
 
   lab: LabState
 
   init(): Promise<void>
+  resetAll(): Promise<void>
+  toggleDemoMode(): void
   setView(v: View): void
   setSelectedGen(g: number): void
   open(id: string | null): void
@@ -97,8 +101,36 @@ export const useStore = create<Store>((set, get) => ({
   view: 'evolution',
   selectedGen: 0,
   openId: null,
+  demoMode: isDemoMode(),
 
   lab: freshLab(),
+
+  async resetAll() {
+    if (!isDemoMode()) {
+      try { await fetch('/experiments', { method: 'DELETE' }) } catch { /* ignore network error */ }
+    }
+    booting = false
+    set({
+      experiments: [],
+      agentStates: [],
+      generations: [],
+      corpus: null,
+      lab: freshLab(),
+      view: 'lab',
+      loading: false,
+      error: null,
+      selectedGen: 0,
+      openId: null,
+    })
+  },
+
+  toggleDemoMode() {
+    const next = !get().demoMode
+    setDemoMode(next)
+    set({ demoMode: next })
+    booting = false
+    get().resetAll()
+  },
 
   async init() {
     // React StrictMode mounts effects twice in dev; without this everything loads twice.
@@ -275,12 +307,17 @@ export const useStore = create<Store>((set, get) => ({
   async finish() {
     const { lab } = get()
     if (!lab.posted || lab.busy) return
-    get().setLab({ busy: true })
+    const real = lab.live
+    // Live mode never teaches the agent from a made-up number — real engagement or nothing.
+    if (!isDemoMode() && (!real || real.views === null)) {
+      get().setLab({
+        error: 'Pull the real numbers from Instagram before updating the AI — live mode never learns from projections.',
+      })
+      return
+    }
+    get().setLab({ busy: true, error: null })
     try {
-      // Prefer the platform's real numbers when the post is actually live.
-      const real = lab.live
       const p = lab.posted.prediction.fitness
-      const fallbackViews = Math.round(1800 + p * p * 52000 * (0.6 + lab.hours / 24))
       const metrics =
         real && real.views !== null
           ? {
@@ -290,13 +327,16 @@ export const useStore = create<Store>((set, get) => ({
               shares: real.shares ?? 0,
               saves: real.saves ?? 0,
             }
-          : {
-              views: fallbackViews,
-              likes: Math.round(fallbackViews * (0.06 + p * 0.1)),
-              comments: Math.round(fallbackViews * (0.004 + p * 0.01)),
-              shares: Math.round(fallbackViews * (0.003 + p * p * 0.048)),
-              saves: Math.round(fallbackViews * (0.006 + p * 0.02)),
-            }
+          : (() => {
+              const fallbackViews = Math.round(1800 + p * p * 52000 * (0.6 + lab.hours / 24))
+              return {
+                views: fallbackViews,
+                likes: Math.round(fallbackViews * (0.06 + p * 0.1)),
+                comments: Math.round(fallbackViews * (0.004 + p * 0.01)),
+                shares: Math.round(fallbackViews * (0.003 + p * p * 0.048)),
+                saves: Math.round(fallbackViews * (0.006 + p * 0.02)),
+              }
+            })()
       const updated = await client.recordMetrics(lab.posted.id, metrics)
       // The live backend needs to know which experiment produced these numbers.
       const evolveResult = await client.evolve(lab.posted.id, metrics)
