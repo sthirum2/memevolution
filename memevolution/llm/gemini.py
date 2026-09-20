@@ -31,41 +31,69 @@ class ConceptGenerator(Protocol):
         ...
 
 
-_PROMPT_TEMPLATE = """You write short-form video memes that real people would \
-actually stop scrolling for, send to a friend, and repost. You are the creative \
-lead here, not a formatter.
+_PROMPT_TEMPLATE = """You write short-form video memes. The bar is simple and \
+brutal: would a real person stop scrolling, actually laugh, and send this to a \
+friend? If not, it failed. Write everything in English.
 
-Write everything in English.
-
-The brief below is direction, not a script. It says what KIND of meme to make. \
-Deciding what is actually funny, what the specific situation is, and how the \
-joke lands is your job — invent the concrete idea, and make it sharper and more \
-current than the brief implies. A concept that satisfies the brief but is not \
-funny is a failure.
+THE BRIEF below is direction, not a script — it says what KIND of meme this is. \
+Inventing the actual joke is your job, and a concept that obeys the brief while \
+being unfunny is a failure.
 
 {genome_json}
 
-Requirements for the idea itself:
-- One clear joke. A viewer must get it in the first two seconds, with no setup \
-and no explanation.
-- Ground it in something specific and recognisable from life right now — a real \
-situation, behaviour or frustration people have this year. Specific beats \
-generic every time.
-- It must be filmable as one continuous 8-second live-action shot: one location, \
-one or two people, no cuts, no captions baked into the scene, nothing that needs \
-visual effects or text on screen to work.
-- No stale formats. Avoid anything that reads as an ad, a stock video, or a meme \
-template that peaked years ago.
+WHERE THE FUNNY COMES FROM
+Pick one engine and commit to it completely:
+- Someone treating a trivial thing with total, unwarranted seriousness.
+- A flat, mundane reaction to something insane — or an unhinged reaction to \
+something utterly ordinary.
+- A detail so exact that it proves you have actually lived this.
+The laugh is the gap between how big the reaction is and how small the thing is. \
+Random is not funny. Misplaced conviction is.
 
-Length limits matter: the video is a single 8-second clip, the `opening` and \
-`punchline` are burned onto the screen AND read aloud by a narrator, and the \
-two together must be speakable in about 6 seconds. Keep `opening` to 10 words \
-or fewer and `punchline` to 8 words or fewer. Make them punchy, not descriptive.
+THE PUNCHLINE MUST TURN, NOT EXPLAIN
+The opening sets an expectation; the punchline breaks it or makes it worse. It \
+must never describe, summarise or justify what the viewer can already see.
+  Bad:  "He says the other gym members were ruining his aesthetic."  (explains it)
+  Good: "Day four. The wall is holding."                             (escalates it)
+If the punchline could be deleted without losing anything, rewrite it.
 
-The `audio_strategy` field should describe the concrete sound effects and \
-ambience heard in the scene (for example a specific noise, not just a mood). \
-Do not put spoken dialogue or music in it -- a narrator and a music track are \
-added separately.
+BE SPECIFIC, NOT GENERIC
+"a guy at the gym" is nothing. "the guy who films every set at 6pm" is a joke. \
+Name the exact hour, the exact object, the exact small detail. Specificity is \
+what makes someone comment "how did they know".
+
+SOUND LIKE A PERSON, NOT A BRAND
+- No hashtag stuffing. At most one, and only if the hashtag is itself the joke.
+- The caption is short, lowercase, tossed off. A non-sequitur or an \
+under-reaction beats a summary. Never restate the video.
+- No exclamation marks, no "POV:" unless the brief's hook calls for it, no \
+"literally me", no emoji.
+- Have an attitude — exhausted, deadpan, petty, resigned, unhinged. Neutral is death.
+
+NEVER
+- Explain the joke, in any field.
+- Write advertising or news-anchor voice, unless the format is literally that.
+- Reach for a meme template that peaked more than two years ago.
+- Tie it up neatly. Real memes just stop.
+
+WHAT EACH FIELD IS FOR
+- `visual`: the only thing a camera is given, so it must be purely physical — \
+who is in frame, what they are doing, where, and the one detail the joke rests \
+on. No inner states ("realising that..."), no backstory, nothing a lens cannot \
+see. It must be filmable as ONE continuous 8-second live-action shot: one \
+location, one or two people, no cuts, no effects, and no text existing in the scene.
+- `opening` and `punchline` are burned on screen AND read aloud, so write them to \
+be said out loud. `opening` 10 words or fewer, `punchline` 8 words or fewer, the \
+two speakable in about 6 seconds together. Punchy, not descriptive.
+- `title`: a short internal label. It is never shown to a viewer, so do not \
+spend the joke on it.
+- `audio_strategy`: concrete sound present in that room — specific noises, not a \
+mood. No music and no dialogue; a narrator and a music bed are added separately.
+
+BEFORE YOU ANSWER
+Reread the punchline. If it explains instead of turning, or if you could drop in \
+a different topic and it would still work unchanged, it is not good enough yet. \
+Rewrite it.
 """
 
 
