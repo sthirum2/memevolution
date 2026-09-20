@@ -339,6 +339,122 @@ def overlay_text_on_video(
     return dst
 
 
+def media_duration(path: Path, timeout: float = 15.0) -> float:
+    """Length in seconds of any audio/video file (imageio-ffmpeg bundles no ffprobe)."""
+    import imageio_ffmpeg
+
+    info = subprocess.run(
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(path)],
+        capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout,
+    ).stderr
+    m = re.search(r"Duration: (\d+):(\d+):(\d+(?:\.\d+)?)", info)
+    if not m:
+        raise RuntimeError(f"could not read the duration of {path.name}")
+    return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+
+
+NARRATION_LEAD_IN = 0.3  # seconds of picture before the voice starts
+NARRATION_TAIL = 0.3  # ...and after it ends
+NARRATION_MAX_TEMPO = 1.35  # speed-up ceiling before speech stops sounding natural
+
+
+def narration_fits(narration: Path, video: Path) -> bool:
+    """Can this narration be read inside the video at a natural (<=1.35x) pace?"""
+    avail = media_duration(video) - NARRATION_LEAD_IN - NARRATION_TAIL
+    return media_duration(narration) / avail <= NARRATION_MAX_TEMPO
+
+
+def mix_audio_onto_video(
+    src: Path,
+    dst: Path,
+    narration: Path | None = None,
+    music: Path | None = None,
+    timeout: float = 90.0,
+) -> Path:
+    """Lay a voiceover and a music bed over a video's own audio, video untouched.
+
+    Three layers, quietest first:
+      * the video's own audio (Veo's ambience / sound effects), kept as-is
+      * `music`, trimmed to the video, faded in/out, and ducked (sidechain
+        compressed) whenever the narration is speaking so the words stay clear
+      * `narration`, delayed slightly, sped up only as much as needed to fit
+        inside the video (capped at NARRATION_MAX_TEMPO), and loudness-normalised
+
+    Either extra layer may be None; with neither, this just copies `src`. The
+    video stream is copied, not re-encoded, so the captions are untouched.
+    """
+    import imageio_ffmpeg
+
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    dur = media_duration(src)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd = [ffmpeg, "-y", "-i", str(src)]
+    idx = {}
+    for name, path in (("music", music), ("narration", narration)):
+        if path is not None:
+            idx[name] = len(idx) + 1
+            cmd += ["-i", str(path)]
+
+    fmt = "aformat=sample_rates=48000:channel_layouts=stereo"
+    chains = [f"[0:a]{fmt},volume=0.9[amb]"]
+    mix_inputs = ["[amb]"]
+
+    if "narration" in idx:
+        avail = dur - NARRATION_LEAD_IN - NARRATION_TAIL
+        tempo = min(NARRATION_MAX_TEMPO, max(1.0, media_duration(narration) / avail))
+        delay_ms = int(NARRATION_LEAD_IN * 1000)
+        chains.append(
+            f"[{idx['narration']}:a]atempo={tempo:.3f},adelay={delay_ms}|{delay_ms},"
+            f"loudnorm=I=-14:TP=-1.5:LRA=7,{fmt},apad,atrim=0:{dur:.3f},asplit=2[nar][narsc]"
+        )
+        mix_inputs.append("[nar]")
+
+    if "music" in idx:
+        chains.append(
+            f"[{idx['music']}:a]atrim=0:{dur:.3f},afade=t=in:d=0.6,"
+            f"afade=t=out:st={max(0.0, dur - 1.2):.3f}:d=1.2,"
+            f"loudnorm=I=-24:TP=-3:LRA=7,{fmt}[mus]"
+        )
+        if "narration" in idx:
+            # Duck the music under the voice.
+            chains.append(
+                "[mus][narsc]sidechaincompress=threshold=0.02:ratio=10:attack=30:release=350[musd]"
+            )
+            mix_inputs.append("[musd]")
+        else:
+            mix_inputs.append("[mus]")
+
+    chains.append(
+        f"{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:normalize=0:duration=first,"
+        "alimiter=limit=0.95[aout]"
+    )
+
+    cmd += [
+        "-filter_complex", ";".join(chains),
+        "-map", "0:v",
+        "-map", "[aout]",
+        "-c:v", "copy",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-t", f"{dur:.3f}",
+        "-movflags", "+faststart",
+        str(dst),
+    ]
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=timeout
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"ffmpeg timed out mixing audio onto {src.name}") from exc
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg could not mix audio onto {src.name} "
+            f"(exit {result.returncode}): {result.stderr[-500:]}"
+        )
+    return dst
+
+
 if __name__ == "__main__":
     p = render_meme(
         "exp_014",

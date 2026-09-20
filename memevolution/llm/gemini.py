@@ -33,6 +33,16 @@ interpret them into a concrete concept):
 {genome_json}
 
 Produce a concrete meme concept consistent with these traits.
+
+Length limits matter: the video is a single 8-second clip, the `opening` and \
+`punchline` are burned onto the screen AND read aloud by a narrator, and the \
+two together must be speakable in about 6 seconds. Keep `opening` to 10 words \
+or fewer and `punchline` to 8 words or fewer. Make them punchy, not descriptive.
+
+The `audio_strategy` field should describe the concrete sound effects and \
+ambience heard in the scene (for example a specific noise, not just a mood). \
+Do not put spoken dialogue or music in it -- a narrator and a music track are \
+added separately.
 """
 
 

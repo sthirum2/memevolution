@@ -63,10 +63,31 @@ STYLE = (
 )
 
 
-def build_video_prompt(visual_description: str, topic: str = "", extra: str = "") -> str:
+def build_video_prompt(
+    visual_description: str,
+    topic: str = "",
+    extra: str = "",
+    audio_description: str = "",
+    layered_audio: bool = False,
+) -> str:
     parts = [visual_description.strip()]
     if topic:
         parts.append(f"Setting: {topic.replace('_', ' ')}.")
+    if audio_description and audio_description.strip():
+        # Veo 3.x writes its own soundtrack from the prompt. With no audio
+        # direction it produces a flat, near-silent room-tone bed (~-40 dBFS),
+        # so the concept's audio plan has to be spelled out and made prominent.
+        parts.append(
+            f"Sound design: {audio_description.strip().rstrip('.')}. Make these sounds "
+            "clearly audible and prominent in the mix, not just faint background room tone."
+        )
+    if layered_audio:
+        # A narrator and a music track are mixed on afterwards (render.py);
+        # Veo adding its own would fight them.
+        parts.append(
+            "No background music and no spoken voiceover or dialogue in the "
+            "audio: only natural sound effects and ambience."
+        )
     parts.append(STYLE)
     if extra:
         parts.append(extra)
@@ -139,6 +160,46 @@ def generate_video(
         return None
 
 
+def _add_narration_and_music(
+    captioned, final, headline, punchline, narrate, music, music_text, stem,
+    make_narration, make_music, narration_fits, mix_audio_onto_video,
+) -> None:
+    """Mix a voiceover and a music bed onto the captioned video, writing `final`.
+
+    Every step is best-effort: if TTS, music or the mix fails, `final` is just
+    the captioned video with Veo's own audio, never nothing.
+    """
+    narration_path = music_path = None
+    spoken = " ".join(t.strip() for t in (headline, punchline) if t and t.strip() and t.strip() != "—")
+
+    if narrate and spoken:
+        narration_path = make_narration(spoken, Path(f"{stem}_narration.wav"))
+        if narration_path and not narration_fits(narration_path, captioned):
+            print("[audio] narration too long for the clip; narrating the headline only")
+            narration_path = make_narration(headline, Path(f"{stem}_narration.wav"))
+            if narration_path and not narration_fits(narration_path, captioned):
+                print("[audio] headline alone is still too long; it will be sped up and may clip")
+    if music:
+        music_path = make_music(music_text, Path(f"{stem}_music.mp3"))
+
+    try:
+        if narration_path or music_path:
+            mix_audio_onto_video(captioned, final, narration=narration_path, music=music_path)
+            print(f"[audio] mixed: narration={'yes' if narration_path else 'no'} "
+                  f"music={'yes' if music_path else 'no'}")
+        else:
+            captioned.replace(final)
+    except Exception as exc:
+        print(f"[audio] mix failed ({type(exc).__name__}: {exc}); keeping Veo's own audio")
+        captioned.replace(final)
+    finally:
+        for f in (narration_path, music_path):
+            if f:
+                Path(f).unlink(missing_ok=True)
+        if final.exists():
+            captioned.unlink(missing_ok=True)
+
+
 def make_meme_video(
     experiment_id: str,
     headline: str,
@@ -147,6 +208,12 @@ def make_meme_video(
     topic: str = "",
     out_dir: Path | None = None,
     model: str = DEFAULT_MODEL,
+    audio_description: str = "",
+    *,
+    narrate: bool = True,
+    music: bool = True,
+    title: str = "",
+    humor: str = "",
 ) -> tuple[Path, str]:
     """
     The whole path for a video-only platform: generate real motion via Veo,
@@ -161,16 +228,31 @@ def make_meme_video(
     so callers can tell the operator which one they are looking at.
     """
     from .render import image_to_video, overlay_text_on_video
+    from .generate_audio import make_music, make_narration, music_prompt
+    from .render import mix_audio_onto_video, narration_fits
 
     out_dir = out_dir or OUT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = out_dir / f"{experiment_id}_raw.mp4"
     final = out_dir / f"{experiment_id}.mp4"
 
-    got = generate_video(build_video_prompt(visual_description, topic), raw, model=model)
+    layered = narrate or music
+    got = generate_video(
+        build_video_prompt(
+            visual_description, topic, audio_description=audio_description, layered_audio=layered
+        ),
+        raw,
+        model=model,
+    )
     if got:
         try:
-            overlay_text_on_video(got, final, headline, punchline)
+            captioned = out_dir / f"{experiment_id}_captioned.mp4"
+            overlay_text_on_video(got, captioned, headline, punchline)
+            _add_narration_and_music(
+                captioned, final, headline, punchline, narrate, music,
+                music_prompt(title, humor, topic), out_dir / f"{experiment_id}_audio",
+                make_narration, make_music, narration_fits, mix_audio_onto_video,
+            )
             return final, "veo"
         except Exception as exc:
             print(
