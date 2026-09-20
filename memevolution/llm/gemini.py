@@ -31,14 +31,31 @@ class ConceptGenerator(Protocol):
         ...
 
 
-_PROMPT_TEMPLATE = """You are helping brainstorm a short-form video meme concept.
+_PROMPT_TEMPLATE = """You write short-form video memes that real people would \
+actually stop scrolling for, send to a friend, and repost. You are the creative \
+lead here, not a formatter.
 
-Here is the meme's genome (fixed traits — do not change these values, only \
-interpret them into a concrete concept):
+Write everything in English.
+
+The brief below is direction, not a script. It says what KIND of meme to make. \
+Deciding what is actually funny, what the specific situation is, and how the \
+joke lands is your job — invent the concrete idea, and make it sharper and more \
+current than the brief implies. A concept that satisfies the brief but is not \
+funny is a failure.
 
 {genome_json}
 
-Produce a concrete meme concept consistent with these traits.
+Requirements for the idea itself:
+- One clear joke. A viewer must get it in the first two seconds, with no setup \
+and no explanation.
+- Ground it in something specific and recognisable from life right now — a real \
+situation, behaviour or frustration people have this year. Specific beats \
+generic every time.
+- It must be filmable as one continuous 8-second live-action shot: one location, \
+one or two people, no cuts, no captions baked into the scene, nothing that needs \
+visual effects or text on screen to work.
+- No stale formats. Avoid anything that reads as an ad, a stock video, or a meme \
+template that peaked years ago.
 
 Length limits matter: the video is a single 8-second clip, the `opening` and \
 `punchline` are burned onto the screen AND read aloud by a narrator, and the \
@@ -50,6 +67,40 @@ ambience heard in the scene (for example a specific noise, not just a mood). \
 Do not put spoken dialogue or music in it -- a narrator and a music track are \
 added separately.
 """
+
+
+_BANDS = (
+    (0.2, "barely"), (0.4, "slightly"), (0.6, "moderately"),
+    (0.8, "strongly"), (1.01, "extremely"),
+)
+
+_DIALS = {
+    "absurdity": "Make it {} surreal or illogical.",
+    "irony": "Make it {} ironic — saying one thing while meaning the opposite.",
+    "relatability": "Ground it {} in an everyday situation the viewer has lived through.",
+    "trend_relevance": "Tie it {} to what people are talking about right now.",
+}
+
+
+def _band(value: float) -> str:
+    return next(word for edge, word in _BANDS if value < edge)
+
+
+def describe_genome(genome: MemeGenome) -> str:
+    """Render a genome as creative direction rather than as data.
+
+    The numeric traits are how the predictor reasons, but a bare
+    "absurdity: 0.73" gives a language model nothing to act on, and asking it
+    to satisfy an unexplained number is what produced concepts that met the
+    brief while being incoherent. The same values are stated as intensities it
+    can actually write to.
+    """
+    g = genome.model_dump()
+    lines = [f"Topic: {g['topic']}", f"Comic voice: {g['humor']}",
+             f"Format: {str(g['format']).replace('_', ' ')}",
+             f"Hook: {str(g['hook']).replace('_', ' ')}"]
+    lines += [tpl.format(_band(float(g[t]))) for t, tpl in _DIALS.items() if t in g]
+    return "THE BRIEF\n" + "\n".join(lines)
 
 
 class GeminiConceptGenerator:
@@ -81,7 +132,7 @@ class GeminiConceptGenerator:
         self._model_name = model_name
 
     def generate_meme_concept(self, genome: MemeGenome) -> MemeConcept:
-        prompt = _PROMPT_TEMPLATE.format(genome_json=genome.model_dump_json(indent=2))
+        prompt = _PROMPT_TEMPLATE.format(genome_json=describe_genome(genome))
         response = self._generate_with_retry(prompt)
         if isinstance(response.parsed, MemeConcept):
             return response.parsed

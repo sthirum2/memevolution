@@ -43,8 +43,8 @@ function DemoObservation({ onApply, busy }: { onApply: (m: Record<string, number
     <div>
       <h3 className="font-display text-xl font-bold">Simulated observation</h3>
       <p className="mt-1 text-sm text-muted">
-        These numbers are typed, not measured — nothing is published and no Instagram data is read.
-        They are scored and learned from by the same backend code a real post uses.
+        These numbers are typed, not measured, and no Instagram data is read. They are scored and
+        learned from by the same backend code a real post uses. Publishing above is separate and real.
       </p>
     </div>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -95,27 +95,30 @@ export default function LabView() {
         <div className="card flex flex-col items-start gap-4 p-6">
           <h3 className="font-display text-xl font-bold">{demo ? 'Review the generated media' : 'Approve this Instagram post'}</h3>
           <p>{demo
-            ? 'Nothing will be published. Enter engagement numbers below to drive the rest of the loop.'
+            ? 'Publish this to Instagram for real, or leave it unpublished and type engagement numbers below to drive the loop.'
             : 'The media and caption shown here will be published to your connected Instagram account.'}</p>
           {chosen.content.media_source && <p className="text-sm text-muted">
             Media source: <strong>{chosen.content.media_source}</strong>
             {chosen.content.media_source !== 'veo' && ' — not AI-generated video'}
           </p>}
           <p className="text-sm text-muted">Predicted fitness: {display(score(chosen.prediction.fitness))}/100. This score is not a probability or an engagement forecast.</p>
-          {!demo && <>
-            <label className="flex gap-3"><input type="checkbox" checked={lab.approved} onChange={e => setLab({ approved: e.target.checked })} />I approve publishing this media and caption.</label>
-            <Button variant="danger" onClick={postIt} disabled={!lab.approved || lab.busy}>{lab.busy && <Spinner />}Publish to Instagram</Button>
-          </>}
+          <label className="flex gap-3"><input type="checkbox" checked={lab.approved} onChange={e => setLab({ approved: e.target.checked })} />I approve publishing this media and caption.</label>
+          <Button variant="danger" onClick={postIt} disabled={!lab.approved || lab.busy}>{lab.busy && <Spinner />}Publish to Instagram</Button>
         </div>
       </div>
       {demo && <DemoObservation busy={lab.busy} onApply={m => simulate(m as never)} />}
     </>}
-    {lab.step === 'results' && posted && <>
+    {lab.step === 'results' && posted && (() => {
+      // Keyed on what happened to this experiment, not on the current mode: a
+      // demo-mode run can still be published for real, and saying otherwise
+      // would misreport a live post.
+      const live = posted.deployment.platform === 'instagram'
+      return <>
       <div className="card flex flex-col gap-3 p-5">
-        <h3 className="font-display text-xl font-bold">{demo ? 'Simulated run' : 'Published to Instagram'}</h3>
-        <p className="text-sm">{demo ? 'Not published. Engagement below was entered by hand.' : `Media ID: ${posted.deployment.post_id}`}</p>
-        {!demo && posted.publish_result?.permalink && <a className="text-agent underline" href={posted.publish_result.permalink} target="_blank" rel="noreferrer">Open Instagram post</a>}
-        {!demo && <>
+        <h3 className="font-display text-xl font-bold">{live ? 'Published to Instagram' : 'Simulated run'}</h3>
+        <p className="text-sm">{live ? `Media ID: ${posted.deployment.post_id}` : 'Not published. Engagement below was entered by hand.'}</p>
+        {live && posted.publish_result?.permalink && <a className="text-agent underline" href={posted.publish_result.permalink} target="_blank" rel="noreferrer">Open Instagram post</a>}
+        {live && <>
           <Button variant="secondary" onClick={refreshLive} disabled={lab.fetching || lab.busy}>{lab.fetching && <Spinner />}Fetch and save Instagram metrics</Button>
           <p className="text-sm text-muted">Missing metrics remain unavailable. Instagram insights can take time to arrive.</p>
         </>}
@@ -129,7 +132,8 @@ export default function LabView() {
       {lab.evolveResult ? <div className="card bg-win-soft p-5"><h3 className="font-bold">Observation applied</h3>
         {lab.evolveResult.shifts.length ? lab.evolveResult.shifts.map(s => <p key={s.trait}>{plainTrait(s.trait)}: {s.from.toFixed(3)} → {s.to.toFixed(3)}</p>) : <p>The observation was recorded; no numeric belief changed.</p>}
       </div> : <Button onClick={finish} disabled={lab.busy || lab.fetching || posted.observed.fitness === null}>{lab.busy && <Spinner />}Update the agent from this observation</Button>}
-    </>}
+    </>
+    })()}
     {lab.step !== 'setup' && <Button variant="secondary" onClick={resetLab} disabled={lab.busy || lab.fetching}>Start another round</Button>}
   </div>
 }
