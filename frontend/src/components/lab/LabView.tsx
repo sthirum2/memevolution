@@ -5,7 +5,8 @@ import { score, plainTrait } from '@/lib/plain'
 import { getCapabilities } from '@/api/http'
 import PhonePreview from './PhonePreview'
 
-const display = (n: number | null | undefined) => n == null || !Number.isFinite(n) ? '?' : n.toLocaleString()
+const known = (n: number | null | undefined): n is number => n != null && Number.isFinite(n)
+const display = (n: number | null | undefined) => known(n) ? n.toLocaleString() : '0'
 
 /**
  * run_generation builds GeminiConceptGenerator directly, which throws when no
@@ -119,7 +120,8 @@ export default function LabView() {
           <p className="text-sm text-muted">Missing metrics remain unavailable. Instagram insights can take time to arrive.</p>
         </>}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{(['views','likes','comments','shares','saves'] as const).map(k => <div className="card p-4" key={k}><p className="capitalize text-muted">{k}</p><strong className="text-2xl">{display(posted.observed[k])}</strong></div>)}</div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{(['views','likes','comments','shares','saves'] as const).map(k => <div className="card p-4" key={k}><p className="capitalize text-muted">{k}</p><strong className="text-2xl">{display(posted.observed[k])}</strong>
+        {!known(posted.observed[k]) && <p className="text-xs text-muted">not measured</p>}</div>)}</div>
       <div className="card p-5"><p>Predicted fitness: {display(score(posted.prediction.fitness))}/100</p><p>Observed fitness: {display(score(posted.observed.fitness))}/100</p></div>
       <div className="card overflow-auto p-5"><h3 className="mb-3 font-bold">Stored engagement history</h3>
         {posted.observed.timeseries.length ? <table className="w-full text-left text-sm"><thead><tr><th>Time</th><th>Views</th><th>Likes</th><th>Shares</th></tr></thead><tbody>{posted.observed.timeseries.map((p,i) => <tr key={`${p.t}-${i}`}><td>{new Date(p.t).toLocaleString()}</td><td>{display(p.views)}</td><td>{display(p.likes)}</td><td>{display(p.shares)}</td></tr>)}</tbody></table> : <p className="text-muted">No snapshots saved yet.</p>}

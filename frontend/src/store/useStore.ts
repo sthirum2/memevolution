@@ -28,6 +28,7 @@ interface Store {
   createMemes(): Promise<void>; prepare(): Promise<void>; postIt(): Promise<void>
   refreshLive(): Promise<void>; finish(): Promise<void>
   setMode(m: Mode): void; simulate(metrics: MetricsInput): Promise<void>
+  resetEverything(): Promise<void>
 }
 let booting = false
 const message = (e: unknown) => e instanceof Error ? e.message : String(e)
@@ -49,6 +50,14 @@ export const useStore = create<Store>((set, get) => ({
   setView: view => set({ view }), setSelectedGen: selectedGen => set({ selectedGen }), open: openId => set({ openId }),
   setLab: patch => set(s => ({ lab: { ...s.lab, ...patch } })),
   resetLab() { if (!get().lab.busy && !get().lab.fetching) set({ lab: freshLab() }) },
+  async resetEverything() {
+    if (get().lab.busy || get().lab.fetching) return
+    set({ lab: { ...freshLab(), busy: true } })
+    try {
+      await client.resetAll()
+      set({ experiments: [], agentStates: [], generations: [], selectedGen: 0, openId: null, lab: freshLab() })
+    } catch (e) { set({ lab: { ...freshLab(), error: message(e) } }) }
+  },
   resume(id) {
     const experiment = get().experiments.find(e => e.id === id)
     if (!experiment || get().lab.busy) return

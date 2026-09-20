@@ -18,7 +18,7 @@ from .config import get_settings
 from .fitness import spread_score
 from . import agent_bridge, publish as publish_mod
 from .database import get_db, initialize_database
-from .models import EngagementSnapshot, Experiment, Genome, Prediction
+from .models import AgentState, EngagementSnapshot, Experiment, Genome, Prediction
 from .schemas import (
     ContentIn,
     DeploymentResponse,
@@ -323,6 +323,22 @@ def record_metrics(
 @app.get("/agent-states")
 def agent_states(db: Session = Depends(get_db)) -> list[dict]:
     return agent_bridge.agent_states(db)
+
+
+@app.post("/reset")
+def reset(db: Session = Depends(get_db)) -> dict:
+    """Drop every round: experiments, scores, snapshots and learned beliefs.
+
+    Clearing only the browser store would leave the rounds on disk and they
+    would reappear on the next load, so the wipe happens here. Published
+    Instagram posts are not touched — this cannot unpublish anything.
+    """
+    with agent_lock:
+        counts = {}
+        for model in (EngagementSnapshot, Prediction, Experiment, Genome, AgentState):
+            counts[model.__tablename__] = db.query(model).delete()
+        db.commit()
+    return {"cleared": counts}
 
 
 @app.post("/generation")

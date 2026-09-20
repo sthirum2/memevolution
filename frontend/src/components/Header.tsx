@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import type { View } from '@/store/useStore'
 import { cx } from '@/components/ui'
@@ -13,6 +14,17 @@ export default function Header() {
   const setView = useStore((s) => s.setView)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
+  const resetEverything = useStore((s) => s.resetEverything)
+  const busy = useStore((s) => s.lab.busy || s.lab.fetching)
+  const [confirming, setConfirming] = useState(false)
+
+  // Two-step because the wipe is irreversible and the control sits next to the
+  // mode toggle, where a misclick would otherwise cost every stored round.
+  useEffect(() => {
+    if (!confirming) return
+    const t = setTimeout(() => setConfirming(false), 4000)
+    return () => clearTimeout(t)
+  }, [confirming])
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur">
@@ -49,6 +61,22 @@ export default function Header() {
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                if (confirming) { setConfirming(false); void resetEverything() } else setConfirming(true)
+              }}
+              title="Delete every stored round, score and learned belief"
+              className={cx(
+                'rounded-full border px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-40',
+                confirming
+                  ? 'border-dead bg-dead text-paper'
+                  : 'border-line text-muted hover:border-dead hover:text-dead',
+              )}
+            >
+              {confirming ? 'Confirm wipe' : 'Reset'}
+            </button>
           </div>
         </div>
 

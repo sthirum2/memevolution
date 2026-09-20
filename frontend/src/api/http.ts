@@ -82,6 +82,9 @@ export const evolve = (id: string) => post<EvolveResult>('/evolve', { experiment
  * The post id is deliberately prefixed so nothing downstream can mistake a
  * simulated run for a real one -- there is no Instagram media behind it.
  */
+/** Wipe every stored round server-side; published posts are unaffected. */
+export const resetAll = () => post<{ cleared: Record<string, number> }>('/reset', {})
+
 export const demoDeploy = async (id: string) =>
   normalizeExperiment(await post<BackendExperiment>(`/experiments/${id}/deploy`, {
     platform: 'demo', post_id: `demo_${id}`,

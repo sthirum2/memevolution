@@ -47,6 +47,8 @@ def _graph_error(e: urllib.error.HTTPError) -> str:
     hints = {
         190: "Token invalid or expired — generate a new long-lived one.",
         200: "Token needs instagram_content_publish, and the account must hold a role on the app.",
+        10: "The token is missing instagram_manage_insights, which views, saves and "
+            "shares require. Likes and comments still work without it.",
         100: "Usually a wrong IG_USER_ID, or a media_url Meta could not fetch.",
         9007: "Meta could not download the image. media_url must be publicly reachable.",
         4: "Rate limited — Instagram allows 50 published posts per 24h.",
@@ -164,10 +166,19 @@ def live_metrics(experiment: dict) -> dict:
         token = os.environ.get("IG_ACCESS_TOKEN")
         if not token:
             raise PublishError("IG_ACCESS_TOKEN is missing from backend/.env.")
+        # Likes/comments and insights are separate permissions: like_count needs
+        # only instagram_basic, while views/saves/shares need
+        # instagram_manage_insights. Fetching them together meant an insights
+        # refusal threw away the counts that had already arrived, so the post
+        # showed nothing known at all. Each half now fails on its own.
         try:
             base = _get(f"{GRAPH}/{post_id}?fields=like_count,comments_count&access_token={token}")
             metrics["likes"] = base.get("like_count")
             metrics["comments"] = base.get("comments_count")
+        except urllib.error.HTTPError as e:
+            raise PublishError(_graph_error(e)) from None
+
+        try:
             ins = _get(f"{GRAPH}/{post_id}/insights?metric=views,saved,shares&access_token={token}")
             for row in ins.get("data", []):
                 values = row.get("values") or []
@@ -176,7 +187,8 @@ def live_metrics(experiment: dict) -> dict:
                 if key:
                     metrics[key] = value
         except urllib.error.HTTPError as e:
-            raise PublishError(_graph_error(e)) from None
+            # Leaves views/saves/shares as None: unreadable, which is not zero.
+            print(f"[metrics] insights unavailable, keeping likes/comments: {_graph_error(e)}")
     else:
         raise PublishError(
             f"Reading metrics back from {platform} is not wired up. Enter them by hand with "
