@@ -501,6 +501,15 @@ def publish_experiment(experiment_id: str, payload: PublishRequest, db: Session 
         try:
             result = publish_mod.publish(to_response(experiment).model_dump(), payload.platform)
         except publish_mod.PublishError as exc:
+            # Every PublishError is definitive: it is raised either before the
+            # remote call or on an error Meta returned, so nothing was posted.
+            # Leaving the intent flag set would block every later attempt and
+            # strand the experiment as permanently unpublishable.
+            # A fresh dict, because reassigning the one already on the instance
+            # is the same object and SQLAlchemy would not see the column change.
+            cleared = {k: v for k, v in content.items() if k != "_publishing"}
+            experiment.content = cleared
+            db.commit()
             raise HTTPException(status_code=409, detail=str(exc)) from None
         except Exception:
             raise HTTPException(status_code=502, detail="Instagram publish outcome is uncertain; check the account before retrying") from None
