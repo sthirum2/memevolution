@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from typing import Protocol
 
 from memevolution.models.experiment import MemeConcept
@@ -54,7 +55,7 @@ added separately.
 class GeminiConceptGenerator:
     """Calls the Gemini API to turn a genome into a concrete meme concept."""
 
-    def __init__(self, model_name: str = "gemini-3.5-flash", api_key: str | None = None) -> None:
+    def __init__(self, model_name: str = "gemini-3.6-flash", api_key: str | None = None) -> None:
         from google import genai  # optional dependency, imported lazily
 
         self._genai = genai
@@ -62,7 +63,7 @@ class GeminiConceptGenerator:
             project = os.environ.get("GOOGLE_CLOUD_PROJECT")
             if not project:
                 raise RuntimeError("GOOGLE_GENAI_USE_VERTEXAI is set but GOOGLE_CLOUD_PROJECT is not.")
-            # gemini-3.5-flash is served from the "global" Vertex location only (404s
+            # gemini-3.6-flash is served from the "global" Vertex location only (404s
             # in us-central1, which Veo needs), so it gets its own location setting.
             self._client = genai.Client(
                 vertexai=True,
@@ -81,17 +82,32 @@ class GeminiConceptGenerator:
 
     def generate_meme_concept(self, genome: MemeGenome) -> MemeConcept:
         prompt = _PROMPT_TEMPLATE.format(genome_json=genome.model_dump_json(indent=2))
-        response = self._client.models.generate_content(
-            model=self._model_name,
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": MemeConcept,
-            },
-        )
+        response = self._generate_with_retry(prompt)
         if isinstance(response.parsed, MemeConcept):
             return response.parsed
         return MemeConcept.model_validate(json.loads(response.text))
+
+    def _generate_with_retry(self, prompt: str, attempts: int = 4):
+        """The flash models return 503 under load often enough that a single
+        attempt loses a whole generation run, so back off and try again."""
+        delay = 2.0
+        for attempt in range(attempts):
+            try:
+                return self._client.models.generate_content(
+                    model=self._model_name,
+                    contents=prompt,
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_schema": MemeConcept,
+                    },
+                )
+            except Exception as exc:
+                overloaded = "503" in str(exc) or "UNAVAILABLE" in str(exc)
+                if not overloaded or attempt == attempts - 1:
+                    raise
+                time.sleep(delay)
+                delay *= 2
+        raise AssertionError("unreachable")
 
 
 class MockConceptGenerator:
