@@ -53,7 +53,7 @@ def test_full_pipeline_and_restart_contract(client, monkeypatch, tmp_path):
     assert client.post("/select", json={"candidate_ids": [r["id"] for r in rows]}).json()["selectedId"] == selected
     assert client.post("/select", json={"candidate_ids": [selected]}).status_code == 409
     path = tmp_path / (selected + ".jpg")
-    monkeypatch.setattr(generate_image, "make_meme_image", lambda *a: (path, "gemini"))
+    monkeypatch.setattr(generate_image, "make_meme_image", lambda *a, **kw: (path, "gemini"))
     base = "/experiments/" + selected
     assert client.post(base + "/publish", json={}).status_code == 409
     prepared = client.post(base + "/prepare").json()

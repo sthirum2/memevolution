@@ -441,10 +441,15 @@ def prepare_experiment(experiment_id: str, db: Session = Depends(get_db)) -> Exp
         if not content.get("media_url"):
             try:
                 from .generate_image import make_meme_image
+                reasons: list[str] = []
                 path, source = make_meme_image(experiment.id, content["headline"], content.get("punchline"),
-                                              content["visual_description"], experiment.genome.topic)
+                                              content["visual_description"], experiment.genome.topic,
+                                              on_error=reasons.append)
                 if source != "gemini":
-                    raise publish_mod.PublishError("Gemini image generation failed. No fallback image is approved for publishing.")
+                    detail = f" {reasons[0]}" if reasons else ""
+                    raise publish_mod.PublishError(
+                        f"Gemini image generation failed.{detail} No fallback image is approved for publishing."
+                    )
                 content["media_url"] = f"/media/{path.name}"
                 content["_image_source"] = source
                 experiment.content = content

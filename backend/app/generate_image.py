@@ -28,6 +28,7 @@ the demo never breaks on a missing credential.
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 from .render import OUT_DIR, overlay_text
@@ -63,16 +64,28 @@ def generate_visual(
     out_path: Path,
     model: str = DEFAULT_MODEL,
     api_key: str | None = None,
+    on_error: Callable[[str], None] | None = None,
 ) -> Path | None:
-    """Ask Gemini for the image. Returns None if it is unavailable, never raises."""
+    """Ask Gemini for the image. Returns None if it is unavailable, never raises.
+
+    `on_error` receives a human-readable reason when one is available, so a
+    caller can tell an operator why no image came back instead of reporting a
+    bare failure.
+    """
+    def fail(reason: str) -> None:
+        print(f"[image] {reason}")
+        if on_error:
+            on_error(reason)
+
     api_key = api_key or os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        fail("GEMINI_API_KEY is not set.")
         return None
 
     try:
         from google import genai  # lazy: optional dependency
     except ImportError:
-        print("[image] google-genai not installed - pip install google-genai")
+        fail("google-genai not installed - pip install google-genai")
         return None
 
     try:
@@ -89,11 +102,30 @@ def generate_visual(
                     return out_path
 
         text = getattr(response, "text", None)
-        print(f"[image] no image part came back{f': {text[:160]}' if text else ''}")
+        fail(f"no image part came back{f': {text[:160]}' if text else ''}")
         return None
     except Exception as exc:  # never let content generation break the loop
-        print(f"[image] generation failed ({type(exc).__name__}: {exc})")
+        fail(_explain(exc, model))
         return None
+
+
+def _explain(exc: Exception, model: str) -> str:
+    """Turn a raw SDK error into something an operator can act on."""
+    text = str(exc)
+    # A free-tier key reports limit: 0 for the image models -- the allowance is
+    # not used up, it never existed, so retrying can never succeed.
+    if "RESOURCE_EXHAUSTED" in text or "429" in text:
+        if "limit: 0" in text:
+            return (
+                f"{model} is not available on this API key's free tier (quota limit is 0). "
+                "Image generation needs billing enabled on the key's Google Cloud project."
+            )
+        return f"{model} quota exhausted; the key is rate limited right now."
+    if "PERMISSION_DENIED" in text or "403" in text:
+        return f"{model} refused this API key (permission denied). Check the key's project and billing."
+    if "NOT_FOUND" in text or "404" in text:
+        return f"{model} is not available to this API key; the model name may be retired."
+    return f"{type(exc).__name__}: {text[:200]}"
 
 
 def make_meme_image(
@@ -104,6 +136,7 @@ def make_meme_image(
     topic: str = "",
     out_dir: Path | None = None,
     model: str = DEFAULT_MODEL,
+    on_error: Callable[[str], None] | None = None,
 ) -> tuple[Path, str]:
     """
     The whole path: generate the visual, burn the caption on, return the file.
@@ -115,7 +148,7 @@ def make_meme_image(
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = out_dir / f"{experiment_id}_raw.png"
 
-    got = generate_visual(build_prompt(visual_description, topic), raw, model=model)
+    got = generate_visual(build_prompt(visual_description, topic), raw, model=model, on_error=on_error)
     final = out_dir / f"{experiment_id}.jpg"
 
     if got:
