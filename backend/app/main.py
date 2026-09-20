@@ -82,6 +82,16 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _adc_available() -> bool:
+    try:
+        import google.auth
+
+        google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        return True
+    except Exception:
+        return False
+
+
 @app.get("/capabilities")
 def capabilities() -> dict:
     """What the backend can actually do right now.
@@ -93,9 +103,14 @@ def capabilities() -> dict:
     """
     from memevolution.llm.gemini import use_vertex
 
-    gemini = bool(os.environ.get("GOOGLE_CLOUD_PROJECT")) if use_vertex() else bool(
-        os.environ.get("GEMINI_API_KEY")
-    )
+    if use_vertex():
+        # A project id alone proves nothing: Vertex authenticates through
+        # Application Default Credentials, which are absent until someone runs
+        # `gcloud auth application-default login` or sets a service account.
+        # Resolving them here is the only way this answer can be trusted.
+        gemini = bool(os.environ.get("GOOGLE_CLOUD_PROJECT")) and _adc_available()
+    else:
+        gemini = bool(os.environ.get("GEMINI_API_KEY"))
     return {
         "gemini": gemini,
         "instagram": bool(os.environ.get("IG_ACCESS_TOKEN") and os.environ.get("IG_USER_ID")),

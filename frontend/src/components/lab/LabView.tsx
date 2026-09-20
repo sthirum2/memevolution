@@ -23,8 +23,10 @@ function ConfigWarning() {
   }, [])
   if (!missing) return null
   return <div className="rounded-xl border border-dead bg-dead-soft p-4 text-sm">
-    <strong>Gemini is not configured.</strong> The backend has no <code>GEMINI_API_KEY</code> (and
-    Vertex is off), so generating will fail. Set it in <code>backend/.env</code> and restart.
+    <strong>Gemini is not configured.</strong> Generating will fail until the backend can
+    authenticate. Either set a <code>GEMINI_API_KEY</code> (starts with <code>AIzaSy</code>) in{' '}
+    <code>backend/.env</code>, or for Vertex run <code>gcloud auth application-default login</code>.
+    Restart the backend afterwards.
   </div>
 }
 export default function LabView() {
