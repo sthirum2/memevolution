@@ -72,6 +72,9 @@ class Experiment(BaseModel):
 
     deployment: Deployment = Field(default_factory=Deployment)
     observed: Observation = Field(default_factory=Observation)
+    # Auditable optional semantic memory; never used by numeric learning.
+    memory_storage: dict = Field(default_factory=dict)
+    memory_context: dict = Field(default_factory=dict)
 
     @property
     def prediction_error(self) -> float | None:

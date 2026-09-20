@@ -147,6 +147,8 @@ def experiment_to_api(experiment: Any, status: str | None = None) -> dict:
             "post_id": getattr(dep, "post_id", None) if dep else None,
         },
         "observed": observed,
+        "memory_storage": getattr(experiment, "memory_storage", {}),
+        "memory_context": getattr(experiment, "memory_context", {}),
     }
 
 

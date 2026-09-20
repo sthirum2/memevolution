@@ -13,6 +13,7 @@ from memevolution.models.agent import AgentState
 from memevolution.models.experiment import Experiment, MemeConcept, Observation
 from memevolution.persistence import json_store
 from memevolution.prediction.interface import FitnessPredictor
+from memevolution.integration import backboard_memory
 
 
 @dataclass
@@ -62,7 +63,16 @@ def run_generation(
 
     selection = select_candidate(candidates, exploration_rate=state.exploration_rate, rng=rng)
     selected = selection.selected
-    selected.concept = concept_generator.generate_meme_concept(selected.genome)
+    selected.memory_context = backboard_memory.get_memory_context_for_generation(
+        selected.genome, state.beliefs
+    )
+    # Opt-in seam for the Gemini teammate; existing generators stay compatible.
+    contextual_generate = getattr(concept_generator, "generate_meme_concept_with_context", None)
+    if callable(contextual_generate) and selected.memory_context["context"]:
+        selected.concept = contextual_generate(selected.genome, selected.memory_context["context"])
+        selected.memory_context["consumed_by_generator"] = True
+    else:
+        selected.concept = concept_generator.generate_meme_concept(selected.genome)
 
     json_store.save_experiment(selected)
 
@@ -107,4 +117,16 @@ def apply_observation(
     experiment = record_observation(experiment_id, observation)
     new_state = update_state(state, experiment)
     json_store.save_state(new_state)
+    # Quantitative learning is already committed. Optional memory cannot undo it.
+    try:
+        from memevolution.integration.backboard_memory import store_experiment_memory
+
+        experiment.memory_storage = store_experiment_memory(experiment)
+        json_store.save_experiment(experiment)
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "[BACKBOARD] Optional memory unavailable; observation and beliefs remain saved."
+        )
     return new_state, experiment
