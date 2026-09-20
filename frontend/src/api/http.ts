@@ -8,7 +8,18 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new Error(typeof body.detail === 'string' ? body.detail : `${response.status}: ${JSON.stringify(body.detail ?? response.statusText)}`)
+    if (typeof body.detail === 'string') throw new Error(body.detail)
+    // A proxy in front of the backend (a tunnel, a CDN) answers a timeout with
+    // HTML rather than our JSON, and HTTP/2 carries no status text -- so the
+    // generic branch below rendered the useless "524: \"\"".
+    if (response.status >= 502) {
+      throw new Error(
+        `The connection timed out before the backend answered (HTTP ${response.status}). ` +
+        'Video generation takes about two minutes, which is longer than a public tunnel allows. ' +
+        'Use the app on localhost for generation, or set VEO_TIER=lite for a faster render.'
+      )
+    }
+    throw new Error(`${response.status}: ${JSON.stringify(body.detail ?? response.statusText)}`)
   }
   return response.json() as Promise<T>
 }
