@@ -53,6 +53,24 @@ type BackendExperiment = {
 
 type BackendGeneration = { generation: number; experiments: BackendExperiment[] }
 
+export type Capabilities = {
+  gemini: boolean
+  instagram: boolean
+  publicMedia: boolean
+  predictor: string
+}
+
+/**
+ * What the live backend can actually do. Only meaningful off mock data.
+ *
+ * Without a GEMINI_API_KEY the agent falls back to a template generator, and
+ * the candidate cards come back with "—" for punchline and caption. The Lab
+ * uses this to say so, rather than presenting stub text as AI output.
+ */
+export async function getCapabilities(): Promise<Capabilities> {
+  return req_<Capabilities>('/capabilities')
+}
+
 async function req_<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = init?.body ? { 'Content-Type': 'application/json' } : undefined
   const res = await fetch(`${BASE}${path}`, {

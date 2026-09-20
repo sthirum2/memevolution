@@ -74,6 +74,23 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/capabilities")
+def capabilities() -> dict:
+    """What the backend can actually do right now.
+
+    The Lab reads this so it can say when it is showing stub content. Without
+    GEMINI_API_KEY the agent silently falls back to MockConceptGenerator, and
+    a demo that presents template text as "the AI wrote five memes" is worse
+    than one that admits the key is missing.
+    """
+    return {
+        "gemini": bool(os.environ.get("GEMINI_API_KEY")),
+        "instagram": bool(os.environ.get("IG_ACCESS_TOKEN") and os.environ.get("IG_USER_ID")),
+        "publicMedia": bool(os.environ.get("PUBLIC_MEDIA_BASE")),
+        "predictor": agent_bridge.predictor_name(),
+    }
+
+
 def get_experiment_or_404(db: Session, experiment_id: str) -> Experiment:
     experiment = db.scalar(
         select(Experiment)

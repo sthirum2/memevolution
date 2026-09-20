@@ -166,21 +166,30 @@ def agent_state_to_api(state: Any) -> dict:
     }
 
 
-def run_generation(population_size: int = 5, topic: str | None = None) -> dict:
-    """One real evolutionary step. Returns candidates + the selection."""
-    from memevolution.agent import orchestrator
-    from memevolution.persistence import json_store
+def _load_predictor() -> tuple[Any, str]:
+    """The real XGBoost predictor, or the stub if its package is unavailable."""
     from memevolution.prediction.mock import MockFitnessPredictor
 
     try:
         from memevolution.prediction.role1 import Role1FitnessPredictor
 
-        predictor: Any = Role1FitnessPredictor()
-        model = "role1-xgboost"
+        return Role1FitnessPredictor(), "role1-xgboost"
     except Exception as exc:  # the model package or its deps may be absent
         print(f"[agent] Role 1 predictor unavailable ({exc}); using the stub")
-        predictor = MockFitnessPredictor()
-        model = "mock"
+        return MockFitnessPredictor(), "mock"
+
+
+def predictor_name() -> str:
+    """Which predictor /capabilities should report, without running a generation."""
+    return _load_predictor()[1]
+
+
+def run_generation(population_size: int = 5, topic: str | None = None) -> dict:
+    """One real evolutionary step. Returns candidates + the selection."""
+    from memevolution.agent import orchestrator
+    from memevolution.persistence import json_store
+
+    predictor, model = _load_predictor()
 
     state = json_store.load_state()
     result = orchestrator.run_generation(state, predictor, population_size=population_size)

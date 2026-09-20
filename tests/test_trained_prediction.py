@@ -10,7 +10,7 @@ from memevolution.agent.orchestrator import run_generation
 from memevolution.llm.gemini import MockConceptGenerator
 from memevolution.models.agent import AgentState
 from memevolution.persistence import json_store
-from memevolution.prediction import trained
+from memevolution.prediction import scale, trained
 from memevolution.prediction.interface import FitnessPredictor
 from memevolution.prediction.model import predictor as model
 
@@ -69,7 +69,7 @@ def test_nonfinite_score_rejected_after_conversion(score, monkeypatch, genome_fa
 
 
 @pytest.mark.parametrize("raw_score, expected", [(-0.1, 0.0), (150.0, 1.0)])
-def test_out_of_range_score_is_visible_but_clipped(raw_score, expected, monkeypatch, genome_factory, caplog):
+def test_out_of_range_score_is_visible_and_saturates(raw_score, expected, monkeypatch, genome_factory, caplog):
     monkeypatch.setattr(trained, "load_model", lambda: None)
     predictor = trained.TrainedFitnessPredictor(planned_time=POSTING_TIME)
     monkeypatch.setattr(trained, "predict_fitness", lambda features: raw_score)
@@ -83,7 +83,15 @@ def test_out_of_range_score_is_visible_but_clipped(raw_score, expected, monkeypa
 @pytest.mark.parametrize(
     "raw_score, expected",
     # Empirical realistic range is ~[0, 4.5] (see trained.py), not [0, 100].
-    [(1.1, 1.1 / 4.5), (2.5, 2.5 / 4.5), (0.0, 0.0), (100.0, 1.0)],
+    # In-band scores stay linear in the raw score, scaled by CORE_TOP so that
+    # (CORE_TOP, 1) is free for out-of-band scores to saturate into.
+    [
+        (1.1, scale.CORE_TOP * 1.1 / 4.5),
+        (2.5, scale.CORE_TOP * 2.5 / 4.5),
+        (0.0, 0.0),
+        (4.5, scale.CORE_TOP),
+        (100.0, 1.0),
+    ],
 )
 def test_raw_score_converts_to_normalized_fitness(raw_score, expected, monkeypatch, genome_factory):
     monkeypatch.setattr(trained, "load_model", lambda: None)
@@ -94,12 +102,31 @@ def test_raw_score_converts_to_normalized_fitness(raw_score, expected, monkeypat
 
 def test_valid_score_wrapper_does_not_invent_confidence(monkeypatch, genome_factory):
     # Unit test only; this is not claimed as a real-model prediction.
-    # 1.8 / 4.5 == 0.4, chosen so the expected value stays a clean round number.
+    # 1.8 / 4.5 == 0.4 of the band, so the expected value is a clean fraction
+    # of CORE_TOP.
     monkeypatch.setattr(trained, "load_model", lambda: None)
     monkeypatch.setattr(trained, "predict_fitness", lambda features: 1.8)
     prediction = trained.TrainedFitnessPredictor().predict_fitness(genome_factory())
-    assert prediction.fitness == 0.4
+    assert prediction.fitness == pytest.approx(scale.CORE_TOP * 0.4)
     assert prediction.confidence is None
+
+
+def test_scores_above_the_band_stay_rankable(monkeypatch, genome_factory):
+    """The bug this guards: a lineage that drifts above Role 1's band used to
+    clip every candidate to exactly 1.000, so the agent ranked genuinely
+    different predictions as a tie and picked its "best" by coin flip.
+    These three raw scores were observed live on the college/pov lineage."""
+    monkeypatch.setattr(trained, "load_model", lambda: None)
+    predictor = trained.TrainedFitnessPredictor(planned_time=POSTING_TIME)
+
+    def fitness_for(raw):
+        monkeypatch.setattr(trained, "predict_fitness", lambda features: raw)
+        return predictor.predict_fitness(genome_factory()).fitness
+
+    observed = [fitness_for(raw) for raw in (4.57, 4.79, 4.94)]
+    assert len(set(observed)) == 3, f"above-band scores collapsed to a tie: {observed}"
+    assert observed == sorted(observed), "ranking must follow the raw score"
+    assert all(scale.CORE_TOP < f < 1.0 for f in observed)
 
 
 def test_real_generation_and_persistence(tmp_path, monkeypatch):

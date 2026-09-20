@@ -17,11 +17,17 @@ genome-derived inputs, it's roughly p5=0.4 / p50=2.3 / p95=3.9 (see
 outliers (observed as far as -24 to +380) for feature-value combinations
 the tree model didn't see much of during training. This adapter (a) always
 sends fixed, safe defaults for fields the genome has no signal for, and (b)
-linearly rescales the realistic range into [0, 1], clamping outliers at the
-edges rather than propagating them -- an empirical guess, not a
+maps that realistic range into [0, 1] via memevolution.prediction.scale --
+an empirical guess, not a
 calibration Role 1 has confirmed. Revisit once Role 1 documents what the
 training target actually represents (raw engagement? log(views)? a
 composite score?).
+
+That mapping used to hard-clip outside the band, which silently broke
+selection: once a lineage drifts above the band every candidate reports
+fitness 1.000, so the agent ranks genuinely different predictions as a tie
+and picks its "best" by coin flip. scale.raw_to_fitness is strictly
+monotonic instead, so ranking always holds. See scale.py.
 """
 
 from __future__ import annotations
@@ -35,16 +41,12 @@ if str(_MODEL_PACKAGE_DIR) not in sys.path:
 
 from memevolution.models.genome import MemeGenome
 from memevolution.models.prediction import FitnessPrediction
+from memevolution.prediction.scale import RAW_SCORE_HIGH, RAW_SCORE_LOW, raw_to_fitness
 
-# Empirically observed range of raw model output for realistic
-# genome-derived inputs (duration swept 3-60s, audio_strategy toggled,
-# absurdity/irony/relatability/trend_relevance swept 0.0-1.0,
-# caption_length pinned near the seed genome's value, everything else at
-# its safe default). Chosen to roughly bracket p5-p95 with headroom, not
-# the full min/max (which include tail extrapolation outliers). See the
-# module docstring, gap #2.
-_RAW_SCORE_LOW = 0.0
-_RAW_SCORE_HIGH = 4.5
+# Kept as module-level names because callers and tests refer to them; the
+# band itself and the mapping now live in scale.py, shared with trained.py.
+_RAW_SCORE_LOW = RAW_SCORE_LOW
+_RAW_SCORE_HIGH = RAW_SCORE_HIGH
 
 
 def _genome_to_features(genome: MemeGenome) -> dict:
@@ -76,9 +78,8 @@ def _genome_to_features(genome: MemeGenome) -> dict:
 
 
 def _rescale(raw_score: float) -> float:
-    span = _RAW_SCORE_HIGH - _RAW_SCORE_LOW
-    normalized = (raw_score - _RAW_SCORE_LOW) / span
-    return min(1.0, max(0.0, normalized))
+    """Role 1's band, mapped onto [0, 1] without ever tying two raw scores."""
+    return raw_to_fitness(raw_score)
 
 
 class Role1FitnessPredictor:
@@ -104,4 +105,8 @@ class Role1FitnessPredictor:
     def predict_fitness(self, genome: MemeGenome) -> FitnessPrediction:
         features = _genome_to_features(genome)
         raw_score = self._predictor.predict_fitness(features)
-        return FitnessPrediction(fitness=round(_rescale(raw_score), 3), confidence=None)
+        # 4 dp, not 3: above Role 1's band the mapping is deliberately
+        # compressed (see scale.py), so a third decimal would re-introduce the
+        # ranking ties the compression exists to remove. The UI rounds for
+        # display anyway.
+        return FitnessPrediction(fitness=round(_rescale(raw_score), 4), confidence=None)

@@ -7,6 +7,7 @@ import re
 from memevolution.models.genome import MemeGenome
 from memevolution.models.prediction import FitnessPrediction
 from memevolution.prediction.model.predictor import DEFAULTS, EXPECTED_FEATURES, load_model, predict_fitness
+from memevolution.prediction.scale import RAW_SCORE_HIGH, RAW_SCORE_LOW, raw_to_fitness
 
 MODEL_VERSION = "memetic-fitness-xgb-3.4.1"
 logger = logging.getLogger(__name__)
@@ -60,19 +61,22 @@ class TrainedFitnessPredictor:
                                    is_ad=is_ad)
         raw_score = predict_fitness(features)
         # Empirically-observed range of the model's raw output over realistic
-        # genome-derived inputs is roughly [0, 4.5] (p5=0.4, p50=2.3, p95=3.9),
+        # genome-derived inputs is roughly [0, 4.5] (p5=0.4, p50=2.3, p95=4.6),
         # not [0, 100] -- dividing by 100 crushed every real prediction into an
-        # indistinguishable ~0.004-0.04 band. This linear rescale is still an
-        # empirical approximation, not a calibration Person 1 has confirmed;
-        # values outside the realistic range still clip at 0/1 below.
-        converted_score = raw_score / 4.5
-        if not math.isfinite(converted_score):
+        # indistinguishable ~0.004-0.04 band. That band still maps linearly, but
+        # via scale.raw_to_fitness, which lands it in [0, CORE_TOP] and saturates
+        # scores above it instead of clipping them. Clipping tied every candidate
+        # of a high-drifting lineage at exactly 1.000 and broke ranking; see
+        # scale.py. Still an empirical approximation, not a confirmed calibration.
+        if not math.isfinite(raw_score):
             raise ValueError(
-                f"Trained model returned non-finite raw prediction {raw_score!r} "
-                f"after conversion to {converted_score!r}."
+                f"Trained model returned non-finite raw prediction {raw_score!r}."
             )
-        clipped_low = converted_score < 0
-        clipped_high = converted_score > 1
+        converted_score = raw_to_fitness(raw_score)
+        # "Out of band" is still worth surfacing: it means the genome landed
+        # where the model extrapolates and the score is least trustworthy.
+        clipped_low = raw_score < RAW_SCORE_LOW
+        clipped_high = raw_score > RAW_SCORE_HIGH
         clipping_occurred = clipped_low or clipped_high
         logger.warning(
             "trained prediction raw_prediction=%r converted_prediction=%r "
@@ -83,4 +87,4 @@ class TrainedFitnessPredictor:
             "clipping_occurred=False",
             raw_score, converted_score,
         )
-        return FitnessPrediction(fitness=max(0.0, min(1.0, converted_score)))
+        return FitnessPrediction(fitness=converted_score)

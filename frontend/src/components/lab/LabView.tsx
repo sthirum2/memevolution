@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,6 +14,7 @@ import { useStore } from '@/store/useStore'
 import type { LabStep } from '@/store/useStore'
 import type { Platform } from '@/types'
 import { isDemoMode } from '@/api/client'
+import { getCapabilities } from '@/api/http'
 import { C, scoreColor } from '@/lib/fitness'
 import { PLATFORM_NAMES, plainTrait, score } from '@/lib/plain'
 import { useCountUp } from '@/lib/useCountUp'
@@ -237,6 +238,41 @@ function StepSetup() {
 }
 
 /* ── Step 2 ─────────────────────────────────────────────────────────────── */
+/**
+ * Live backend without a Gemini key falls back to a template generator, so the
+ * cards arrive with "—" for punchline and caption. Say that plainly instead of
+ * letting stub text read as AI output.
+ */
+function StubContentNotice() {
+  const [stub, setStub] = useState(false)
+
+  useEffect(() => {
+    if (isDemoMode()) return
+    let cancelled = false
+    getCapabilities()
+      .then((c) => !cancelled && setStub(!c.gemini))
+      .catch(() => {
+        /* capabilities are advisory; never block the run over them */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!stub) return null
+  return (
+    <div className="rounded-2xl border-2 border-mid/40 bg-mid-soft p-4">
+      <h4 className="font-display font-bold text-mid">These are placeholder memes</h4>
+      <p className="mt-1.5 text-sm leading-relaxed">
+        The backend has no{' '}
+        <code className="rounded bg-white px-1.5 py-0.5 text-xs">GEMINI_API_KEY</code>, so it fell
+        back to a template writer — that is why the punchlines and captions show “—”. The genomes,
+        mutations and predicted scores below are still real.
+      </p>
+    </div>
+  )
+}
+
 function StepCandidates() {
   const lab = useStore((s) => s.lab)
   const setLab = useStore((s) => s.setLab)
@@ -259,6 +295,8 @@ function StepCandidates() {
           Each one changes exactly one thing, so the AI can tell what caused what.
         </p>
       </div>
+
+      <StubContentNotice />
 
       <div className="flex flex-col gap-3">
         {ordered.map((c) => {
