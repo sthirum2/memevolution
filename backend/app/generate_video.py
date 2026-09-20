@@ -13,6 +13,7 @@ from .env import load_dotenv
 load_dotenv()  # so a key in backend/.env is picked up
 
 DEFAULT_MODEL = "veo-3.1-lite-generate-preview"
+VERTEX_MODEL = "veo-3.1-lite-generate-001"  # the Vertex ID; "-preview" 404s there
 
 VIDEO_ASPECT_RATIO = "9:16"  # vertical video
 VIDEO_RESOLUTION = "720p"  # cheapest tier; lite doesn't support 4k
@@ -33,10 +34,31 @@ STYLE = (
 )
 
 
-def build_video_prompt(visual_description: str, topic: str = "", extra: str = "") -> str:
+def build_video_prompt(
+    visual_description: str,
+    topic: str = "",
+    extra: str = "",
+    audio_description: str = "",
+    layered_audio: bool = False,
+) -> str:
     parts = [visual_description.strip()]
     if topic:
         parts.append(f"Setting: {topic.replace('_', ' ')}.")
+    if audio_description and audio_description.strip():
+        # Veo 3.x writes its own soundtrack from the prompt. With no audio
+        # direction it produces a flat, near-silent room-tone bed (~-40 dBFS),
+        # so the concept's audio plan has to be spelled out and made prominent.
+        parts.append(
+            f"Sound design: {audio_description.strip().rstrip('.')}. Make these sounds "
+            "clearly audible and prominent in the mix, not just faint background room tone."
+        )
+    if layered_audio:
+        # A narrator and a music track are mixed on afterwards (render.py);
+        # Veo adding its own would fight them.
+        parts.append(
+            "No background music and no spoken voiceover or dialogue in the "
+            "audio: only natural sound effects and ambience."
+        )
     parts.append(STYLE)
     if extra:
         parts.append(extra)
@@ -54,9 +76,18 @@ def generate_video(
     poll_interval: float = POLL_INTERVAL_SECONDS,
     max_wait: float = MAX_POLL_SECONDS,
 ) -> Path | None:
-    """Ask Veo for the video. Returns None if it is unavailable, never raises."""
+    """Ask Veo for the video. Returns None if it is unavailable, never raises.
+
+    Uses Vertex AI when GOOGLE_GENAI_USE_VERTEXAI is set (billed to the Google
+    Cloud project, e.g. its free-trial credit), otherwise the Gemini API key.
+    """
+    vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in ("1", "true", "yes")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT")
     api_key = api_key or os.environ.get("GEMINI_API_KEY")
-    if not api_key:
+    if vertex and not project:
+        print("[video] GOOGLE_GENAI_USE_VERTEXAI is set but GOOGLE_CLOUD_PROJECT is not")
+        return None
+    if not vertex and not api_key:
         return None
 
     try:
@@ -67,16 +98,29 @@ def generate_video(
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
-        operation = client.models.generate_videos(
-            model=model,
-            prompt=prompt,
-            config=types.GenerateVideosConfig(
+        if vertex:
+            client = genai.Client(
+                vertexai=True,
+                project=project,
+                location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+            )
+            # Vertex model IDs differ ("-lite-generate-001", not "-preview"); duration is
+            # an int; Veo 3.x needs generate_audio stated explicitly.
+            vertex_model = VERTEX_MODEL if model == DEFAULT_MODEL else model
+            config = types.GenerateVideosConfig(
+                aspect_ratio=aspect_ratio,
+                duration_seconds=int(duration_seconds),
+                generate_audio=True,
+            )
+        else:
+            client = genai.Client(api_key=api_key)
+            vertex_model = model
+            config = types.GenerateVideosConfig(
                 aspect_ratio=aspect_ratio,
                 resolution=resolution,
                 duration_seconds=duration_seconds,
-            ),
-        )
+            )
+        operation = client.models.generate_videos(model=vertex_model, prompt=prompt, config=config)
 
         waited = 0.0
         while not operation.done:
@@ -102,11 +146,59 @@ def generate_video(
             return None
 
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        client.files.download(file=videos[0].video, destination=str(out_path))
+        video = videos[0].video
+        if vertex:
+            # Vertex returns the bytes inline; files.download() is Gemini-API-only.
+            if not video or not video.video_bytes:
+                print("[video] Veo response had no video bytes")
+                return None
+            out_path.write_bytes(video.video_bytes)
+        else:
+            client.files.download(file=video, destination=str(out_path))
         return out_path if out_path.exists() else None
     except Exception as exc:  # never let content generation break the loop
         print(f"[video] generation failed ({type(exc).__name__}: {exc})")
         return None
+
+
+def _add_narration_and_music(
+    captioned, final, headline, punchline, narrate, music, music_text, stem,
+    make_narration, make_music, narration_fits, mix_audio_onto_video,
+) -> None:
+    """Mix a voiceover and a music bed onto the captioned video, writing `final`.
+
+    Every step is best-effort: if TTS, music or the mix fails, `final` is just
+    the captioned video with Veo's own audio, never nothing.
+    """
+    narration_path = music_path = None
+    spoken = " ".join(t.strip() for t in (headline, punchline) if t and t.strip() and t.strip() != "—")
+
+    if narrate and spoken:
+        narration_path = make_narration(spoken, Path(f"{stem}_narration.wav"))
+        if narration_path and not narration_fits(narration_path, captioned):
+            print("[audio] narration too long for the clip; narrating the headline only")
+            narration_path = make_narration(headline, Path(f"{stem}_narration.wav"))
+            if narration_path and not narration_fits(narration_path, captioned):
+                print("[audio] headline alone is still too long; it will be sped up and may clip")
+    if music:
+        music_path = make_music(music_text, Path(f"{stem}_music.mp3"))
+
+    try:
+        if narration_path or music_path:
+            mix_audio_onto_video(captioned, final, narration=narration_path, music=music_path)
+            print(f"[audio] mixed: narration={'yes' if narration_path else 'no'} "
+                  f"music={'yes' if music_path else 'no'}")
+        else:
+            captioned.replace(final)
+    except Exception as exc:
+        print(f"[audio] mix failed ({type(exc).__name__}: {exc}); keeping Veo's own audio")
+        captioned.replace(final)
+    finally:
+        for f in (narration_path, music_path):
+            if f:
+                Path(f).unlink(missing_ok=True)
+        if final.exists():
+            captioned.unlink(missing_ok=True)
 
 
 def make_meme_video(
@@ -117,6 +209,12 @@ def make_meme_video(
     topic: str = "",
     out_dir: Path | None = None,
     model: str = DEFAULT_MODEL,
+    audio_description: str = "",
+    *,
+    narrate: bool = True,
+    music: bool = True,
+    title: str = "",
+    humor: str = "",
 ) -> tuple[Path, str]:
     """
     The whole path for a video-only platform: generate real motion via Veo,
@@ -131,16 +229,31 @@ def make_meme_video(
     so callers can tell the operator which one they are looking at.
     """
     from .render import image_to_video, overlay_text_on_video
+    from .generate_audio import make_music, make_narration, music_prompt
+    from .render import mix_audio_onto_video, narration_fits
 
     out_dir = out_dir or OUT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = out_dir / f"{experiment_id}_raw.mp4"
     final = out_dir / f"{experiment_id}.mp4"
 
-    got = generate_video(build_video_prompt(visual_description, topic), raw, model=model)
+    layered = narrate or music
+    got = generate_video(
+        build_video_prompt(
+            visual_description, topic, audio_description=audio_description, layered_audio=layered
+        ),
+        raw,
+        model=model,
+    )
     if got:
         try:
-            overlay_text_on_video(got, final, headline, punchline)
+            captioned = out_dir / f"{experiment_id}_captioned.mp4"
+            overlay_text_on_video(got, captioned, headline, punchline)
+            _add_narration_and_music(
+                captioned, final, headline, punchline, narrate, music,
+                music_prompt(title, humor, topic), out_dir / f"{experiment_id}_audio",
+                make_narration, make_music, narration_fits, mix_audio_onto_video,
+            )
             return final, "veo"
         except Exception as exc:
             print(
