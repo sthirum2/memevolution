@@ -20,6 +20,11 @@ from memevolution.models.experiment import MemeConcept
 from memevolution.models.genome import MemeGenome
 
 
+def use_vertex() -> bool:
+    """Opt in to Vertex AI (billed to the Google Cloud project) instead of an API key."""
+    return os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in ("1", "true", "yes")
+
+
 class ConceptGenerator(Protocol):
     def generate_meme_concept(self, genome: MemeGenome) -> MemeConcept:
         ...
@@ -50,16 +55,28 @@ class GeminiConceptGenerator:
     """Calls the Gemini API to turn a genome into a concrete meme concept."""
 
     def __init__(self, model_name: str = "gemini-3.5-flash", api_key: str | None = None) -> None:
-        api_key = api_key or os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            raise RuntimeError(
-                "GEMINI_API_KEY is not set. Set it in the environment, or use "
-                "MockConceptGenerator / get_concept_generator() for local dev."
-            )
         from google import genai  # optional dependency, imported lazily
 
         self._genai = genai
-        self._client = genai.Client(api_key=api_key)
+        if use_vertex():
+            project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+            if not project:
+                raise RuntimeError("GOOGLE_GENAI_USE_VERTEXAI is set but GOOGLE_CLOUD_PROJECT is not.")
+            # gemini-3.5-flash is served from the "global" Vertex location only (404s
+            # in us-central1, which Veo needs), so it gets its own location setting.
+            self._client = genai.Client(
+                vertexai=True,
+                project=project,
+                location=os.environ.get("GOOGLE_CLOUD_GLOBAL_LOCATION", "global"),
+            )
+        else:
+            api_key = api_key or os.environ.get("GEMINI_API_KEY")
+            if not api_key:
+                raise RuntimeError(
+                    "GEMINI_API_KEY is not set. Set it in the environment, or use "
+                    "MockConceptGenerator / get_concept_generator() for local dev."
+                )
+            self._client = genai.Client(api_key=api_key)
         self._model_name = model_name
 
     def generate_meme_concept(self, genome: MemeGenome) -> MemeConcept:
@@ -97,8 +114,8 @@ class MockConceptGenerator:
 
 
 def get_concept_generator() -> ConceptGenerator:
-    """Return a real Gemini client if GEMINI_API_KEY is set, else the dev stub."""
-    if os.environ.get("GEMINI_API_KEY"):
+    """Return a real Gemini client if GEMINI_API_KEY (or Vertex) is configured, else the dev stub."""
+    if os.environ.get("GEMINI_API_KEY") or (use_vertex() and os.environ.get("GOOGLE_CLOUD_PROJECT")):
         try:
             return GeminiConceptGenerator()
         except Exception as exc:  # pragma: no cover - defensive fallback

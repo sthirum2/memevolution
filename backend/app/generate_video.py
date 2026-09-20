@@ -43,6 +43,7 @@ from .env import load_dotenv
 load_dotenv()  # so a key in backend/.env is picked up
 
 DEFAULT_MODEL = "veo-3.1-lite-generate-preview"
+VERTEX_MODEL = "veo-3.1-lite-generate-001"  # the Vertex ID; "-preview" 404s there
 
 VIDEO_ASPECT_RATIO = "9:16"  # vertical, matches TikTok/Reels
 VIDEO_RESOLUTION = "720p"  # cheapest tier; lite doesn't support 4k
@@ -105,9 +106,18 @@ def generate_video(
     poll_interval: float = POLL_INTERVAL_SECONDS,
     max_wait: float = MAX_POLL_SECONDS,
 ) -> Path | None:
-    """Ask Veo for the video. Returns None if it is unavailable, never raises."""
+    """Ask Veo for the video. Returns None if it is unavailable, never raises.
+
+    Uses Vertex AI when GOOGLE_GENAI_USE_VERTEXAI is set (billed to the Google
+    Cloud project, e.g. its free-trial credit), otherwise the Gemini API key.
+    """
+    vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in ("1", "true", "yes")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT")
     api_key = api_key or os.environ.get("GEMINI_API_KEY")
-    if not api_key:
+    if vertex and not project:
+        print("[video] GOOGLE_GENAI_USE_VERTEXAI is set but GOOGLE_CLOUD_PROJECT is not")
+        return None
+    if not vertex and not api_key:
         return None
 
     try:
@@ -118,16 +128,29 @@ def generate_video(
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
-        operation = client.models.generate_videos(
-            model=model,
-            prompt=prompt,
-            config=types.GenerateVideosConfig(
+        if vertex:
+            client = genai.Client(
+                vertexai=True,
+                project=project,
+                location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+            )
+            # Vertex model IDs differ ("-lite-generate-001", not "-preview"); duration is
+            # an int; Veo 3.x needs generate_audio stated explicitly.
+            vertex_model = VERTEX_MODEL if model == DEFAULT_MODEL else model
+            config = types.GenerateVideosConfig(
+                aspect_ratio=aspect_ratio,
+                duration_seconds=int(duration_seconds),
+                generate_audio=True,
+            )
+        else:
+            client = genai.Client(api_key=api_key)
+            vertex_model = model
+            config = types.GenerateVideosConfig(
                 aspect_ratio=aspect_ratio,
                 resolution=resolution,
                 duration_seconds=duration_seconds,
-            ),
-        )
+            )
+        operation = client.models.generate_videos(model=vertex_model, prompt=prompt, config=config)
 
         waited = 0.0
         while not operation.done:
@@ -153,7 +176,15 @@ def generate_video(
             return None
 
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        client.files.download(file=videos[0].video, destination=str(out_path))
+        video = videos[0].video
+        if vertex:
+            # Vertex returns the bytes inline; files.download() is Gemini-API-only.
+            if not video or not video.video_bytes:
+                print("[video] Veo response had no video bytes")
+                return None
+            out_path.write_bytes(video.video_bytes)
+        else:
+            client.files.download(file=video, destination=str(out_path))
         return out_path if out_path.exists() else None
     except Exception as exc:  # never let content generation break the loop
         print(f"[video] generation failed ({type(exc).__name__}: {exc})")

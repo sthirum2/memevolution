@@ -30,16 +30,28 @@ TTS_SAMPLE_RATE = 24000  # Gemini TTS returns raw 16-bit mono PCM at 24 kHz
 MUSIC_MODEL = "lyria-3-clip-preview"
 
 
-def _client():
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        return None
+def _client(global_location: bool = False):
+    """A Vertex client if GOOGLE_GENAI_USE_VERTEXAI is set (billed to the Cloud project), else an API-key one.
+
+    Lyria (music) is served only from Vertex's "global" location; TTS works in the regional one.
+    """
     try:
         from google import genai
     except ImportError:
         print("[audio] google-genai not installed - pip install google-genai")
         return None
-    return genai.Client(api_key=api_key)
+    if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in ("1", "true", "yes"):
+        project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+        if not project:
+            return None
+        location = (
+            os.environ.get("GOOGLE_CLOUD_GLOBAL_LOCATION", "global")
+            if global_location
+            else os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+        )
+        return genai.Client(vertexai=True, project=project, location=location)
+    api_key = os.environ.get("GEMINI_API_KEY")
+    return genai.Client(api_key=api_key) if api_key else None
 
 
 def make_narration(text: str, out_path: Path, voice: str = TTS_VOICE) -> Path | None:
@@ -83,7 +95,7 @@ def make_narration(text: str, out_path: Path, voice: str = TTS_VOICE) -> Path | 
 
 def make_music(prompt: str, out_path: Path) -> Path | None:
     """Generate an instrumental clip (~30s MP3) from a mood prompt. None on failure."""
-    client = _client()
+    client = _client(global_location=True)
     if client is None:
         return None
     try:
