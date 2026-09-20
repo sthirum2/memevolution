@@ -124,7 +124,7 @@ def main() -> int:
                 "POST",
                 {
                     "post_id": dep["post_id"],
-                    "platform": dep["platform"] or "tiktok",
+                    "platform": dep["platform"] or "instagram",
                     "timestamp": dep["timestamp"],
                 },
             )

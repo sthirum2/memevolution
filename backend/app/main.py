@@ -11,7 +11,7 @@ import os
 import urllib.parse
 import urllib.request
 import json
-from sqlalchemy import select, delete as sa_delete
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
 from .config import get_settings
@@ -34,7 +34,8 @@ from .schemas import (
     SnapshotResponse,
     PropagationPoint,
 )
-from .tiktok import ManualTikTokService
+from threading import RLock
+from .schemas import GenerationRequest, PublishRequest
 
 settings = get_settings()
 app = FastAPI(title="Memevolution API", version="0.1.0")
@@ -45,7 +46,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-tiktok_service = ManualTikTokService()
+agent_lock = RLock()
+
+
+def lock_pipeline(db):
+    if db.bind.dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_xact_lock(74632020)"))
 
 
 _DIST = Path(__file__).parent.parent.parent / "frontend" / "dist"
@@ -56,7 +62,9 @@ _MEDIA = Path(__file__).parent.parent / "media"
 def serve_media(filename: str):
     """Rendered memes, served from the same port as everything else so one
     tunnel covers the app, the API, and the images Meta fetches to publish."""
-    file = _MEDIA / filename
+    file = (_MEDIA / filename).resolve()
+    if not file.is_relative_to(_MEDIA.resolve()):
+        raise HTTPException(status_code=404, detail="Not found")
     if not file.exists() or not file.is_file():
         raise HTTPException(status_code=404, detail="Not found")
     return FileResponse(str(file))
@@ -89,6 +97,12 @@ def to_response(experiment: Experiment) -> ExperimentResponse:
     latest = experiment.snapshots[-1] if experiment.snapshots else None
     return ExperimentResponse(
         id=experiment.id,
+        status=experiment.status,
+        agent_genome=(experiment.content or {}).get("_agent", {}).get("genome"),
+        selection=(experiment.content or {}).get("_selection"),
+        publish_result=(experiment.content or {}).get("_publish"),
+        evolve_result=(experiment.content or {}).get("_evolve"),
+        timeseries=[SnapshotResponse.model_validate(s) for s in experiment.snapshots],
         generation=experiment.generation,
         parent_id=experiment.parent_id,
         genome=GenomeResponse.model_validate(experiment.genome),
@@ -96,7 +110,8 @@ def to_response(experiment: Experiment) -> ExperimentResponse:
         hypothesis=experiment.hypothesis,
         content=ContentIn(**(experiment.content or {})),
         prediction=(
-            PredictionResponse(fitness=experiment.prediction.predicted_fitness, model_version=experiment.prediction.model_version)
+            PredictionResponse(fitness=experiment.prediction.predicted_fitness, model_version=experiment.prediction.model_version,
+                               confidence=(experiment.content or {}).get("_agent", {}).get("prediction", {}).get("confidence"))
             if experiment.prediction
             else None
         ),
@@ -143,6 +158,7 @@ def list_experiments(
     query = select(Experiment).options(
         selectinload(Experiment.genome), selectinload(Experiment.prediction), selectinload(Experiment.snapshots)
     ).order_by(Experiment.generation, Experiment.created_at)
+    query = query.where(Experiment.deployment_platform == "instagram")
     if generation is not None:
         query = query.where(Experiment.generation == generation)
     return [to_response(experiment) for experiment in db.scalars(query).all()]
@@ -215,7 +231,7 @@ def deploy_experiment(
 ) -> ExperimentResponse:
     experiment = get_experiment_or_404(db, experiment_id)
     experiment.deployment_platform = payload.platform
-    experiment.post_id = tiktok_service.deploy(payload.post_id)
+    experiment.post_id = payload.post_id
     experiment.deployed_at = payload.timestamp or datetime.now(timezone.utc)
     experiment.status = "deployed"
     db.commit()
@@ -249,7 +265,7 @@ def record_metrics(
             if payload.fitness is not None
             else spread_score(
                 payload.views, payload.likes, payload.comments, payload.shares, payload.saves
-            ),
+            ) if all(v is not None for v in (payload.views, payload.likes, payload.comments, payload.shares, payload.saves)) else None,
         )
     )
     experiment.status = "observed"
@@ -268,72 +284,46 @@ def record_metrics(
 
 
 @app.get("/agent-states")
-def agent_states() -> list[dict]:
-    """Belief history for the 'What it learned' screen."""
-    try:
-        return agent_bridge.agent_states()
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"agent unavailable: {exc}") from exc
+def agent_states(db: Session = Depends(get_db)) -> list[dict]:
+    return agent_bridge.agent_states(db)
 
 
 @app.post("/generation")
-def generation(payload: dict | None = None) -> list[dict]:
-    """Run one real generation and return the candidates the agent produced."""
-    payload = payload or {}
-    try:
-        result = agent_bridge.run_generation(
-            population_size=int(payload.get("count", 5)),
-            topic=payload.get("topic"),
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"generation failed: {exc}") from exc
-
-    # Stash the selection so /select can answer without re-running the agent.
-    app.state.last_selection = result["selection"]
-    app.state.last_candidates = {c["id"]: c for c in result["candidates"]}
-    return result["candidates"]
+def generation(payload: GenerationRequest, db: Session = Depends(get_db)) -> list[ExperimentResponse]:
+    with agent_lock:
+        lock_pipeline(db)
+        try:
+            result = agent_bridge.run_generation(db, payload.count, payload.topic, payload.riskAppetite)
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(status_code=503, detail=f"Generation unavailable: {exc}") from exc
+        return [to_response(get_experiment_or_404(db, id)) for id in result["ids"]]
 
 
 @app.post("/select")
-# NB: not named `select` — that would shadow sqlalchemy.select, which every
-# query in this module depends on, and break /experiments at runtime.
-def select_candidate(payload: dict | None = None) -> dict:
-    """The choice the agent already made during /generation."""
-    selection = getattr(app.state, "last_selection", None)
-    if not selection:
-        raise HTTPException(status_code=409, detail="Run POST /generation first")
+def select_candidate(payload: dict, db: Session = Depends(get_db)) -> dict:
+    ids = payload.get("candidate_ids") or []
+    if not ids:
+        raise HTTPException(status_code=422, detail="candidate_ids are required")
+    experiment = get_experiment_or_404(db, ids[0])
+    selection = (experiment.content or {}).get("_selection")
+    if not selection or set(ids) != {r["id"] for r in selection["ranking"]}:
+        raise HTTPException(status_code=409, detail="Candidates do not match a stored generation")
     return selection
 
 
 @app.post("/evolve")
-def evolve(payload: dict | None = None) -> dict:
-    """Record real engagement and let the agent learn from the prediction error."""
-    payload = payload or {}
+def evolve(payload: dict, db: Session = Depends(get_db)) -> dict:
     experiment_id = payload.get("experiment_id")
     if not experiment_id:
         raise HTTPException(status_code=422, detail="experiment_id is required")
-    metrics = {
-        k: payload.get(k)
-        for k in ("views", "likes", "comments", "shares", "saves", "fitness")
-        if payload.get(k) is not None
-    }
-    try:
-        return agent_bridge.apply_observation(experiment_id, metrics)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"evolve failed: {exc}") from exc
-
-
-@app.delete("/experiments")
-def clear_all(db: Session = Depends(get_db)) -> dict:
-    """Wipe everything for a clean demo reset."""
-    db.execute(sa_delete(EngagementSnapshot))
-    db.execute(sa_delete(Prediction))
-    db.execute(sa_delete(Genome))
-    db.execute(sa_delete(Experiment))
-    db.commit()
-    return {"cleared": True}
+    with agent_lock:
+        lock_pipeline(db)
+        experiment = get_experiment_or_404(db, experiment_id)
+        try:
+            return agent_bridge.apply_observation(db, experiment)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 def _update_env_file(key: str, value: str) -> None:
@@ -399,57 +389,85 @@ def corpus() -> dict:
     }
 
 
+@app.post("/experiments/{experiment_id}/prepare")
+def prepare_experiment(experiment_id: str, db: Session = Depends(get_db)) -> ExperimentResponse:
+    """Render a real image for review before the operator publishes it."""
+    with agent_lock:
+        lock_pipeline(db)
+        experiment = get_experiment_or_404(db, experiment_id)
+        content = dict(experiment.content or {})
+        selection = content.get("_selection")
+        if selection and selection["selectedId"] != experiment.id:
+            raise HTTPException(status_code=409, detail="Only the selected concept can be rendered")
+        if not content.get("headline") or not content.get("visual_description"):
+            raise HTTPException(status_code=409, detail="A generated concept is required")
+        if not content.get("media_url"):
+            try:
+                from .generate_image import make_meme_image
+                path, source = make_meme_image(experiment.id, content["headline"], content.get("punchline"),
+                                              content["visual_description"], experiment.genome.topic)
+                if source != "gemini":
+                    raise publish_mod.PublishError("Gemini image generation failed. No fallback image is approved for publishing.")
+                content["media_url"] = f"/media/{path.name}"
+                content["_image_source"] = source
+                experiment.content = content
+                db.commit()
+            except publish_mod.PublishError as exc:
+                raise HTTPException(status_code=503, detail=str(exc)) from exc
+        return to_response(experiment)
+
+
 @app.post("/experiments/{experiment_id}/publish")
-def publish_experiment(experiment_id: str, payload: dict, db: Session = Depends(get_db)) -> dict:
-    """Render the meme and put it on a real account."""
-    experiment = get_experiment_or_404(db, experiment_id)
-    platform = (payload or {}).get("platform", "instagram")
-    try:
-        result = publish_mod.publish(to_response(experiment).model_dump(), platform)
-    except publish_mod.PublishError as exc:
-        # 409: the request is fine, the operator's setup is not. The UI shows
-        # this text directly, so it has to say what to actually do.
-        raise HTTPException(status_code=409, detail=str(exc)) from None
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"publish failed: {exc}") from exc
+def publish_experiment(experiment_id: str, payload: PublishRequest, db: Session = Depends(get_db)) -> dict:
+    with agent_lock:
+        lock_pipeline(db)
+        experiment = get_experiment_or_404(db, experiment_id)
+        content = dict(experiment.content or {})
+        if content.get("_publish"):
+            return content["_publish"]
+        if experiment.post_id:
+            raise HTTPException(status_code=409, detail="Experiment already has an Instagram post")
+        if content.get("_publishing"):
+            raise HTTPException(status_code=409, detail="Previous publish outcome is uncertain. Check Instagram before retrying; attach its media ID with /deploy if it succeeded.")
+        if not content.get("media_url") or content.get("_image_source") != "gemini":
+            raise HTTPException(status_code=409, detail="Prepare and review the generated image first")
+        try:
+            publish_mod.validate_configuration()
+        except publish_mod.PublishError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
+        # Persist intent before the remote side effect. An ambiguous timeout must not duplicate a post.
+        content["_publishing"] = True
+        experiment.content = content
+        db.commit()
+        try:
+            result = publish_mod.publish(to_response(experiment).model_dump(), payload.platform)
+        except publish_mod.PublishError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
+        except Exception:
+            raise HTTPException(status_code=502, detail="Instagram publish outcome is uncertain; check the account before retrying") from None
+        experiment.post_id = result["post_id"]
+        experiment.deployment_platform = "instagram"
+        experiment.deployed_at = datetime.now(timezone.utc)
+        experiment.status = "deployed"
+        experiment.content = {**content, "_publish": result, "_publishing": False}
+        db.commit()
+        return result
 
-    experiment.post_id = result["post_id"]
-    experiment.deployment_platform = result["platform"]
-    experiment.deployed_at = datetime.now(timezone.utc)
-    experiment.status = "deployed"
-    db.commit()
-    return result
 
-
-@app.get("/experiments/{experiment_id}/live-metrics")
+@app.post("/experiments/{experiment_id}/live-metrics")
 def experiment_live_metrics(experiment_id: str, db: Session = Depends(get_db)) -> dict:
-    """Pull the platform's own numbers for a published post."""
+    """Fetch and persist one real Instagram snapshot."""
     experiment = get_experiment_or_404(db, experiment_id)
     try:
-        return publish_mod.live_metrics(to_response(experiment).model_dump())
+        metrics = publish_mod.live_metrics(to_response(experiment).model_dump())
     except publish_mod.PublishError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
-
-
-# Temporary OAuth callback route to capture TikTok authorization code
-_tiktok_code: dict = {}
-
-@app.get("/callback")
-def tiktok_callback(code: str = "", error: str = "", error_description: str = ""):
-    """Captures TikTok OAuth callback code. Temporary route for token generation."""
-    if error:
-        return {"error": error, "description": error_description}
-    _tiktok_code["code"] = code
-    return {
-        "status": "✅ Success! Copy this code and paste it to Claude:",
-        "code": code,
-        "next": "Paste this code to Claude to exchange for an access token"
-    }
-
-@app.get("/tiktok-code")
-def get_tiktok_code():
-    """Read the captured TikTok code."""
-    return _tiktok_code
+    except Exception:
+        raise HTTPException(status_code=502, detail="Instagram metrics unavailable; retry later") from None
+    record_metrics(experiment_id, MetricsCreate(timestamp=metrics["fetched_at"], **{
+        k: metrics[k] for k in ("views", "likes", "comments", "shares", "saves", "fitness")
+    }), db)
+    return metrics
 
 
 @app.get("/{full_path:path}", include_in_schema=False)
@@ -458,7 +476,9 @@ def serve_frontend(full_path: str):
     if not _DIST.exists():
         return {"error": "Frontend not built. Run: cd frontend && npm run build"}
     # Serve static assets directly
-    file = _DIST / full_path
+    file = (_DIST / full_path).resolve()
+    if not file.is_relative_to(_DIST.resolve()):
+        raise HTTPException(status_code=404, detail="Not found")
     if file.exists() and file.is_file():
         return FileResponse(str(file))
     # SPA fallback — always return index.html

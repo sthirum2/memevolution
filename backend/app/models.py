@@ -24,7 +24,7 @@ class Experiment(Base):
     # artefact, and the UI ends up showing "campus · talking_head" where the
     # joke should be.
     content: Mapped[dict] = mapped_column(JsonType, nullable=False, default=dict)
-    deployment_platform: Mapped[str] = mapped_column(String(30), nullable=False, default="tiktok")
+    deployment_platform: Mapped[str] = mapped_column(String(30), nullable=False, default="instagram")
     post_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     deployed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

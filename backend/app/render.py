@@ -1,16 +1,4 @@
-"""
-Turn a meme concept into an actual JPEG.
-
-Instagram will not accept SVG and will not accept a description — it fetches a
-real image file over HTTP. The frontend's memes are an SVG backdrop plus text
-drawn by the browser, which exists nowhere as a file, so this renders the same
-thing server-side into something a platform will take.
-
-1080x1080, JPEG, which Instagram takes directly. TikTok's content-posting API
-has no photo-post route in play here -- only video inbox-upload (see
-publish.py) -- so `image_to_video` below wraps the same JPEG into a real
-MP4 for that platform.
-"""
+"""Render image assets and optionally encode a still frame as a video."""
 
 from __future__ import annotations
 
@@ -168,22 +156,7 @@ def image_to_video(
     duration: float = VIDEO_DURATION_SECONDS,
     timeout: float = 20.0,
 ) -> Path:
-    """Wrap a still JPEG into a real MP4 for TikTok's video-only upload route.
-
-    TikTok's content-posting API has no photo-post endpoint in this
-    integration -- publish.py uploads to the video inbox-upload route and
-    labels the body `video/mp4`. Handing it the raw JPEG bytes under that
-    label is not a real video and TikTok will reject or mangle it. This
-    holds the exact same rendered frame for `duration` seconds instead --
-    same visual, same caption, just a container TikTok actually accepts.
-    A real generative-video pipeline (Veo, on the same API Role 2 already
-    uses) can replace this later without changing anything downstream:
-    publish.py only cares that it gets back a valid video file.
-
-    Uses `imageio-ffmpeg`'s bundled static ffmpeg binary rather than
-    requiring one on the system PATH, so this doesn't need a platform-
-    specific install step for the rest of the team.
-    """
+    """Encode a still JPEG as MP4 for standalone media tools."""
     import imageio_ffmpeg
 
     out_path = out_path or image_path.with_suffix(".mp4")

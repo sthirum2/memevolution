@@ -1,4 +1,4 @@
-"""Command-line demo of the full Role 2 evolutionary loop, no TikTok required."""
+"""Command-line demo of the full Role 2 evolutionary loop, no Instagram publishing required."""
 
 from __future__ import annotations
 

@@ -94,7 +94,7 @@ class MemevolutionBackend:
     def get_observed_results(self, experiment_id: str) -> dict:
         return self.get_experiment(experiment_id).get("observed", {})
 
-    def mark_deployed(self, experiment_id: str, post_id: str, platform: str = "tiktok") -> dict:
+    def mark_deployed(self, experiment_id: str, post_id: str, platform: str = "instagram") -> dict:
         return self._request_json(
             "POST",
             f"/experiments/{experiment_id}/deploy",

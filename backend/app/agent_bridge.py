@@ -60,7 +60,7 @@ def concept_to_content(experiment: Any, media_base: str = "/specimens") -> dict:
             "punchline": "—",
             "caption": "—",
             "audio": str(getattr(g, "audio_strategy", "")).replace("_", " "),
-            "media_url": f"{media_base}/exp_000.svg",
+            "media_url": "",
         }
 
     return {
@@ -70,7 +70,7 @@ def concept_to_content(experiment: Any, media_base: str = "/specimens") -> dict:
         "punchline": c.punchline,
         "caption": c.caption,
         "audio": c.audio_strategy,
-        "media_url": f"/media/{experiment.id}.jpg",
+        "media_url": "",
     }
 
 
@@ -159,134 +159,119 @@ def agent_state_to_api(state: Any) -> dict:
         "beliefs": beliefs,
         # The agent tracks no per-trait confidence, so report the exploitation
         # rate uniformly rather than inventing a number per trait.
-        "confidence": {
-            k: round(float(getattr(state, "exploitation_rate", 0.8)), 2) for k in beliefs
-        },
+        "confidence": {},
         "note": hypotheses[-1] if hypotheses else "Seeded from the starting beliefs.",
     }
 
 
-def run_generation(population_size: int = 5, topic: str | None = None) -> dict:
-    """One real evolutionary step. Returns candidates + the selection."""
-    from memevolution.agent import orchestrator
-    from memevolution.persistence import json_store
-    from memevolution.prediction.mock import MockFitnessPredictor
+def load_state(db):
+    from sqlalchemy import select
+    from .models import AgentState as StateRow
+    from memevolution.models.agent import AgentState
+    row = db.scalar(select(StateRow).order_by(StateRow.generation.desc()).limit(1))
+    if row is None:
+        return AgentState()
+    return AgentState.model_validate(row.strategy_json)
 
-    try:
-        from memevolution.prediction.role1 import Role1FitnessPredictor
 
-        predictor: Any = Role1FitnessPredictor()
-        model = "role1-xgboost"
-    except Exception as exc:  # the model package or its deps may be absent
-        print(f"[agent] Role 1 predictor unavailable ({exc}); using the stub")
-        predictor = MockFitnessPredictor()
-        model = "mock"
+def save_state(db, state):
+    from .models import AgentState as StateRow
+    row = db.get(StateRow, state.generation)
+    if row is None:
+        row = StateRow(generation=state.generation, strategy_json={})
+        db.add(row)
+    row.strategy_json = state.model_dump(mode="json", by_alias=True)
 
-    state = json_store.load_state()
-    result = orchestrator.run_generation(state, predictor, population_size=population_size)
 
-    selected_id = result.selection.selected.id
-    candidates = [
-        experiment_to_api(c, status="predicted" if c.id != selected_id else "predicted")
-        for c in result.candidates
-    ]
+def run_generation(db, population_size=5, topic=None, risk_appetite=0.2):
+    """Generate using real providers and atomically persist the whole batch in SQL."""
+    from memevolution.agent.orchestrator import run_generation as generate
+    from memevolution.llm.gemini import GeminiConceptGenerator
+    from memevolution.prediction.role1 import Role1FitnessPredictor
+    from .models import Experiment, Genome, Prediction
+    from .schemas import GenomeInput
+    from uuid import uuid4
 
-    return {
-        "generation": result.generation,
-        "model": model,
-        "gemini": bool(os.environ.get("GEMINI_API_KEY")),
-        "candidates": candidates,
-        "selection": {
-            "selectedId": selected_id,
-            # The agent says "exploitation"/"exploration"; the UI says exploit/explore.
-            "mode": "explore" if result.selection.mode.startswith("explor") else "exploit",
-            "reasoning": result.selection.reason,
-            "ranking": sorted(
-                [
-                    {
-                        "id": c["id"],
-                        "fitness": c["prediction"]["fitness"],
-                        "confidence": c["prediction"]["confidence"],
-                    }
-                    for c in candidates
-                ],
-                key=lambda r: r["fitness"],
-                reverse=True,
-            ),
-        },
+    state = load_state(db)
+    # Preserve the actual initial beliefs for the history view.
+    if state.generation == 0:
+        save_state(db, state)
+    state = state.model_copy(update={"exploration_rate": risk_appetite,
+                                     "exploitation_rate": 1 - risk_appetite})
+    result = generate(state, Role1FitnessPredictor(), GeminiConceptGenerator(),
+                      population_size=population_size, persist=False, topic=topic)
+    # IDs cannot collide with imported/manual experiments or a previous run.
+    for candidate in result.candidates:
+        candidate.id = "exp_" + uuid4().hex[:16]
+    selected = result.selection.selected
+    selection = {
+        "selectedId": selected.id,
+        "mode": "explore" if result.selection.mode.startswith("explor") else "exploit",
+        "reasoning": result.selection.reason,
+        "ranking": sorted([
+            {"id": c.id, "fitness": c.prediction.fitness, "confidence": c.prediction.confidence}
+            for c in result.candidates
+        ], key=lambda x: x["fitness"], reverse=True),
     }
+    for candidate in result.candidates:
+        content = concept_to_content(candidate)
+        content["_agent"] = candidate.model_dump(mode="json", by_alias=True)
+        content["_selection"] = selection
+        db.add(Experiment(
+            id=candidate.id, generation=candidate.generation, parent_id=candidate.parent_id,
+            status="selected" if candidate.id == selected.id else "predicted",
+            hypothesis=candidate.hypothesis,
+            mutations=[m.model_dump(by_alias=True) for m in candidate.mutations],
+            content=content, deployment_platform="instagram",
+            genome=Genome(**GenomeInput.model_validate(candidate.genome.model_dump()).model_dump()),
+            prediction=Prediction(predicted_fitness=candidate.prediction.fitness, model_version="role1-xgboost"),
+        ))
+    save_state(db, result.state)
+    db.commit()
+    return {"ids": [c.id for c in result.candidates], "selection": selection}
 
 
-def apply_observation(experiment_id: str, metrics: dict) -> dict:
-    """Record real engagement and let the agent learn from the error."""
-    from memevolution.agent import orchestrator
-    from memevolution.models.experiment import Observation
-    from memevolution.persistence import json_store
-
-    fitness = metrics.get("fitness")
-    if fitness is None:
-        fitness = spread_score(
-            metrics.get("views"),
-            metrics.get("likes"),
-            metrics.get("comments"),
-            metrics.get("shares"),
-            metrics.get("saves"),
-        )
-
-    before = json_store.load_state()
-    state, experiment = orchestrator.apply_observation(
-        before, experiment_id, Observation(**{**metrics, "fitness": fitness})
-    )
-
+def apply_observation(db, experiment):
+    """Learn once per experiment from a persisted snapshot, never browser-supplied scores."""
+    from memevolution.models.experiment import Experiment as AgentExperiment, Observation
+    from memevolution.evolution.learning import update_state
+    content = dict(experiment.content or {})
+    if content.get("_evolve"):
+        return content["_evolve"]
+    if not content.get("_agent"):
+        raise ValueError("This experiment has no agent genome; only generated experiments can teach the agent")
+    if not experiment.snapshots or experiment.snapshots[-1].fitness is None:
+        raise ValueError("A stored observation with a complete fitness score is required")
+    snapshot = experiment.snapshots[-1]
+    observed = AgentExperiment.model_validate(content["_agent"])
+    observed.observed = Observation(**{
+        key: getattr(snapshot, key) for key in ("views", "likes", "comments", "shares", "saves", "fitness")
+    })
+    observed.deployment.platform = "instagram"
+    observed.deployment.post_id = experiment.post_id
+    observed.deployment.timestamp = experiment.deployed_at
+    before = load_state(db)
+    state = update_state(before, observed)
     shifts = [
-        {
-            "trait": k,
-            "from": round(before.beliefs.get(k, 0.0), 3),
-            "to": round(v, 3),
-            "delta": round(v - before.beliefs.get(k, 0.0), 3),
-        }
-        for k, v in state.beliefs.items()
-        if abs(v - before.beliefs.get(k, 0.0)) >= 0.001
+        {"trait": key, "from": before.beliefs.get(key, .5), "to": value,
+         "delta": value - before.beliefs.get(key, .5)}
+        for key, value in state.beliefs.items() if value != before.beliefs.get(key, .5)
     ]
-    shifts.sort(key=lambda s: abs(s["delta"]), reverse=True)
+    result = {"generation": state.generation, "previous": agent_state_to_api(before),
+              "next": agent_state_to_api(state), "shifts": shifts, "driverId": experiment.id,
+              "snapshot_id": snapshot.id}
+    content["_evolve"] = result
+    content["_agent"] = observed.model_dump(mode="json", by_alias=True)
+    experiment.content = content
+    experiment.status = "observed"
+    save_state(db, state)
+    db.commit()
+    return result
 
-    return {
-        "generation": state.generation,
-        "previous": agent_state_to_api(before),
-        "next": agent_state_to_api(state),
-        "shifts": shifts,
-        "driverId": experiment_id,
-        "experiment": experiment_to_api(experiment),
-    }
 
-
-def agent_states() -> list[dict]:
-    """Belief history, reconstructed so the trajectory chart has something to plot."""
-    from memevolution.persistence import json_store
-
-    state = json_store.load_state()
-    current = agent_state_to_api(state)
-
-    # The agent keeps only the latest state. Rebuild earlier points from the
-    # experiment history so the chart shows movement rather than a single dot.
-    history = getattr(state, "experiment_history", []) or []
-    if not history:
-        return [current]
-
-    out = []
-    for i, exp in enumerate(history):
-        if getattr(exp, "observed", None) and exp.observed.fitness is not None:
-            out.append(
-                {
-                    "generation": exp.generation,
-                    "beliefs": current["beliefs"],
-                    "confidence": current["confidence"],
-                    "note": getattr(exp, "hypothesis", "") or f"Round {exp.generation}.",
-                }
-            )
-    out.append(current)
-    # Keep one entry per generation, latest wins.
-    seen: dict[int, dict] = {}
-    for row in out:
-        seen[row["generation"]] = row
-    return [seen[k] for k in sorted(seen)]
+def agent_states(db):
+    from sqlalchemy import select
+    from .models import AgentState as StateRow
+    from memevolution.models.agent import AgentState
+    rows = db.scalars(select(StateRow).order_by(StateRow.generation)).all()
+    return [agent_state_to_api(AgentState.model_validate(r.strategy_json)) for r in rows]

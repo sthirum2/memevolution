@@ -4,10 +4,7 @@ Publishing to a real account, server-side.
 Lives here rather than in the browser because it holds the access tokens. A
 long-lived Instagram token in frontend code would be shipped to every visitor.
 
-Instagram publishes outright. TikTok deliberately uses the inbox upload route:
-Direct Post forces SELF_ONLY visibility on any unaudited app, so the post would
-be invisible and there would be no spread to measure. The inbox route has no
-visibility restriction because the creator publishes it themselves.
+Instagram image publishing and real engagement retrieval.
 """
 
 from __future__ import annotations
@@ -21,11 +18,10 @@ import urllib.request
 from datetime import datetime, timezone
 
 from .env import load_dotenv
-from .generate_image import make_meme_image
 
 load_dotenv()
 
-GRAPH = "https://graph.facebook.com/v21.0"
+GRAPH = "https://graph.facebook.com/" + os.environ.get("IG_GRAPH_VERSION", "v21.0")
 
 
 class PublishError(Exception):
@@ -61,34 +57,25 @@ def _graph_error(e: urllib.error.HTTPError) -> str:
 
 def publish(experiment: dict, platform: str) -> dict:
     """Render the meme and put it on the platform. Raises PublishError with guidance."""
+    if platform != "instagram":
+        raise PublishError("Only Instagram is supported")
     content = experiment.get("content") or {}
-    genome = experiment.get("genome") or {}
+    media_url = content.get("media_url", "")
+    if not media_url.startswith("/media/"):
+        raise PublishError("Prepare and review the generated image first")
+    filename = media_url.removeprefix("/media/")
+    if not filename or "/" in filename or "\\" in filename:
+        raise PublishError("Invalid prepared media path")
+    return _publish_instagram(experiment["id"], filename, content.get("caption", ""), "gemini")
 
-    if platform == "instagram":
-        # Instagram's photo-post route wants a still image.
-        path, source = make_meme_image(
-            experiment["id"],
-            content.get("headline", ""),
-            content.get("punchline", ""),
-            content.get("visual_description", ""),
-            genome.get("topic", ""),
-        )
-        return _publish_instagram(experiment["id"], path.name, content.get("caption", ""), source)
-    if platform == "tiktok":
-        # TikTok's content-posting API has no photo-post route in this
-        # integration -- only video inbox-upload -- so this generates real
-        # video (Veo), falling back to a held still frame if Veo can't.
-        from .generate_video import make_meme_video
 
-        path, source = make_meme_video(
-            experiment["id"],
-            content.get("headline", ""),
-            content.get("punchline", ""),
-            content.get("visual_description", ""),
-            genome.get("topic", ""),
-        )
-        return _upload_tiktok(experiment["id"], path, source)
-    raise PublishError(f"No publisher wired for {platform!r}. Use instagram or tiktok.")
+def validate_configuration():
+    missing = [key for key in ("IG_ACCESS_TOKEN", "IG_USER_ID", "PUBLIC_MEDIA_BASE") if not os.environ.get(key)]
+    if missing:
+        raise PublishError("Instagram configuration missing: " + ", ".join(missing))
+    base = urllib.parse.urlparse(os.environ["PUBLIC_MEDIA_BASE"])
+    if base.scheme != "https" or not base.hostname or base.hostname in {"localhost", "127.0.0.1"}:
+        raise PublishError("PUBLIC_MEDIA_BASE must be the public HTTPS origin serving /media")
 
 
 def _publish_instagram(experiment_id: str, filename: str, caption: str, source: str) -> dict:
@@ -122,11 +109,17 @@ def _publish_instagram(experiment_id: str, filename: str, caption: str, source: 
             if st.get("status_code") == "ERROR":
                 raise PublishError("Instagram could not process the image.")
             time.sleep(2)
+        else:
+            raise PublishError("Instagram image processing timed out; no publish request was sent")
         published = _post(
             f"{GRAPH}/{ig_id}/media_publish", {"creation_id": cid, "access_token": token}
         )
         media_id = published["id"]
-        link = _get(f"{GRAPH}/{media_id}?fields=permalink&access_token={token}")
+        # Publishing has succeeded. A permalink failure must not lose the media ID.
+        try:
+            link = _get(f"{GRAPH}/{media_id}?fields=permalink&access_token={token}")
+        except Exception:
+            link = {}
     except urllib.error.HTTPError as e:
         raise PublishError(_graph_error(e)) from None
 
@@ -142,66 +135,13 @@ def _publish_instagram(experiment_id: str, filename: str, caption: str, source: 
     }
 
 
-def _upload_tiktok(experiment_id: str, path, source: str) -> dict:
-    token = os.environ.get("TIKTOK_ACCESS_TOKEN")
-    if not token:
-        raise PublishError(
-            "TikTok is not configured. Put TIKTOK_ACCESS_TOKEN in backend/.env. "
-            "Use the video.upload scope (inbox upload), not video.publish — Direct Post "
-            "forces SELF_ONLY on unaudited apps, so nobody would see it."
-        )
-
-    # `path` is already a real video file -- generate_video.make_meme_video()
-    # guarantees that, whichever tier of its fallback ladder produced it.
-    size = path.stat().st_size
-    try:
-        init = _post(
-            "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/",
-            {
-                "source_info": json.dumps(
-                    {
-                        "source": "FILE_UPLOAD",
-                        "video_size": size,
-                        "chunk_size": size,
-                        "total_chunk_count": 1,
-                    }
-                ),
-                "access_token": token,
-            },
-        )
-        publish_id = init.get("data", {}).get("publish_id", "")
-        upload_url = init.get("data", {}).get("upload_url")
-        if upload_url:
-            body = path.read_bytes()
-            req = urllib.request.Request(upload_url, data=body, method="PUT")
-            req.add_header("Content-Range", f"bytes 0-{size - 1}/{size}")
-            req.add_header("Content-Type", "video/mp4")
-            urllib.request.urlopen(req, timeout=120)
-    except urllib.error.HTTPError as e:
-        raise PublishError(f"TikTok upload failed: HTTP {e.code} {e.read().decode()[:200]}") from None
-
-    return {
-        "experiment_id": experiment_id,
-        "platform": "tiktok",
-        "post_id": publish_id,
-        "permalink": None,
-        "published_at": datetime.now(timezone.utc).isoformat(),
-        "status": "awaiting_user",
-        "instructions": (
-            "Open TikTok, go to your profile and look under Drafts. The upload is waiting "
-            "there — tap Post. It goes out public."
-        ),
-        "image_source": source,
-    }
-
-
 def live_metrics(experiment: dict) -> dict:
     """Ask the platform what actually happened to the post."""
     from .fitness import spread_score
 
     post_id = (experiment.get("deployment") or {}).get("post_id")
     platform = (experiment.get("deployment") or {}).get("platform")
-    if not post_id:
+    if not post_id or post_id.startswith("pending_"):
         raise PublishError("That experiment has not been published yet.")
 
     metrics: dict = {"views": None, "likes": None, "comments": None, "shares": None, "saves": None}
@@ -214,10 +154,11 @@ def live_metrics(experiment: dict) -> dict:
             base = _get(f"{GRAPH}/{post_id}?fields=like_count,comments_count&access_token={token}")
             metrics["likes"] = base.get("like_count")
             metrics["comments"] = base.get("comments_count")
-            ins = _get(f"{GRAPH}/{post_id}/insights?metric=reach,saved,shares&access_token={token}")
+            ins = _get(f"{GRAPH}/{post_id}/insights?metric=views,saved,shares&access_token={token}")
             for row in ins.get("data", []):
-                value = row["values"][0]["value"]
-                key = {"reach": "views", "saved": "saves", "shares": "shares"}.get(row["name"])
+                values = row.get("values") or []
+                value = values[0].get("value") if values else row.get("total_value", {}).get("value")
+                key = {"views": "views", "saved": "saves", "shares": "shares"}.get(row["name"])
                 if key:
                     metrics[key] = value
         except urllib.error.HTTPError as e:
@@ -232,5 +173,5 @@ def live_metrics(experiment: dict) -> dict:
         "experiment_id": experiment["id"],
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         **metrics,
-        "fitness": spread_score(**metrics),
+        "fitness": spread_score(**metrics) if all(v is not None for v in metrics.values()) else None,
     }

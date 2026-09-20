@@ -30,6 +30,8 @@ def run_generation(
     concept_generator: ConceptGenerator | None = None,
     population_size: int = 5,
     rng: random.Random | None = None,
+    persist: bool = True,
+    topic: str | None = None,
 ) -> GenerationResult:
     """Run one full generation and persist the selected experiment + state.
 
@@ -58,13 +60,16 @@ def run_generation(
     )
 
     for candidate in candidates:
+        if topic:
+            candidate.genome.topic = topic
         candidate.prediction = predictor.predict_fitness(candidate.genome)
 
     selection = select_candidate(candidates, exploration_rate=state.exploration_rate, rng=rng)
     selected = selection.selected
     selected.concept = concept_generator.generate_meme_concept(selected.genome)
 
-    json_store.save_experiment(selected)
+    if persist:
+        json_store.save_experiment(selected)
 
     new_state = state.model_copy(
         update={
@@ -74,7 +79,8 @@ def run_generation(
             "experiment_counter": counter,
         }
     )
-    json_store.save_state(new_state)
+    if persist:
+        json_store.save_state(new_state)
 
     return GenerationResult(
         generation=selected.generation,

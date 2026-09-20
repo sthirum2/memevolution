@@ -1,34 +1,4 @@
-"""
-Turn a meme concept into an actual generated video, for platforms that only
-accept video (TikTok's content-posting API has no photo-post route in this
-integration -- see publish.py).
-
-Uses Veo 3.1 on the same `google-genai` SDK and the same GEMINI_API_KEY Role 2
-and generate_image.py already use -- no new account, no new dependency.
-
-Two things worth knowing about this API, since they're easy to get wrong:
-
-  * Video generation is asynchronous. `generate_videos()` returns an
-    Operation, not a video -- you poll `client.operations.get(operation)`
-    until `operation.done`, then download the result. Google's own figures
-    put generation latency between ~11 seconds and several minutes at peak,
-    so this is bounded by `max_wait` and degrades to the image fallback
-    below rather than hanging the caller.
-  * It costs real money per call (billed per second of output), unlike the
-    image/text calls elsewhere in this codebase. Defaults here are the
-    cheapest real-video tier (`veo-3.1-lite-generate-preview`, 720p) to keep
-    that safe for repeated demo runs -- bump `DEFAULT_MODEL` deliberately,
-    not by accident.
-
-Design choice, same as generate_image.py: Veo generates the *visual and
-motion*, and the caption is burned on afterwards frame-by-frame (see
-render.overlay_text_on_video) rather than prompted, because a meme's words
-have to be exactly the ones the agent chose.
-
-Falls back to generate_image.py's still-image pipeline (held as a static
-video) when Veo is unavailable, too slow, or blocked by a safety filter, so
-the demo never breaks on a missing credential or a rejected prompt.
-"""
+"""Optional video-generation utility. The Instagram application publishes reviewed still images."""
 
 from __future__ import annotations
 
@@ -44,7 +14,7 @@ load_dotenv()  # so a key in backend/.env is picked up
 
 DEFAULT_MODEL = "veo-3.1-lite-generate-preview"
 
-VIDEO_ASPECT_RATIO = "9:16"  # vertical, matches TikTok/Reels
+VIDEO_ASPECT_RATIO = "9:16"  # vertical video
 VIDEO_RESOLUTION = "720p"  # cheapest tier; lite doesn't support 4k
 VIDEO_DURATION_SECONDS = "8"  # Veo only accepts "4", "6" or "8"
 

@@ -2,7 +2,7 @@
 """
 The bridge Role 2 asked for: real engagement -> fitness -> the agent learns.
 
-    real numbers (Instagram/TikTok, or typed in by hand)
+    real numbers (Instagram, or typed in by hand)
         -> spread_score()            the one definition, backend/app/fitness.py
         -> POST /experiments/{id}/metrics       so the API and the UI see it
         -> agent.apply_observation()            so beliefs actually move

@@ -62,9 +62,7 @@ function LoadError({ message }: { message: string }) {
         <h2 className="font-display text-lg font-bold text-dead">Could not load</h2>
         <p className="break-words text-sm text-muted">{message}</p>
         <p className="text-sm text-muted">
-          If you are pointed at a live backend, check it is running. Otherwise set{' '}
-          <code className="rounded bg-paper px-1 py-0.5 text-xs">VITE_USE_MOCK=true</code> in{' '}
-          <code className="rounded bg-paper px-1 py-0.5 text-xs">.env</code>.
+          Check that the backend is running and reachable, then retry.
         </p>
         <Button onClick={() => void init()} className="self-start">
           Try again

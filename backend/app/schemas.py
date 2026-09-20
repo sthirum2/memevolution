@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 
 class GenomeInput(BaseModel):
@@ -55,9 +56,16 @@ class PredictionCreate(BaseModel):
 
 
 class DeployCreate(BaseModel):
-    post_id: str
-    platform: str = "tiktok"
+    post_id: str = Field(min_length=1, max_length=200)
+    platform: Literal["instagram"] = "instagram"
     timestamp: datetime | None = None
+
+    @field_validator("post_id")
+    @classmethod
+    def real_post_id(cls, value: str) -> str:
+        if not value.strip() or value.startswith("pending_"):
+            raise ValueError("An actual Instagram media ID is required")
+        return value
 
 
 class MetricsCreate(BaseModel):
@@ -77,6 +85,7 @@ class GenomeResponse(GenomeInput):
 class PredictionResponse(BaseModel):
     fitness: float
     model_version: str
+    confidence: float | None = None
 
 
 class DeploymentResponse(BaseModel):
@@ -113,6 +122,12 @@ class PropagationPoint(SnapshotResponse):
 
 class ExperimentResponse(BaseModel):
     id: str
+    status: str = "selected"
+    agent_genome: dict | None = None
+    selection: dict | None = None
+    publish_result: dict | None = None
+    evolve_result: dict | None = None
+    timeseries: list[SnapshotResponse] = Field(default_factory=list)
     generation: int
     parent_id: str | None
     genome: GenomeResponse
@@ -127,3 +142,14 @@ class ExperimentResponse(BaseModel):
 class GenerationResponse(BaseModel):
     generation: int
     experiments: list[ExperimentResponse]
+
+
+class GenerationRequest(BaseModel):
+    count: int = Field(default=5, ge=1, le=20)
+    topic: str | None = Field(default=None, min_length=1, max_length=100)
+    platform: Literal["instagram"] = "instagram"
+    riskAppetite: float = Field(default=0.2, ge=0, le=1)
+
+
+class PublishRequest(BaseModel):
+    platform: Literal["instagram"] = "instagram"

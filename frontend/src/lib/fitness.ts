@@ -41,7 +41,7 @@ export const STATUS: Record<
   ExperimentStatus,
   { label: string; tone: 'win' | 'dead' | 'guess' | 'muted' }
 > = {
-  survived: { label: 'Winner', tone: 'win' },
+  survived: { label: 'Observed', tone: 'win' },
   deployed: { label: 'Posted — results coming in', tone: 'win' },
   extinct: { label: 'Eliminated', tone: 'dead' },
   predicted: { label: 'Not posted yet', tone: 'guess' },
